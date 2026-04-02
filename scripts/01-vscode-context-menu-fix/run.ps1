@@ -5,11 +5,12 @@
 .DESCRIPTION
     Reads paths from config.json and log messages from log-messages.json,
     then creates the required registry entries for files, folders, and
-    folder backgrounds. Must be run as Administrator.
+    folder backgrounds. Supports both VS Code Stable and Insiders editions.
+    Must be run as Administrator.
 
 .NOTES
     Author : Lovable AI
-    Version: 1.0.0
+    Version: 1.1.0
 #>
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -44,6 +45,31 @@ function Assert-Admin {
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($identity)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Resolve-VsCodePath {
+    param(
+        [PSCustomObject]$PathConfig,
+        [string]$PreferredType
+    )
+
+    $rawPath = $PathConfig.$PreferredType
+    $exePath = [System.Environment]::ExpandEnvironmentVariables($rawPath)
+
+    if (Test-Path $exePath) { return $exePath }
+
+    # Fallback to the other type
+    $fallback = if ($PreferredType -eq "user") { "system" } else { "user" }
+    $fallbackRaw = $PathConfig.$fallback
+    $fallbackExe = [System.Environment]::ExpandEnvironmentVariables($fallbackRaw)
+
+    Write-Log "Primary path not found ($exePath), trying $fallback..." "warn"
+    if (Test-Path $fallbackExe) {
+        Write-Log "Fallback path valid: $fallbackExe" "ok"
+        return $fallbackExe
+    }
+
+    return $null
 }
 
 # ── Main ─────────────────────────────────────────────────────────────
@@ -81,35 +107,6 @@ if (-not (Test-Path $cfgPath)) {
 $Config = Get-Content $cfgPath -Raw | ConvertFrom-Json
 Write-Log "Configuration loaded" "ok"
 
-# Determine VS Code path
-Write-Log $script:LogMessages.steps.detectInstall
-$installType = $Config.installationType
-$rawPath     = $Config.vscodePath.$installType
-# Expand environment variables in the path
-$VsCodeExe   = [System.Environment]::ExpandEnvironmentVariables($rawPath)
-Write-Log "Installation type: $installType" "info"
-
-Write-Log $script:LogMessages.steps.validatePath
-if (-not (Test-Path $VsCodeExe)) {
-    Write-Log "$($script:LogMessages.errors.vscodeNotFound) ($VsCodeExe)" "fail"
-
-    # Try the other path as fallback
-    $fallback = if ($installType -eq "user") { "system" } else { "user" }
-    $fallbackRaw = $Config.vscodePath.$fallback
-    $fallbackExe = [System.Environment]::ExpandEnvironmentVariables($fallbackRaw)
-
-    Write-Log "Trying fallback ($fallback): $fallbackExe" "warn"
-    if (Test-Path $fallbackExe) {
-        $VsCodeExe = $fallbackExe
-        Write-Log "Fallback path valid" "ok"
-    } else {
-        Write-Log "Fallback path also not found. Aborting." "fail"
-        exit 1
-    }
-} else {
-    Write-Log "VS Code found at: $VsCodeExe" "ok"
-}
-
 # Map HKCR PSDrive
 Write-Log $script:LogMessages.steps.mapDrive
 if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
@@ -119,62 +116,98 @@ if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
     Write-Log "HKCR PSDrive already exists" "skip"
 }
 
-$Label   = $Config.contextMenuLabel
-$IconVal = "`"$VsCodeExe`""
+$installType     = $Config.installationType
+$enabledEditions = $Config.enabledEditions
+$totalSuccess    = $true
 
-# Registry entries to create
-$Entries = @(
-    @{
-        Step    = $script:LogMessages.steps.regFile
-        Path    = $Config.registryPaths.file
-        CmdArg  = "`"$VsCodeExe`" `"%1`""
-    },
-    @{
-        Step    = $script:LogMessages.steps.regDir
-        Path    = $Config.registryPaths.directory
-        CmdArg  = "`"$VsCodeExe`" `"%V`""
-    },
-    @{
-        Step    = $script:LogMessages.steps.regBg
-        Path    = $Config.registryPaths.background
-        CmdArg  = "`"$VsCodeExe`" `"%V`""
+Write-Log "Installation type preference: $installType" "info"
+Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
+Write-Host ""
+
+# ── Process each edition ─────────────────────────────────────────────
+foreach ($editionName in $enabledEditions) {
+    $edition = $Config.editions.$editionName
+
+    if (-not $edition) {
+        Write-Log "Unknown edition '$editionName' in enabledEditions — skipping" "warn"
+        continue
     }
-)
 
-foreach ($entry in $Entries) {
-    Write-Log $entry.Step
-    try {
-        New-Item    -Path $entry.Path           -Force | Out-Null
-        Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label
-        Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal
+    Write-Host "  ┌──────────────────────────────────────────────" -ForegroundColor DarkCyan
+    Write-Host "  │  Edition: $($edition.contextMenuLabel)" -ForegroundColor Cyan
+    Write-Host "  └──────────────────────────────────────────────" -ForegroundColor DarkCyan
 
-        $cmdPath = "$($entry.Path)\command"
-        New-Item    -Path $cmdPath              -Force | Out-Null
-        Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg
+    # Resolve exe path
+    Write-Log $script:LogMessages.steps.detectInstall
+    $VsCodeExe = Resolve-VsCodePath -PathConfig $edition.vscodePath -PreferredType $installType
 
-        Write-Log "Registry key created" "ok"
-    } catch {
-        Write-Log "$($script:LogMessages.errors.registryFail) $_" "fail"
+    if (-not $VsCodeExe) {
+        Write-Log "$($edition.contextMenuLabel): executable not found — skipping this edition" "warn"
+        $totalSuccess = $false
+        Write-Host ""
+        continue
     }
+    Write-Log "Found: $VsCodeExe" "ok"
+
+    $Label   = $edition.contextMenuLabel
+    $IconVal = "`"$VsCodeExe`""
+
+    # Registry entries
+    $Entries = @(
+        @{
+            Step   = $script:LogMessages.steps.regFile
+            Path   = $edition.registryPaths.file
+            CmdArg = "`"$VsCodeExe`" `"%1`""
+        },
+        @{
+            Step   = $script:LogMessages.steps.regDir
+            Path   = $edition.registryPaths.directory
+            CmdArg = "`"$VsCodeExe`" `"%V`""
+        },
+        @{
+            Step   = $script:LogMessages.steps.regBg
+            Path   = $edition.registryPaths.background
+            CmdArg = "`"$VsCodeExe`" `"%V`""
+        }
+    )
+
+    foreach ($entry in $Entries) {
+        Write-Log $entry.Step
+        try {
+            New-Item         -Path $entry.Path -Force | Out-Null
+            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label
+            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal
+
+            $cmdPath = "$($entry.Path)\command"
+            New-Item         -Path $cmdPath -Force | Out-Null
+            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg
+
+            Write-Log "Registry key created" "ok"
+        } catch {
+            Write-Log "$($script:LogMessages.errors.registryFail) $_" "fail"
+            $totalSuccess = $false
+        }
+    }
+
+    # Verify
+    Write-Log $script:LogMessages.steps.verify
+    foreach ($entry in $Entries) {
+        if (Test-Path $entry.Path) {
+            Write-Log "  ✓ $($entry.Path)" "ok"
+        } else {
+            Write-Log "  ✗ $($entry.Path)" "fail"
+            $totalSuccess = $false
+        }
+    }
+
+    Write-Host ""
 }
 
-# Verify
-Write-Log $script:LogMessages.steps.verify
-$allGood = $true
-foreach ($entry in $Entries) {
-    if (Test-Path $entry.Path) {
-        Write-Log "  ✓ $($entry.Path)" "ok"
-    } else {
-        Write-Log "  ✗ $($entry.Path)" "fail"
-        $allGood = $false
-    }
-}
-
-if ($allGood) {
+# ── Summary ──────────────────────────────────────────────────────────
+if ($totalSuccess) {
     Write-Log $script:LogMessages.steps.done "ok"
 } else {
-    Write-Log "Some entries could not be verified." "warn"
+    Write-Log "Completed with some warnings — check output above." "warn"
 }
 
-# Footer
 Write-Banner $script:LogMessages.footer "Green"
