@@ -20,7 +20,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [int]$I
+    [int]$I,
+
+    [switch]$Merge
 )
 
 $ErrorActionPreference = "Stop"
