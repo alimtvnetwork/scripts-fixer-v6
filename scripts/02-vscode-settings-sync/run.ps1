@@ -263,13 +263,30 @@ foreach ($editionName in $enabledEditions) {
     $backupOk = Backup-File -FilePath $destSettings -BackupSuffix $Config.backupSuffix
 
     if ($backupOk) {
-        Write-Log $script:LogMessages.steps.applySettings
-        try {
-            Copy-Item -Path $srcSettings -Destination $destSettings -Force
-            Write-Log "settings.json applied to $settingsDir" "ok"
-        } catch {
-            Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
-            $totalSuccess = $false
+        if ($Merge -and (Test-Path $destSettings)) {
+            Write-Log "Merge mode: deep-merging into existing settings.json" "info"
+            try {
+                $existingObj = Get-Content $destSettings -Raw | ConvertFrom-Json
+                $incomingObj = Get-Content $srcSettings -Raw | ConvertFrom-Json
+                $existingHt  = ConvertTo-OrderedHashtable -InputObject $existingObj
+                $incomingHt  = ConvertTo-OrderedHashtable -InputObject $incomingObj
+                $merged      = Merge-JsonDeep -Base $existingHt -Override $incomingHt
+                $merged | ConvertTo-Json -Depth 20 | Out-File -FilePath $destSettings -Encoding utf8 -Force
+                Write-Log "settings.json merged into $settingsDir" "ok"
+            } catch {
+                Write-Log "Merge failed: $_ — falling back to replace" "warn"
+                Copy-Item -Path $srcSettings -Destination $destSettings -Force
+                Write-Log "settings.json replaced in $settingsDir" "ok"
+            }
+        } else {
+            Write-Log $script:LogMessages.steps.applySettings
+            try {
+                Copy-Item -Path $srcSettings -Destination $destSettings -Force
+                Write-Log "settings.json applied to $settingsDir" "ok"
+            } catch {
+                Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
+                $totalSuccess = $false
+            }
         }
     } else {
         $totalSuccess = $false
