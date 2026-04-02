@@ -74,6 +74,41 @@ function Backup-File {
     }
 }
 
+function Merge-JsonDeep {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Base,
+        [Parameter(Mandatory)]
+        [hashtable]$Override
+    )
+
+    $result = $Base.Clone()
+    foreach ($key in $Override.Keys) {
+        if ($result.ContainsKey($key) -and
+            $result[$key] -is [hashtable] -and
+            $Override[$key] -is [hashtable]) {
+            $result[$key] = Merge-JsonDeep -Base $result[$key] -Override $Override[$key]
+        } else {
+            $result[$key] = $Override[$key]
+        }
+    }
+    return $result
+}
+
+function ConvertTo-OrderedHashtable {
+    param([Parameter(Mandatory)][PSCustomObject]$InputObject)
+
+    $ht = [ordered]@{}
+    foreach ($prop in $InputObject.PSObject.Properties) {
+        if ($prop.Value -is [PSCustomObject]) {
+            $ht[$prop.Name] = ConvertTo-OrderedHashtable -InputObject $prop.Value
+        } else {
+            $ht[$prop.Name] = $prop.Value
+        }
+    }
+    return $ht
+}
+
 # ── Main ─────────────────────────────────────────────────────────────
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
