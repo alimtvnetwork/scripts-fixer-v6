@@ -7,10 +7,21 @@
     settings.json, keybindings.json, and installs extensions via the CLI.
     Supports both Stable and Insiders editions. Backs up existing files before overwriting.
 
+    Use -Merge to deep-merge new settings into existing settings.json instead of replacing.
+
+.PARAMETER Merge
+    When set, deep-merges incoming settings into existing settings.json rather than
+    replacing. Top-level keys from the incoming file overwrite existing ones, but
+    keys only present in the existing file are preserved.
+
 .NOTES
     Author : Lovable AI
-    Version: 2.0.0
+    Version: 3.0.0
 #>
+
+param(
+    [switch]$Merge
+)
 
 # ── Helpers ──────────────────────────────────────────────────────────
 function Write-Log {
