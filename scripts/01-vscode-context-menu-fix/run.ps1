@@ -174,13 +174,13 @@ foreach ($editionName in $enabledEditions) {
     foreach ($entry in $Entries) {
         Write-Log $entry.Step
         try {
-            New-Item         -Path $entry.Path -Force | Out-Null
-            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label
-            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal
+            New-Item         -Path $entry.Path -Force -Confirm:$false | Out-Null
+            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label -Force
+            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal -Force
 
             $cmdPath = "$($entry.Path)\command"
-            New-Item         -Path $cmdPath -Force | Out-Null
-            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg
+            New-Item         -Path $cmdPath -Force -Confirm:$false | Out-Null
+            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg -Force
 
             Write-Log "Registry key created" "ok"
         } catch {
