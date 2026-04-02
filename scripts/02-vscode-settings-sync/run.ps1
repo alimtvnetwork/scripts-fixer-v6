@@ -219,6 +219,11 @@ $enabledEditions = $Config.enabledEditions
 $totalSuccess    = $true
 
 Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
+if ($Merge) {
+    Write-Log "Merge mode enabled — settings will be deep-merged, not replaced" "info"
+} else {
+    Write-Log "Replace mode — existing settings will be backed up and replaced" "info"
+}
 Write-Host ""
 
 # ── Process each edition ─────────────────────────────────────────────
