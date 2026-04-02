@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-    Applies VS Code settings and installs extensions for Stable & Insiders.
+    Imports a VS Code profile: settings, keybindings, and extensions for Stable & Insiders.
 
 .DESCRIPTION
-    Reads configuration from config.json, backs up existing settings.json,
-    copies the provided settings.json, and installs extensions from
-    extensions.json using the VS Code CLI.
+    Reads a VS Code .code-profile export (or individual JSON files) and applies
+    settings.json, keybindings.json, and installs extensions via the CLI.
+    Supports both Stable and Insiders editions. Backs up existing files before overwriting.
 
 .NOTES
     Author : Lovable AI
-    Version: 1.0.0
+    Version: 2.0.0
 #>
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -40,6 +40,29 @@ function Write-Banner {
     Write-Host ""
 }
 
+function Backup-File {
+    param([string]$FilePath, [string]$BackupSuffix)
+
+    if (Test-Path $FilePath) {
+        $dir       = Split-Path $FilePath -Parent
+        $name      = Split-Path $FilePath -Leaf
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $backupName = "$name.$timestamp$BackupSuffix"
+        $backupPath = Join-Path $dir $backupName
+        try {
+            Copy-Item -Path $FilePath -Destination $backupPath -Force
+            Write-Log "Backup created: $backupName" "ok"
+            return $true
+        } catch {
+            Write-Log "Backup failed for $name — $_" "fail"
+            return $false
+        }
+    } else {
+        Write-Log "No existing $( Split-Path $FilePath -Leaf ) to back up" "skip"
+        return $true
+    }
+}
+
 # ── Main ─────────────────────────────────────────────────────────────
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -64,24 +87,86 @@ if (-not (Test-Path $cfgPath)) {
 $Config = Get-Content $cfgPath -Raw | ConvertFrom-Json
 Write-Log "Configuration loaded" "ok"
 
-# Check for settings.json
-$srcSettings = Join-Path $ScriptDir "settings.json"
-if (-not (Test-Path $srcSettings)) {
-    Write-Log $script:LogMessages.errors.settingsNotFound "fail"
-    exit 1
-}
-Write-Log "Source settings.json found" "ok"
+# ── Determine source files ──────────────────────────────────────────
+# Check for .code-profile first, then fall back to individual JSON files
+$profileFiles = Get-ChildItem -Path $ScriptDir -Filter "*.code-profile" -ErrorAction SilentlyContinue
+$srcSettings    = $null
+$srcKeybindings = $null
 
-# Load extensions
+if ($profileFiles -and $profileFiles.Count -gt 0) {
+    $profilePath = $profileFiles[0].FullName
+    Write-Log "Found VS Code profile: $($profileFiles[0].Name)" "ok"
+    Write-Log "Parsing profile to extract settings, keybindings, and extensions..." "info"
+
+    try {
+        $profileData = Get-Content $profilePath -Raw | ConvertFrom-Json
+
+        # Extract settings
+        if ($profileData.settings) {
+            $settingsWrapper = $profileData.settings | ConvertFrom-Json
+            $settingsContent = $settingsWrapper.settings
+            $tmpSettings = Join-Path $env:TEMP "vscode-profile-settings.json"
+            $settingsContent | Out-File -FilePath $tmpSettings -Encoding utf8 -Force
+            $srcSettings = $tmpSettings
+            Write-Log "Extracted settings from profile" "ok"
+        }
+
+        # Extract keybindings
+        if ($profileData.keybindings) {
+            $kbWrapper = $profileData.keybindings | ConvertFrom-Json
+            $kbContent = $kbWrapper.keybindings
+            $tmpKeybindings = Join-Path $env:TEMP "vscode-profile-keybindings.json"
+            $kbContent | Out-File -FilePath $tmpKeybindings -Encoding utf8 -Force
+            $srcKeybindings = $tmpKeybindings
+            Write-Log "Extracted keybindings from profile" "ok"
+        }
+
+        # Extract extensions from profile
+        if ($profileData.extensions) {
+            $profileExtensions = $profileData.extensions | ConvertFrom-Json
+            $enabledExts = @($profileExtensions | Where-Object { -not $_.disabled } | ForEach-Object { $_.identifier.id })
+            Write-Log "Extracted $($enabledExts.Count) extension(s) from profile" "ok"
+        }
+    } catch {
+        Write-Log "Failed to parse profile: $_" "fail"
+        Write-Log "Falling back to individual JSON files..." "warn"
+    }
+}
+
+# Fall back to individual files if profile parsing didn't provide them
+if (-not $srcSettings) {
+    $srcSettings = Join-Path $ScriptDir "settings.json"
+    if (-not (Test-Path $srcSettings)) {
+        Write-Log $script:LogMessages.errors.settingsNotFound "fail"
+        exit 1
+    }
+    Write-Log "Source settings.json found" "ok"
+}
+
+if (-not $srcKeybindings) {
+    $srcKeybindings = Join-Path $ScriptDir "keybindings.json"
+    if (Test-Path $srcKeybindings) {
+        Write-Log "Source keybindings.json found" "ok"
+    } else {
+        $srcKeybindings = $null
+        Write-Log "No keybindings.json — skipping keybindings" "skip"
+    }
+}
+
+# Load extensions (profile-extracted or from file)
 Write-Log $script:LogMessages.steps.loadExtensions
-$extPath = Join-Path $ScriptDir "extensions.json"
-$Extensions = @()
-if (Test-Path $extPath) {
-    $extData    = Get-Content $extPath -Raw | ConvertFrom-Json
-    $Extensions = $extData.extensions
-    Write-Log "$($Extensions.Count) extension(s) to install" "ok"
+if (-not $enabledExts) {
+    $extPath = Join-Path $ScriptDir "extensions.json"
+    if (Test-Path $extPath) {
+        $extData    = Get-Content $extPath -Raw | ConvertFrom-Json
+        $enabledExts = @($extData.extensions)
+        Write-Log "$($enabledExts.Count) extension(s) to install" "ok"
+    } else {
+        $enabledExts = @()
+        Write-Log $script:LogMessages.errors.extensionsNotFound "warn"
+    }
 } else {
-    Write-Log $script:LogMessages.errors.extensionsNotFound "warn"
+    Write-Log "$($enabledExts.Count) extension(s) to install (from profile)" "ok"
 }
 
 $enabledEditions = $Config.enabledEditions
@@ -117,8 +202,9 @@ foreach ($editionName in $enabledEditions) {
     Write-Log "'$cliCmd' found in PATH" "ok"
 
     # Resolve settings directory
-    $settingsDir  = [System.Environment]::ExpandEnvironmentVariables($edition.settingsPath)
-    $destSettings = Join-Path $settingsDir "settings.json"
+    $settingsDir    = [System.Environment]::ExpandEnvironmentVariables($edition.settingsPath)
+    $destSettings   = Join-Path $settingsDir "settings.json"
+    $destKeybindings = Join-Path $settingsDir "keybindings.json"
 
     # Create settings dir if missing
     if (-not (Test-Path $settingsDir)) {
@@ -126,38 +212,45 @@ foreach ($editionName in $enabledEditions) {
         Write-Log "Created settings directory: $settingsDir" "ok"
     }
 
-    # Backup existing settings
-    if (Test-Path $destSettings) {
-        Write-Log $script:LogMessages.steps.backupSettings
-        $timestamp  = Get-Date -Format "yyyyMMdd-HHmmss"
-        $backupName = "settings.json.$timestamp$($Config.backupSuffix)"
-        $backupPath = Join-Path $settingsDir $backupName
+    # ── Apply settings.json ──────────────────────────────────────────
+    Write-Log $script:LogMessages.steps.backupSettings
+    $backupOk = Backup-File -FilePath $destSettings -BackupSuffix $Config.backupSuffix
+
+    if ($backupOk) {
+        Write-Log $script:LogMessages.steps.applySettings
         try {
-            Copy-Item -Path $destSettings -Destination $backupPath -Force
-            Write-Log "Backup created: $backupName" "ok"
+            Copy-Item -Path $srcSettings -Destination $destSettings -Force
+            Write-Log "settings.json applied to $settingsDir" "ok"
         } catch {
-            Write-Log "$($script:LogMessages.errors.backupFail) $_" "fail"
+            Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
             $totalSuccess = $false
-            Write-Host ""
-            continue
         }
     } else {
-        Write-Log "No existing settings.json to back up" "skip"
-    }
-
-    # Copy new settings
-    Write-Log $script:LogMessages.steps.applySettings
-    try {
-        Copy-Item -Path $srcSettings -Destination $destSettings -Force
-        Write-Log "settings.json applied to $settingsDir" "ok"
-    } catch {
-        Write-Log "$($script:LogMessages.errors.copyFail) $_" "fail"
         $totalSuccess = $false
     }
 
-    # Install extensions
-    if ($Extensions.Count -gt 0) {
-        foreach ($ext in $Extensions) {
+    # ── Apply keybindings.json ───────────────────────────────────────
+    if ($srcKeybindings) {
+        Write-Log "Backing up keybindings..."
+        $kbBackupOk = Backup-File -FilePath $destKeybindings -BackupSuffix $Config.backupSuffix
+
+        if ($kbBackupOk) {
+            Write-Log "Applying keybindings.json..."
+            try {
+                Copy-Item -Path $srcKeybindings -Destination $destKeybindings -Force
+                Write-Log "keybindings.json applied to $settingsDir" "ok"
+            } catch {
+                Write-Log "Failed to copy keybindings: $_" "fail"
+                $totalSuccess = $false
+            }
+        } else {
+            $totalSuccess = $false
+        }
+    }
+
+    # ── Install extensions ───────────────────────────────────────────
+    if ($enabledExts.Count -gt 0) {
+        foreach ($ext in $enabledExts) {
             Write-Log "$($script:LogMessages.steps.installExt) $ext"
             try {
                 $output = & $cliCmd --install-extension $ext --force 2>&1
@@ -169,13 +262,17 @@ foreach ($editionName in $enabledEditions) {
         }
     }
 
-    # Verify
+    # ── Verify ───────────────────────────────────────────────────────
     Write-Log $script:LogMessages.steps.verify
     if (Test-Path $destSettings) {
         Write-Log "settings.json present at $destSettings" "ok"
     } else {
         Write-Log "settings.json NOT found at $destSettings" "fail"
         $totalSuccess = $false
+    }
+
+    if ($srcKeybindings -and (Test-Path $destKeybindings)) {
+        Write-Log "keybindings.json present at $destKeybindings" "ok"
     }
 
     Write-Host ""
