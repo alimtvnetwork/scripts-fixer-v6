@@ -50,6 +50,8 @@ param(
 
     [switch]$w,
 
+    [switch]$t,
+
     [switch]$Merge,
 
     [switch]$Clean,
