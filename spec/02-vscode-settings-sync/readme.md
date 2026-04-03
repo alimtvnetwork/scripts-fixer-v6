@@ -132,7 +132,7 @@ what was extracted from it, and which fallback JSON files were used.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+2. Dot-source shared helpers (`git-pull.ps1`, `logging.ps1`, `json-utils.ps1`, `resolved.ps1`)
    - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
    - If run standalone, git pull executes normally
 3. `Initialize-Logging` -- clean `logs/`, start transcript
@@ -143,10 +143,11 @@ what was extracted from it, and which fallback JSON files were used.
 8. For each enabled edition -> `Invoke-Edition`:
    a. Check CLI command availability (`code` / `code-insiders`)
    b. Resolve and create settings directory if needed
-   c. `Apply-Settings` -- backup existing, then copy or deep-merge
-   d. `Apply-Keybindings` -- backup existing, then copy
-   e. `Install-Extensions` -- install each extension via CLI
-   f. Verify applied files exist at destination
+   c. `Save-ResolvedData` -- persist resolved settings dir + CLI command to `.resolved/`
+   d. `Apply-Settings` -- backup existing, then copy or deep-merge
+   e. `Apply-Keybindings` -- backup existing, then copy
+   f. `Install-Extensions` -- install each extension via CLI (checks `$LASTEXITCODE`)
+   g. Verify applied files exist at destination
 9. Display summary footer
 
 ## Logging
