@@ -1,4 +1,4 @@
-# Spec: Script 10 -- Install GitHub Desktop
+# Spec: Script 08 -- Install GitHub Desktop
 
 ## Purpose
 

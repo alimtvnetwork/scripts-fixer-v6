@@ -1,4 +1,4 @@
-# Spec: Script 04 -- Install All Dev Tools
+# Spec: Script 12 -- Install All Dev Tools
 
 ## Purpose
 

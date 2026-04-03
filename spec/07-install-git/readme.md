@@ -1,4 +1,4 @@
-# Spec: Script 09 -- Install Git, Git LFS, and GitHub CLI
+# Spec: Script 07 -- Install Git, Git LFS, and GitHub CLI
 
 ## Purpose
 

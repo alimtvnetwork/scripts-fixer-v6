@@ -1,4 +1,4 @@
-# Spec: Script 07 -- Install Python
+# Spec: Script 05 -- Install Python
 
 ## Purpose
 
