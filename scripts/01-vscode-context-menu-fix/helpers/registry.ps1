@@ -84,7 +84,7 @@ function Save-ResolvedPath {
         [string]$ResolvedExe
     )
 
-    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+    Save-ResolvedData -ScriptFolder "01-vscode-context-menu-fix" -Data @{
         $EditionName = @{
             resolvedExe  = $ResolvedExe
             resolvedAt   = (Get-Date -Format "o")
@@ -179,7 +179,7 @@ function Invoke-Edition {
         [PSCustomObject]$Edition,
         [string]$EditionName,
         [string]$InstallType,
-        [hashtable]$Steps,
+        $Steps,
         [string]$ScriptDir
     )
 

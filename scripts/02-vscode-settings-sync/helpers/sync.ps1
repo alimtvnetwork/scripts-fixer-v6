@@ -189,7 +189,7 @@ function Invoke-Edition {
     param(
         [PSCustomObject]$Edition,
         [string]$EditionName,
-        [hashtable]$Sources,
+        $Sources,
         [string]$BackupSuffix,
         [bool]$MergeMode,
         [string]$ScriptDir
@@ -225,7 +225,7 @@ function Invoke-Edition {
     }
 
     # Save resolved settings path to .resolved/
-    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+    Save-ResolvedData -ScriptFolder "02-vscode-settings-sync" -Data @{
         $EditionName = @{
             settingsDir = $settingsDir
             cliCommand  = $cliCmd

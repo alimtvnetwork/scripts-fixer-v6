@@ -43,7 +43,7 @@ function Save-ResolvedData {
         [string]$ScriptFolder,
 
         [Parameter(Mandatory)]
-        [hashtable]$Data
+        $Data
     )
 
     # Resolve the directory path

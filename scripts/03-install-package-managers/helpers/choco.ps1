@@ -30,7 +30,7 @@ function Install-Chocolatey {
 
     # Save resolved info
     $version = & choco.exe --version 2>&1
-    Save-ResolvedData -ScriptDir $script:ScriptDir -Data @{
+    Save-ResolvedData -ScriptFolder "03-install-package-managers" -Data @{
         chocolatey = @{
             version    = "$version".Trim()
             resolvedAt = (Get-Date -Format "o")
