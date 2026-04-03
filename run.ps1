@@ -145,10 +145,10 @@ if ($CleanOnly) {
     exit 0
 }
 
-# ── Expand -d shortcut ────────────────────────────────────────────────
-if ($d) {
-    $I = 12
-}
+# ── Expand shortcuts ──────────────────────────────────────────────────
+if ($d) { $I = 12 }
+if ($a) { $I = 13 }
+if ($v) { $I = 1 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
