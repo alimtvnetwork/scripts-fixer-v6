@@ -9,7 +9,8 @@
     "regBg": "Creating context menu entry for FOLDER BACKGROUND...",
     "verify": "Verifying registry entries...",
     "done": "All context menu entries created successfully!",
-    "notAdmin": "This script must be run as Administrator."
+    "notAdmin": "This script must be run as Administrator.",
+    "scriptDisabled": "VS Code context menu fix is disabled in config."
   },
   "help": {
     "commands": {},

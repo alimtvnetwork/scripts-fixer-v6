@@ -4,7 +4,8 @@
   "description": "Installs and updates Chocolatey and Winget package managers.",
   "messages": {
     "done": "All package managers are installed and ready.",
-    "notAdmin": "This script must be run as Administrator."
+    "notAdmin": "This script must be run as Administrator.",
+    "scriptDisabled": "Package managers installation is disabled in config."
   },
   "help": {
     "commands": {
