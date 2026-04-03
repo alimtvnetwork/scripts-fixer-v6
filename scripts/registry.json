@@ -1,4 +1,5 @@
 {
+  "_comment": "Script registry -- maps IDs to exact folder names. Used by run.ps1 to resolve -I <number>. Update this file whenever a script folder is added, removed, or renamed.",
   "scripts": {
     "01": "01-install-vscode",
     "02": "02-install-package-managers",
