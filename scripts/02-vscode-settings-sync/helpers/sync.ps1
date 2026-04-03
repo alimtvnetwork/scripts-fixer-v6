@@ -112,7 +112,8 @@ function Apply-Settings {
     Write-Log "Applying settings to: $DestPath" -Level "info"
     $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
-    if (-not $isBackupOk) { return $false }
+    $hasBackupFailed = -not $isBackupOk
+    if ($hasBackupFailed) { return $false }
 
     $hasExistingFile = Test-Path $DestPath
     if ($MergeMode -and $hasExistingFile) {
@@ -152,7 +153,8 @@ function Apply-Keybindings {
     Write-Log "Applying keybindings to: $DestPath" -Level "info"
     $isBackupOk = Backup-File -FilePath $DestPath -BackupSuffix $BackupSuffix
 
-    if (-not $isBackupOk) { return $false }
+    $hasBackupFailed = -not $isBackupOk
+    if ($hasBackupFailed) { return $false }
 
     try {
         Copy-Item -Path $SourcePath -Destination $DestPath -Force
