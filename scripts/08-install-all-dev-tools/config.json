@@ -9,7 +9,8 @@
     "04": { "enabled": true, "folder": "04-install-golang", "name": "Go" },
     "05": { "enabled": true, "folder": "05-install-nodejs", "name": "Node.js" },
     "06": { "enabled": true, "folder": "06-install-python", "name": "Python" },
-    "07": { "enabled": true, "folder": "07-install-pnpm", "name": "pnpm" }
+    "07": { "enabled": true, "folder": "07-install-pnpm", "name": "pnpm" },
+    "09": { "enabled": true, "folder": "09-install-git", "name": "Git" }
   },
-  "sequence": ["03", "04", "05", "06", "07"]
+  "sequence": ["03", "09", "04", "05", "06", "07"]
 }

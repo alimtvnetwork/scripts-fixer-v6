@@ -75,6 +75,7 @@ scripts/
   06-.../              # Python
   07-.../              # pnpm
   08-.../              # Orchestrator
+  09-.../              # Git
 spec/                  # Specifications per script
 suggestions/           # Improvement ideas
 .resolved/             # Runtime state (git-ignored)
