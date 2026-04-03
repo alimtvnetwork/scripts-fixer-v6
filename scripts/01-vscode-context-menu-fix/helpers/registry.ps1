@@ -57,24 +57,17 @@ function Resolve-VsCodePath {
 
 function Save-ResolvedPath {
     param(
-        [string]$ConfigPath,
+        [string]$ScriptDir,
         [string]$EditionName,
         [string]$ResolvedExe
     )
 
-    Write-Log "Persisting resolved path to config.json..." "info"
-    try {
-        $raw    = Get-Content $ConfigPath -Raw
-        $config = $raw | ConvertFrom-Json
-
-        # Add or update the "resolved" key under the edition's vscodePath
-        $config.editions.$EditionName.vscodePath | Add-Member -NotePropertyName "resolved" -NotePropertyValue $ResolvedExe -Force
-
-        $json = $config | ConvertTo-Json -Depth 10
-        [System.IO.File]::WriteAllText($ConfigPath, $json)
-        Write-Log "Saved resolved path: $ResolvedExe" "ok"
-    } catch {
-        Write-Log "Failed to persist path: $_" "warn"
+    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+        $EditionName = @{
+            resolvedExe  = $ResolvedExe
+            resolvedAt   = (Get-Date -Format "o")
+            resolvedBy   = $env:USERNAME
+        }
     }
 }
 
@@ -165,7 +158,7 @@ function Invoke-Edition {
         [string]$EditionName,
         [string]$InstallType,
         [hashtable]$Steps,
-        [string]$ConfigPath
+        [string]$ScriptDir
     )
 
     Write-Host ""
@@ -183,9 +176,9 @@ function Invoke-Edition {
     }
     Write-Log "Using executable: $VsCodeExe" "ok"
 
-    # Persist resolved path back to config.json
-    if ($ConfigPath) {
-        Save-ResolvedPath -ConfigPath $ConfigPath -EditionName $EditionName -ResolvedExe $VsCodeExe
+    # Persist resolved path to .resolved/ (not config.json)
+    if ($ScriptDir) {
+        Save-ResolvedPath -ScriptDir $ScriptDir -EditionName $EditionName -ResolvedExe $VsCodeExe
     }
 
     $Label   = $Edition.contextMenuLabel

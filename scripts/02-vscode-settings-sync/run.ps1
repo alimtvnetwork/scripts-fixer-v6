@@ -32,6 +32,9 @@ if (Test-Path $sharedLogging) {
     exit 1
 }
 
+$sharedResolved = Join-Path $PSScriptRoot "..\shared\resolved.ps1"
+if (Test-Path $sharedResolved) { . $sharedResolved }
+
 function Backup-File {
     param([string]$FilePath, [string]$BackupSuffix)
 
@@ -277,7 +280,8 @@ function Invoke-Edition {
         [string]$EditionName,
         [hashtable]$Sources,
         [string]$BackupSuffix,
-        [bool]$MergeMode
+        [bool]$MergeMode,
+        [string]$ScriptDir
     )
 
     Write-Host ""
@@ -307,6 +311,15 @@ function Invoke-Edition {
         Write-Log "Settings directory does not exist -- creating..." "info"
         New-Item -Path $settingsDir -ItemType Directory -Force -Confirm:$false | Out-Null
         Write-Log "Created: $settingsDir" "ok"
+    }
+
+    # Save resolved settings path to .resolved/
+    Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+        $EditionName = @{
+            settingsDir = $settingsDir
+            cliCommand  = $cliCmd
+            resolvedAt  = (Get-Date -Format "o")
+        }
     }
 
     $destSettings    = Join-Path $settingsDir "settings.json"
@@ -426,7 +439,8 @@ function Main {
                 -EditionName  $editionName `
                 -Sources      $sources `
                 -BackupSuffix $Config.backupSuffix `
-                -MergeMode    $Merge.IsPresent
+                -MergeMode    $Merge.IsPresent `
+                -ScriptDir    $ScriptDir
 
             if (-not $result) { $totalSuccess = $false }
         }
