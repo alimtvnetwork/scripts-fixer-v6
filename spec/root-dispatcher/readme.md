@@ -15,6 +15,7 @@ When run with no parameters, it performs a git pull and shows help
 
 ```powershell
 .\run.ps1                          # Git pull + show help
+.\run.ps1 -d                       # Shortcut for -I 12 (interactive dev tools menu)
 .\run.ps1 -I <number>              # Run a script
 .\run.ps1 -I <number> -Merge       # Run with -Merge passed through
 .\run.ps1 -I <number> -Clean       # Wipe .resolved/ cache, then run
@@ -26,6 +27,7 @@ When run with no parameters, it performs a git pull and shows help
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
+| `-d` | switch | No | Shortcut for `-I 12` -- launches the interactive dev tools menu |
 | `-I` | int | No | Script number to run (resolved via `scripts/registry.json`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
@@ -36,9 +38,10 @@ When run with no parameters, it performs a git pull and shows help
 
 ```powershell
 .\run.ps1                   # Pull, show help
+.\run.ps1 -d                # Pull, then run interactive dev tools menu (script 12)
 .\run.ps1 -I 1              # Pull, then run scripts/01-install-vscode/run.ps1
 .\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-install-package-managers/run.ps1 with merge mode
-.\run.ps1 -I 11             # Pull, then run install-all-dev-tools (interactive menu)
+.\run.ps1 -I 12             # Same as -d (interactive menu)
 .\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-install-vscode/run.ps1
 .\run.ps1 -CleanOnly         # Wipe all cached resolved data
 ```
