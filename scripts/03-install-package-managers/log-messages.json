@@ -1,0 +1,30 @@
+{
+  "banner": [
+    "----------------------------------------------------------------",
+    "  Install Package Managers -- Chocolatey + Winget",
+    "----------------------------------------------------------------"
+  ],
+  "footer": [
+    "----------------------------------------------------------------",
+    "  Done! Package managers are ready to use.",
+    "----------------------------------------------------------------"
+  ],
+  "status": {
+    "ok":   "[  OK  ]",
+    "fail": "[ FAIL ]",
+    "info": "[ INFO ]",
+    "warn": "[ WARN ]",
+    "skip": "[ SKIP ]"
+  },
+  "steps": {
+    "chocoCheck": "Checking Chocolatey installation...",
+    "chocoInstall": "Installing Chocolatey...",
+    "chocoUpgrade": "Upgrading Chocolatey to latest...",
+    "wingetCheck": "Checking Winget installation...",
+    "wingetInstall": "Installing Winget...",
+    "done": "All package managers are installed and ready."
+  },
+  "errors": {
+    "notAdmin": "This script must be run as Administrator."
+  }
+}
