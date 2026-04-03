@@ -45,7 +45,7 @@ function Resolve-DevDir {
 
     # Config override takes precedence
     if (-not [string]::IsNullOrWhiteSpace($override)) {
-        Write-Log "Using dev directory override from config: $override" "info"
+        Write-Log "Using dev directory override from config: $override" -Level "info"
         return $override
     }
 
