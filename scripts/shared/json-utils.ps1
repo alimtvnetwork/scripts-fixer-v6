@@ -45,9 +45,9 @@ function ConvertTo-OrderedHashtable {
 function Merge-JsonDeep {
     param(
         [Parameter(Mandatory)]
-        [hashtable]$Base,
+        $Base,
         [Parameter(Mandatory)]
-        [hashtable]$Override
+        $Override
     )
 
     $result = $Base.Clone()
