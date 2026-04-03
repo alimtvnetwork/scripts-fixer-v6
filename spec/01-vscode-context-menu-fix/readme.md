@@ -60,6 +60,9 @@ spec/
 
 ## config.json Schema
 
+`config.json` is **read-only at runtime**. Scripts never write back to it.
+Runtime-discovered state goes to `.resolved/` instead.
+
 | Key                  | Type   | Description                                        |
 |----------------------|--------|----------------------------------------------------|
 | `vscodePath.user`    | string | Path for per-user VS Code install (with env vars)  |
@@ -69,6 +72,28 @@ spec/
 | `registryPaths.background` | string | Registry key for folder background menu     |
 | `contextMenuLabel`   | string | Label shown in the context menu                    |
 | `installationType`   | string | `"user"` or `"system"` — which path to try first   |
+
+## .resolved/ Schema
+
+Written automatically by the script to `.resolved/01-vscode-context-menu-fix/resolved.json`:
+
+```json
+{
+  "stable": {
+    "resolvedExe": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+    "resolvedAt": "2026-04-03T18:10:02+08:00",
+    "resolvedBy": "alim"
+  },
+  "insiders": {
+    "resolvedExe": "C:\\Program Files\\Microsoft VS Code Insiders\\Code - Insiders.exe",
+    "resolvedAt": "2026-04-03T18:10:05+08:00",
+    "resolvedBy": "alim"
+  }
+}
+```
+
+On subsequent runs, `Resolve-VsCodePath` checks the cache first and skips
+detection if the cached exe path still exists on disk.
 
 ## log-messages.json Schema
 
