@@ -84,7 +84,7 @@ function Initialize-DevDir {
 
     if (-not (Test-Path $DevDir)) {
         New-Item -Path $DevDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created dev directory: $DevDir" "ok"
+        Write-Log "Created dev directory: $DevDir" -Level "success"
     } else {
         Write-Log "Dev directory already exists: $DevDir" "skip"
     }
