@@ -179,7 +179,7 @@ function Invoke-Edition {
         [PSCustomObject]$Edition,
         [string]$EditionName,
         [string]$InstallType,
-        [hashtable]$Steps,
+        $Steps,
         [string]$ScriptDir
     )
 
