@@ -13,7 +13,8 @@ function Install-Chocolatey {
     }
 
     $isChocoReady = Assert-Choco
-    if (-not $isChocoReady) { return $false }
+    $isChocoNotReady = -not $isChocoReady
+    if ($isChocoNotReady) { return $false }
 
     if ($Config.upgradeOnRun) {
         Write-Log "Upgrading Chocolatey itself to latest..." -Level "info"
