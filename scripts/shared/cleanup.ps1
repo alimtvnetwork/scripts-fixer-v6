@@ -14,10 +14,14 @@
     script's resolved.json instead of wiping the whole folder.
 #>
 
-# Load shared log messages (only once)
+# -- Bootstrap shared helpers --------------------------------------------------
+$loggingPath = Join-Path $PSScriptRoot "logging.ps1"
+if ((Test-Path $loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $loggingPath
+}
+
 if (-not $script:SharedLogMessages) {
-    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    $sharedLogPath = Join-Path $PSScriptRoot "log-messages.json"
     if (Test-Path $sharedLogPath) {
         $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
     }
