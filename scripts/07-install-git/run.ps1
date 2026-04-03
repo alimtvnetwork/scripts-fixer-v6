@@ -97,7 +97,7 @@ $pushAutoSetup = & git config --global push.autoSetupRemote 2>$null
 $ghVersion     = & gh --version 2>$null | Select-Object -First 1
 $ghUser        = & gh api user --jq '.login' 2>$null
 
-Save-ResolvedData -ScriptFolder "09-install-git" -Data @{
+Save-ResolvedData -ScriptFolder "07-install-git" -Data @{
     gitVersion       = $gitVersion
     lfsVersion       = $lfsVersion
     ghVersion        = $ghVersion

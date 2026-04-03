@@ -95,7 +95,7 @@ if ($isAllSuccessful) {
 }
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "01-vscode-context-menu-fix" -Data @{
+Save-ResolvedData -ScriptFolder "09-vscode-context-menu-fix" -Data @{
     editions  = ($enabledEditions -join ',')
     timestamp = (Get-Date -Format "o")
 }

@@ -91,7 +91,7 @@ Show-Summary -Results $results -LogMessages $logMessages
 Write-Log $logMessages.messages.allComplete -Level "success"
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "04-install-all-dev-tools" -Data @{
+Save-ResolvedData -ScriptFolder "11-install-all-dev-tools" -Data @{
     devDir    = $devDir
     results   = $results
     timestamp = (Get-Date -Format "o")

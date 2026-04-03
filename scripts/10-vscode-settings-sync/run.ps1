@@ -97,7 +97,7 @@ if ($isAllSuccessful) {
 }
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "02-vscode-settings-sync" -Data @{
+Save-ResolvedData -ScriptFolder "10-vscode-settings-sync" -Data @{
     editions   = ($enabledEditions -join ',')
     mergeMode  = $Merge.IsPresent
     extensions = $sources.Extensions.Count

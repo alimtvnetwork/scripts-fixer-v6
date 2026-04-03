@@ -77,7 +77,7 @@ Write-Log $logMessages.messages.savingResolved -Level "info"
 $pnpmVersion = & pnpm --version 2>$null
 $storeDir    = & pnpm config get store-dir 2>$null
 
-Save-ResolvedData -ScriptFolder "08-install-pnpm" -Data @{
+Save-ResolvedData -ScriptFolder "04-install-pnpm" -Data @{
     pnpmVersion = $pnpmVersion
     storeDir    = $storeDir
     pnpmHome    = $env:PNPM_HOME

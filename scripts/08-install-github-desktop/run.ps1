@@ -61,7 +61,7 @@ Install-GitHubDesktop -Config $config -LogMessages $logMessages
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
 
-Save-ResolvedData -ScriptFolder "10-install-github-desktop" -Data @{
+Save-ResolvedData -ScriptFolder "08-install-github-desktop" -Data @{
     installed = $true
     timestamp = (Get-Date -Format "o")
 }

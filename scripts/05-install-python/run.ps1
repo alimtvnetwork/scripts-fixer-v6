@@ -88,7 +88,7 @@ Write-Log $logMessages.messages.savingResolved -Level "info"
 $pythonVersion = & python --version 2>$null
 $pipVersion    = & pip --version 2>$null
 
-Save-ResolvedData -ScriptFolder "07-install-python" -Data @{
+Save-ResolvedData -ScriptFolder "05-install-python" -Data @{
     pythonVersion  = $pythonVersion
     pipVersion     = $pipVersion
     pythonUserBase = $env:PYTHONUSERBASE
