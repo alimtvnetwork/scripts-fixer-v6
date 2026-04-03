@@ -1,4 +1,4 @@
-# Spec: Script 08 -- Install All Dev Tools
+# Spec: Script 11 -- Install All Dev Tools
 
 ## Purpose
 
@@ -26,6 +26,10 @@ then runs scripts 03-10 in sequence. Supports `--skip` and `--only` filters.
 | `scripts.<id>.name` | string | Display name |
 | `sequence` | array | Execution order |
 
+## Sequence
+
+Default order: `03 (Package Managers) > 09 (Git + LFS + gh) > 04 (Go) > 05 (Node.js) > 06 (Python) > 07 (pnpm) > 10 (GitHub Desktop)`
+
 ## Flow
 
 1. Assert admin privileges
@@ -42,8 +46,10 @@ then runs scripts 03-10 in sequence. Supports `--skip` and `--only` filters.
 ```
 --- Summary ---
   [OK]   03 - Package Managers
+  [OK]   09 - Git + LFS + gh
   [OK]   04 - Go
   [SKIP] 05 - Node.js
   [OK]   06 - Python
   [SKIP] 07 - pnpm
+  [OK]   10 - GitHub Desktop
 ```

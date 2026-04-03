@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 09 -- Install Git and GitHub CLI
-#  Installs Git + GitHub CLI via Chocolatey and configures global settings.
+#  Script 09 -- Install Git, Git LFS, and GitHub CLI
+#  Installs Git + Git LFS + GitHub CLI via Chocolatey and configures settings.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -61,12 +61,14 @@ Assert-Choco
 switch ($Command.ToLower()) {
     "all" {
         Install-Git -Config $config -LogMessages $logMessages
+        Install-GitLfs -Config $config -LogMessages $logMessages
         Install-GitHubCli -Config $config -LogMessages $logMessages
         Configure-GitGlobal -Config $config -LogMessages $logMessages
         Update-GitPath -Config $config -LogMessages $logMessages
     }
     "install" {
         Install-Git -Config $config -LogMessages $logMessages
+        Install-GitLfs -Config $config -LogMessages $logMessages
         Install-GitHubCli -Config $config -LogMessages $logMessages
     }
     "configure" {
@@ -82,6 +84,7 @@ switch ($Command.ToLower()) {
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
 $gitVersion    = & git --version 2>$null
+$lfsVersion    = & git lfs version 2>$null
 $userName      = & git config --global user.name 2>$null
 $userEmail     = & git config --global user.email 2>$null
 $credHelper    = & git config --global credential.helper 2>$null
@@ -94,6 +97,7 @@ $ghUser        = & gh api user --jq '.login' 2>$null
 
 Save-ResolvedData -ScriptFolder "09-install-git" -Data @{
     gitVersion       = $gitVersion
+    lfsVersion       = $lfsVersion
     ghVersion        = $ghVersion
     ghUser           = $ghUser
     userName         = $userName
@@ -106,4 +110,4 @@ Save-ResolvedData -ScriptFolder "09-install-git" -Data @{
     timestamp        = (Get-Date -Format "o")
 }
 
-Write-Log "Git and GitHub CLI setup complete." -Level "success"
+Write-Log "Git, Git LFS, and GitHub CLI setup complete." -Level "success"

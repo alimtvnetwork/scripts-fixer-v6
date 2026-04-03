@@ -1,11 +1,11 @@
 # --------------------------------------------------------------------------
-#  Git and GitHub CLI helper functions
+#  Git, Git LFS, and GitHub CLI helper functions
 # --------------------------------------------------------------------------
 
 function Install-Git {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $packageName = $Config.chocoPackageName
@@ -33,10 +33,48 @@ function Install-Git {
     }
 }
 
+function Install-GitLfs {
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    $lfsConfig = $Config.gitLfs
+    if (-not $lfsConfig.enabled) { return }
+
+    $packageName = $lfsConfig.chocoPackageName
+
+    $existing = Get-Command git-lfs -ErrorAction SilentlyContinue
+    if ($existing) {
+        $currentVersion = & git lfs version 2>$null
+        Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+
+        if ($lfsConfig.alwaysUpgradeToLatest) {
+            Upgrade-ChocoPackage -PackageName $packageName
+            $newVersion = & git lfs version 2>$null
+            Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+        }
+    }
+    else {
+        Write-Log $LogMessages.messages.lfsNotFound -Level "warn"
+        Install-ChocoPackage -PackageName $packageName
+
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+        $installedVersion = & git lfs version 2>$null
+        Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+    }
+
+    # Initialize LFS in the global git config
+    & git lfs install 2>$null
+    Write-Log $LogMessages.messages.lfsInitSuccess -Level "success"
+}
+
 function Install-GitHubCli {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $ghConfig = $Config.githubCli
@@ -83,8 +121,8 @@ function Install-GitHubCli {
 
 function Configure-GitGlobal {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     $gc = $Config.gitConfig
@@ -194,8 +232,8 @@ function Configure-GitGlobal {
 
 function Update-GitPath {
     param(
-        [hashtable]$Config,
-        [hashtable]$LogMessages
+        $Config,
+        $LogMessages
     )
 
     if (-not $Config.path.updateUserPath) { return }

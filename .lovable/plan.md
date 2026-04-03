@@ -32,9 +32,17 @@
 - pnpm: npm install + store-dir config + PATH
 - Create specs for both
 
-## Phase 6: Script 08 (install-all-dev-tools) + README
+## Phase 6: Script 09 (install-git)
+- Install Git, Git LFS, and GitHub CLI via Chocolatey
+- Configure global git settings (user, branch, crlf, editor, etc.)
+- Git LFS: install + `git lfs install` initialization
+
+## Phase 7: Script 10 (install-github-desktop)
+- Install GitHub Desktop via Chocolatey
+
+## Phase 8: Script 11 (install-all-dev-tools) + README
 - Create orchestrator script with --skip, --only, --help
 - Dev directory prompt/resolution
-- Runs 03-07 in sequence, passes $env:DEV_DIR
+- Runs 03-10 in sequence, passes $env:DEV_DIR
 - Update root `readme.md` with full project documentation
 - Final memory updates

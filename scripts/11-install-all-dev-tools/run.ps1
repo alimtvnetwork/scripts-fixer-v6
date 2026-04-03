@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 08 -- Install All Dev Tools
+#  Script 11 -- Install All Dev Tools
 #  Orchestrator: resolves dev directory, then runs scripts 03-10 in sequence.
 # --------------------------------------------------------------------------
 param(
@@ -67,7 +67,7 @@ Show-Summary -Results $results -LogMessages $logMessages
 Write-Log $logMessages.messages.allComplete -Level "success"
 
 # -- Save resolved state -------------------------------------------------------
-Save-ResolvedData -ScriptFolder "08-install-all-dev-tools" -Data @{
+Save-ResolvedData -ScriptFolder "11-install-all-dev-tools" -Data @{
     devDir    = $devDir
     results   = $results
     timestamp = (Get-Date -Format "o")
