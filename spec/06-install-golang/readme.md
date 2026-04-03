@@ -1,4 +1,4 @@
-# Spec: Script 05 -- Install Golang
+# Spec: Script 06 -- Install Golang
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Spec: Script 08 -- Install pnpm
+# Spec: Script 04 -- Install pnpm
 
 ## Purpose
 

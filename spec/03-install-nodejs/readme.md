@@ -1,4 +1,4 @@
-# Spec: Script 06 -- Install Node.js
+# Spec: Script 03 -- Install Node.js
 
 ## Purpose
 
