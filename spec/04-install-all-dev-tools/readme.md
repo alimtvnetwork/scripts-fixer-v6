@@ -1,16 +1,16 @@
-# Spec: Script 11 -- Install All Dev Tools
+# Spec: Script 04 -- Install All Dev Tools
 
 ## Purpose
 
 Orchestrator that resolves the dev directory once, sets `$env:DEV_DIR`,
-then runs scripts 03-10 in sequence. Supports `--skip` and `--only` filters.
+then runs scripts 03, 05-10 in sequence. Supports `--skip` and `--only` filters.
 
 ## Usage
 
 ```powershell
 .\run.ps1                    # Run all enabled scripts
-.\run.ps1 -Skip "05,07"     # Skip Node.js and pnpm
-.\run.ps1 -Only "03,04"     # Run only package managers + Go
+.\run.ps1 -Skip "06,08"     # Skip Node.js and pnpm
+.\run.ps1 -Only "03,05"     # Run only package managers + Go
 .\run.ps1 -Help             # Show usage
 ```
 
@@ -26,9 +26,21 @@ then runs scripts 03-10 in sequence. Supports `--skip` and `--only` filters.
 | `scripts.<id>.name` | string | Display name |
 | `sequence` | array | Execution order |
 
+## Available Scripts
+
+| ID | Name | Description |
+|----|------|-------------|
+| 03 | Package Managers | Install Chocolatey and Winget |
+| 05 | Go | Install Go, configure GOPATH and go env |
+| 06 | Node.js | Install Node.js LTS, configure npm prefix |
+| 07 | Python | Install Python, configure pip user site |
+| 08 | pnpm | Install pnpm, configure global store |
+| 09 | Git + LFS + gh | Install Git, Git LFS, GitHub CLI, configure settings |
+| 10 | GitHub Desktop | Install GitHub Desktop |
+
 ## Sequence
 
-Default order: `03 (Package Managers) > 09 (Git + LFS + gh) > 04 (Go) > 05 (Node.js) > 06 (Python) > 07 (pnpm) > 10 (GitHub Desktop)`
+Default order: `03 (Package Managers) > 09 (Git + LFS + gh) > 05 (Go) > 06 (Node.js) > 07 (Python) > 08 (pnpm) > 10 (GitHub Desktop)`
 
 ## Flow
 
@@ -47,9 +59,9 @@ Default order: `03 (Package Managers) > 09 (Git + LFS + gh) > 04 (Go) > 05 (Node
 --- Summary ---
   [OK]   03 - Package Managers
   [OK]   09 - Git + LFS + gh
-  [OK]   04 - Go
-  [SKIP] 05 - Node.js
-  [OK]   06 - Python
-  [SKIP] 07 - pnpm
+  [OK]   05 - Go
+  [SKIP] 06 - Node.js
+  [OK]   07 - Python
+  [SKIP] 08 - pnpm
   [OK]   10 - GitHub Desktop
 ```

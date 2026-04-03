@@ -1,4 +1,4 @@
-# Spec: Install Golang
+# Spec: Script 05 -- Install Golang
 
 ## Overview
 
@@ -10,17 +10,17 @@ Adapted from the user's existing `go-install.ps1` to follow project conventions.
 ## File Structure
 
 ```
-scripts/04-install-golang/
-├── config.json              # Go settings, GOPATH config, go env settings
-├── go-config.sample.json    # Original reference config from user
-├── log-messages.json        # Display strings and banners
-├── run.ps1                  # Thin orchestrator with subcommand routing
-├── helpers/
-│   └── golang.ps1           # All Go-specific logic
-└── logs/                    # Auto-created (gitignored)
+scripts/05-install-golang/
++-- config.json              # Go settings, GOPATH config, go env settings
++-- go-config.sample.json    # Original reference config from user
++-- log-messages.json        # Display strings and banners
++-- run.ps1                  # Thin orchestrator with subcommand routing
++-- helpers/
+|   +-- golang.ps1           # All Go-specific logic
++-- logs/                    # Auto-created (gitignored)
 
-.resolved/04-install-golang/
-└── resolved.json            # GOPATH, version, timestamps
+.resolved/05-install-golang/
++-- resolved.json            # GOPATH, version, timestamps
 ```
 
 ## Subcommands
@@ -51,7 +51,7 @@ scripts/04-install-golang/
 
 ## GOPATH Resolution Priority
 
-1. `$env:DEV_DIR` + `devDirSubfolder` (set by orchestrator script 11)
+1. `$env:DEV_DIR` + `devDirSubfolder` (set by orchestrator script 04)
 2. `gopath.override` from config (if non-empty)
 3. User prompt (if mode is `json-or-prompt`)
 4. `gopath.default` from config
@@ -67,18 +67,6 @@ scripts/04-install-golang/
 | `Set-GoEnvSetting` | Run `go env -w KEY=VALUE` with logging |
 | `Configure-GoEnv` | Apply all go env settings from config |
 | `Invoke-GoSetup` | Orchestrate full install + configure flow |
-
-## What Changed from Original Script
-
-| Original | New | Change |
-|----------|-----|--------|
-| Inline `Write-Log` | `shared/logging.ps1` | Shared across all scripts |
-| Inline `Ensure-Chocolatey` | `shared/choco-utils.ps1` | Shared + handles PATH refresh |
-| `setx GOPATH` | `[Environment]::SetEnvironmentVariable` | More reliable, no console flash |
-| Inline PATH dedup | `shared/path-utils.ps1` `Add-ToUserPath` | Shared, scope-aware |
-| Flat script | `run.ps1` + `helpers/golang.ps1` | Consistent with project structure |
-| No subcommands | `install` / `configure` / `all` | Flexibility |
-| No resolved cache | `.resolved/` | Persistent state without mutating config |
 
 ## Prerequisites
 

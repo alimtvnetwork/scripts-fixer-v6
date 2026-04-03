@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 05 -- Install Node.js
-#  Installs Node.js (LTS) via Chocolatey and configures npm global prefix.
+#  Script 08 -- Install pnpm
+#  Installs pnpm globally via npm and configures the global store.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -19,12 +19,10 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
-. (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "path-utils.ps1")
-. (Join-Path $sharedDir "dev-dir.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
-. (Join-Path $scriptDir "helpers\nodejs.ps1")
+. (Join-Path $scriptDir "helpers\pnpm.ps1")
 
 # -- Load config & log messages -----------------------------------------------
 $config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
@@ -49,15 +47,7 @@ if ($isDisabled) {
     return
 }
 
-# -- Assert admin --------------------------------------------------------------
-$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
-    Write-Log $logMessages.messages.notAdmin -Level "error"
-    return
-}
-
-# -- Assert Chocolatey ---------------------------------------------------------
-Assert-Choco
+# -- Note: No admin required for pnpm -----------------------------------------
 
 # -- Resolve dev directory -----------------------------------------------------
 $devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
@@ -65,16 +55,16 @@ $devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
     "all" {
-        Install-NodeJs -Config $config -LogMessages $logMessages
-        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+        Install-Pnpm -Config $config -LogMessages $logMessages
+        $storePath = Configure-PnpmStore -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-PnpmPath -Config $config -LogMessages $logMessages
     }
     "install" {
-        Install-NodeJs -Config $config -LogMessages $logMessages
+        Install-Pnpm -Config $config -LogMessages $logMessages
     }
     "configure" {
-        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+        $storePath = Configure-PnpmStore -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-PnpmPath -Config $config -LogMessages $logMessages
     }
     default {
         Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
@@ -84,15 +74,14 @@ switch ($Command.ToLower()) {
 
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
-$nodeVersion = & node --version 2>$null
-$npmVersion  = & npm --version 2>$null
-$npmPrefix   = & npm config get prefix 2>$null
+$pnpmVersion = & pnpm --version 2>$null
+$storeDir    = & pnpm config get store-dir 2>$null
 
-Save-ResolvedData -ScriptFolder "05-install-nodejs" -Data @{
-    nodeVersion = $nodeVersion
-    npmVersion  = $npmVersion
-    npmPrefix   = $npmPrefix
+Save-ResolvedData -ScriptFolder "08-install-pnpm" -Data @{
+    pnpmVersion = $pnpmVersion
+    storeDir    = $storeDir
+    pnpmHome    = $env:PNPM_HOME
     timestamp   = (Get-Date -Format "o")
 }
 
-Write-Log "Node.js setup complete." -Level "success"
+Write-Log "pnpm setup complete." -Level "success"

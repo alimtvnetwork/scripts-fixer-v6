@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 04 -- Install Golang
-#  Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.
+#  Script 06 -- Install Node.js
+#  Installs Node.js (LTS) via Chocolatey and configures npm global prefix.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -24,11 +24,11 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "dev-dir.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
-. (Join-Path $scriptDir "helpers\golang.ps1")
+. (Join-Path $scriptDir "helpers\nodejs.ps1")
 
 # -- Load config & log messages -----------------------------------------------
-$config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
-$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+$config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages  = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
 if ($Help -or $Command -eq "--help") {
@@ -51,27 +51,49 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
-    Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
 }
 
-# -- Assert Chocolatey (skip for configure-only) -------------------------------
-$isConfigureOnly = $Command.ToLower() -eq "configure"
-if (-not $isConfigureOnly) {
-    Assert-Choco
-}
+# -- Assert Chocolatey ---------------------------------------------------------
+Assert-Choco
+
+# -- Resolve dev directory -----------------------------------------------------
+$devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
 
 # -- Execute subcommand --------------------------------------------------------
-Write-Log "Command: $Command" -Level "info"
-$isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower()
-
-# -- Summary -------------------------------------------------------------------
-if ($isSuccess) {
-    Write-Log $logMessages.messages.done -Level "success"
-} else {
-    Write-Log "Completed with some warnings -- check output above." -Level "warn"
+switch ($Command.ToLower()) {
+    "all" {
+        Install-NodeJs -Config $config -LogMessages $logMessages
+        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+    }
+    "install" {
+        Install-NodeJs -Config $config -LogMessages $logMessages
+    }
+    "configure" {
+        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+    }
+    default {
+        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
+        return
+    }
 }
 
-Write-Log "Go setup complete." -Level "success"
+# -- Save resolved state -------------------------------------------------------
+Write-Log $logMessages.messages.savingResolved -Level "info"
+$nodeVersion = & node --version 2>$null
+$npmVersion  = & npm --version 2>$null
+$npmPrefix   = & npm config get prefix 2>$null
+
+Save-ResolvedData -ScriptFolder "06-install-nodejs" -Data @{
+    nodeVersion = $nodeVersion
+    npmVersion  = $npmVersion
+    npmPrefix   = $npmPrefix
+    timestamp   = (Get-Date -Format "o")
+}
+
+Write-Log "Node.js setup complete." -Level "success"

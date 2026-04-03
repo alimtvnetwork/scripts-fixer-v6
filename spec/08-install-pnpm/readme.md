@@ -1,4 +1,4 @@
-# Spec: Script 07 -- Install pnpm
+# Spec: Script 08 -- Install pnpm
 
 ## Purpose
 
@@ -27,7 +27,7 @@ inside the shared dev directory. Does **not** require admin privileges.
 
 ## Flow
 
-1. Verify npm is available (requires Node.js from script 05)
+1. Verify npm is available (requires Node.js from script 06)
 2. Install pnpm via `npm install -g pnpm`
 3. Configure `pnpm config set store-dir` to dev dir
 4. Set `PNPM_HOME` and add to User PATH
@@ -36,4 +36,4 @@ inside the shared dev directory. Does **not** require admin privileges.
 ## Dependencies
 
 - Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`, `path-utils.ps1`
-- Requires: Node.js/npm (script 05), no admin needed
+- Requires: Node.js/npm (script 06), no admin needed

@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 06 -- Install Python
-#  Installs Python via Chocolatey and configures pip user site.
+#  Script 05 -- Install Golang
+#  Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -24,11 +24,11 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "dev-dir.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
-. (Join-Path $scriptDir "helpers\python.ps1")
+. (Join-Path $scriptDir "helpers\golang.ps1")
 
 # -- Load config & log messages -----------------------------------------------
-$config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
-$logMessages  = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+$config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
 if ($Help -or $Command -eq "--help") {
@@ -51,47 +51,29 @@ if ($isDisabled) {
 
 # -- Assert admin --------------------------------------------------------------
 $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $hasAdminRights) {
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
+    Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
     return
 }
 
-# -- Assert Chocolatey ---------------------------------------------------------
-Assert-Choco
-
-# -- Resolve dev directory -----------------------------------------------------
-$devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
+# -- Assert Chocolatey (skip for configure-only) -------------------------------
+$isConfigureOnly = $Command.ToLower() -eq "configure"
+$isNotConfigureOnly = -not $isConfigureOnly
+if ($isNotConfigureOnly) {
+    Assert-Choco
+}
 
 # -- Execute subcommand --------------------------------------------------------
-switch ($Command.ToLower()) {
-    "all" {
-        Install-Python -Config $config -LogMessages $logMessages
-        $sitePath = Configure-PipSite -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
-    }
-    "install" {
-        Install-Python -Config $config -LogMessages $logMessages
-    }
-    "configure" {
-        $sitePath = Configure-PipSite -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
-    }
-    default {
-        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
-        return
-    }
+Write-Log "Command: $Command" -Level "info"
+$isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower()
+
+# -- Summary -------------------------------------------------------------------
+if ($isSuccess) {
+    Write-Log $logMessages.messages.done -Level "success"
+} else {
+    Write-Log "Completed with some warnings -- check output above." -Level "warn"
 }
 
-# -- Save resolved state -------------------------------------------------------
-Write-Log $logMessages.messages.savingResolved -Level "info"
-$pythonVersion = & python --version 2>$null
-$pipVersion    = & pip --version 2>$null
-
-Save-ResolvedData -ScriptFolder "06-install-python" -Data @{
-    pythonVersion  = $pythonVersion
-    pipVersion     = $pipVersion
-    pythonUserBase = $env:PYTHONUSERBASE
-    timestamp      = (Get-Date -Format "o")
-}
-
-Write-Log "Python setup complete." -Level "success"
+Write-Log "Go setup complete." -Level "success"
