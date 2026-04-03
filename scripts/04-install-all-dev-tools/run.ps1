@@ -1,10 +1,12 @@
 # --------------------------------------------------------------------------
 #  Script 04 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 05-10 in sequence.
+#  Orchestrator: resolves dev directory, then runs scripts 01-03, 05-10.
+#  Supports interactive menu, -All, -Skip, and -Only filters.
 # --------------------------------------------------------------------------
 param(
     [string]$Skip,
     [string]$Only,
+    [switch]$All,
     [switch]$Help
 )
 
@@ -58,7 +60,21 @@ $env:DEV_DIR = $devDir
 Write-Log ($logMessages.messages.devDirResolved -replace '\{path\}', $devDir) -Level "success"
 
 # -- Build script list ---------------------------------------------------------
-$scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
+$hasFilter = $Skip -or $Only
+if ($hasFilter -or $All) {
+    # Flag-based mode: skip interactive menu
+    $scriptList = Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
+} else {
+    # Interactive menu mode
+    $scriptList = Resolve-ScriptList -Config $config -Skip "" -Only ""
+    $scriptList = Show-InteractiveMenu -ScriptList $scriptList -LogMessages $logMessages
+    $hasNoSelection = -not $scriptList -or $scriptList.Count -eq 0
+    if ($hasNoSelection) {
+        Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+        return
+    }
+    Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
+}
 
 # -- Run scripts in sequence ---------------------------------------------------
 $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip

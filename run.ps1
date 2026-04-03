@@ -7,6 +7,7 @@
     so child scripts skip their own git pull, then delegates to
     scripts/<NN>-*/run.ps1 based on the -I parameter.
 
+    When run with no parameters, performs a git pull and shows help.
     Use -Clean to wipe all .resolved/ data before running, forcing fresh detection.
     Use -CleanOnly to wipe .resolved/ without running any script.
     Use -Help to see all available scripts and usage information.
@@ -24,15 +25,17 @@
     Show usage information and list all available scripts.
 
 .EXAMPLE
+    .\run.ps1                  # git pull, show help
     .\run.ps1 -I 1            # git pull, then run scripts/01-*/run.ps1
     .\run.ps1 -I 2 -Merge     # git pull, then run scripts/02-*/run.ps1 with merge
+    .\run.ps1 -I 4            # run install-all-dev-tools (interactive menu)
     .\run.ps1 -I 1 -Clean     # wipe .resolved/, then run scripts/01-*/run.ps1
     .\run.ps1 -CleanOnly       # wipe .resolved/ and exit
     .\run.ps1 -Help            # show all available scripts
 
 .NOTES
     Author : Lovable AI
-    Version: 4.0.0
+    Version: 5.0.0
 #>
 
 param(
@@ -50,40 +53,63 @@ param(
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-# ── Help ─────────────────────────────────────────────────────────────
-if ($Help) {
+# ── Help function ────────────────────────────────────────────────────
+function Show-RootHelp {
     Write-Host ""
     Write-Host "  Dev Tools Setup Scripts" -ForegroundColor Cyan
     Write-Host "  =======================" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Usage:" -ForegroundColor Yellow
-    Write-Host "    .\run.ps1 -I <number>          Run a specific script"
-    Write-Host "    .\run.ps1 -I <number> -Merge   Run with merge flag"
-    Write-Host "    .\run.ps1 -I <number> -Clean   Wipe cache, then run"
-    Write-Host "    .\run.ps1 -CleanOnly            Wipe all cached data"
-    Write-Host "    .\run.ps1 -Help                 Show this help"
+    Write-Host "    .\run.ps1                           Show this help (after git pull)"
+    Write-Host "    .\run.ps1 -I <number>               Run a specific script"
+    Write-Host "    .\run.ps1 -I <number> -Merge        Run with merge flag (script 02)"
+    Write-Host "    .\run.ps1 -I <number> -Clean        Wipe cache, then run"
+    Write-Host "    .\run.ps1 -CleanOnly                 Wipe all cached data"
+    Write-Host "    .\run.ps1 -Help                      Show this help"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "    01  VSCode Context Menu Fix     " -NoNewline; Write-Host "Add/repair VSCode right-click context menu entries" -ForegroundColor DarkGray
-    Write-Host "    02  VSCode Settings Sync        " -NoNewline; Write-Host "Sync VSCode settings, keybindings, and extensions" -ForegroundColor DarkGray
-    Write-Host "    03  Package Managers             " -NoNewline; Write-Host "Install Chocolatey and Winget" -ForegroundColor DarkGray
-    Write-Host "    04  Install All Dev Tools        " -NoNewline; Write-Host "Orchestrator: runs scripts 03, 05-10 in sequence" -ForegroundColor DarkGray
-    Write-Host "    05  Install Golang               " -NoNewline; Write-Host "Install Go, configure GOPATH and go env" -ForegroundColor DarkGray
-    Write-Host "    06  Install Node.js              " -NoNewline; Write-Host "Install Node.js LTS, configure npm prefix" -ForegroundColor DarkGray
-    Write-Host "    07  Install Python               " -NoNewline; Write-Host "Install Python, configure pip user site" -ForegroundColor DarkGray
-    Write-Host "    08  Install pnpm                 " -NoNewline; Write-Host "Install pnpm, configure global store" -ForegroundColor DarkGray
-    Write-Host "    09  Install Git + LFS + gh       " -NoNewline; Write-Host "Install Git, Git LFS, GitHub CLI, configure settings" -ForegroundColor DarkGray
-    Write-Host "    10  Install GitHub Desktop       " -NoNewline; Write-Host "Install GitHub Desktop via Chocolatey" -ForegroundColor DarkGray
+    Write-Host "    ID  Name                          Description" -ForegroundColor DarkGray
+    Write-Host "    --  ----------------------------  ------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host "    01  VSCode Context Menu Fix       " -NoNewline; Write-Host "Add/repair VSCode right-click context menu entries" -ForegroundColor DarkGray
+    Write-Host "    02  VSCode Settings Sync          " -NoNewline; Write-Host "Sync VSCode settings, keybindings, and extensions" -ForegroundColor DarkGray
+    Write-Host "    03  Package Managers              " -NoNewline; Write-Host "Install Chocolatey and Winget" -ForegroundColor DarkGray
+    Write-Host "    04  Install All Dev Tools         " -NoNewline; Write-Host "Interactive menu: pick tools or install everything at once" -ForegroundColor DarkGray
+    Write-Host "    05  Install Golang                " -NoNewline; Write-Host "Install Go, configure GOPATH and go env" -ForegroundColor DarkGray
+    Write-Host "    06  Install Node.js               " -NoNewline; Write-Host "Install Node.js LTS, configure npm prefix" -ForegroundColor DarkGray
+    Write-Host "    07  Install Python                " -NoNewline; Write-Host "Install Python, configure pip user site" -ForegroundColor DarkGray
+    Write-Host "    08  Install pnpm                  " -NoNewline; Write-Host "Install pnpm, configure global store" -ForegroundColor DarkGray
+    Write-Host "    09  Install Git + LFS + gh        " -NoNewline; Write-Host "Install Git, Git LFS, GitHub CLI, configure settings" -ForegroundColor DarkGray
+    Write-Host "    10  Install GitHub Desktop        " -NoNewline; Write-Host "Install GitHub Desktop via Chocolatey" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  Script 04 (Install All) Options:" -ForegroundColor Yellow
-    Write-Host "    .\run.ps1 -I 4                          Run all enabled scripts"
-    Write-Host "    .\run.ps1 -I 4 -- --skip 06,08          Skip Node.js and pnpm"
-    Write-Host "    .\run.ps1 -I 4 -- --only 03,05          Run only Package Managers + Go"
+    Write-Host "  Script 04 (Install All Dev Tools):" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -I 4                          " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -I 4 -- -All                  " -NoNewline; Write-Host "Install everything without prompting" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -I 4 -- -Skip 06,08           " -NoNewline; Write-Host "Skip Node.js and pnpm" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -I 4 -- -Only 03,05           " -NoNewline; Write-Host "Run only Package Managers + Go" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  Each script also supports -Help for its own usage:" -ForegroundColor Yellow
-    Write-Host "    .\run.ps1 -I 5 -- -Help                 Show Go install help"
+    Write-Host "  Per-script help:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -I <number> -- -Help          " -NoNewline; Write-Host "Show help for a specific script" -ForegroundColor DarkGray
     Write-Host ""
+}
+
+# ── No params = git pull + help ──────────────────────────────────────
+$hasNoParams = -not $I -and -not $Help -and -not $CleanOnly -and -not $Clean
+if ($hasNoParams) {
+    # Load git pull helper and pull before showing help
+    $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
+    $isHelperAvailable = Test-Path $sharedGitPull
+    if ($isHelperAvailable) {
+        . $sharedGitPull
+        Invoke-GitPull -RepoRoot $RootDir
+    }
+    Show-RootHelp
+    exit 0
+}
+
+# ── Help ─────────────────────────────────────────────────────────────
+if ($Help) {
+    Show-RootHelp
     exit 0
 }
 
