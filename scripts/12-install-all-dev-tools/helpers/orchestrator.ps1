@@ -43,8 +43,8 @@ function Resolve-ScriptList {
         }
     }
 
-    # Filter disabled
-    $result = @()
+    # Build result list using ArrayList to prevent single-item unwrapping
+    $result = New-Object System.Collections.ArrayList
     foreach ($id in $sequence) {
         $entry = $scripts.$id
         $hasNoEntry = -not $entry
@@ -52,17 +52,17 @@ function Resolve-ScriptList {
 
         $checkedByDefault = if ($groupDefaults.ContainsKey($id)) { $groupDefaults[$id] } else { $entry.enabled }
 
-        $result += @{
+        [void]$result.Add(@{
             Id              = $id
             Folder          = $entry.folder
             Name            = $entry.name
             Desc            = if ($entry.desc) { $entry.desc } else { "" }
             Enabled         = $entry.enabled
             CheckedByDefault = $checkedByDefault
-        }
+        })
     }
 
-    return ,$result
+    return ,@($result)
 }
 
 function Show-InteractiveMenu {
