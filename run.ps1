@@ -48,6 +48,8 @@ param(
 
     [switch]$v,
 
+    [switch]$w,
+
     [switch]$Merge,
 
     [switch]$Clean,
