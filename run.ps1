@@ -26,9 +26,10 @@
 
 .EXAMPLE
     .\run.ps1                  # git pull, show help
+    .\run.ps1 -d               # shortcut for -I 12 (interactive dev tools menu)
     .\run.ps1 -I 1            # git pull, then run scripts/01-*/run.ps1
     .\run.ps1 -I 2 -Merge     # git pull, then run scripts/02-*/run.ps1 with merge
-    .\run.ps1 -I 4            # run install-all-dev-tools (interactive menu)
+    .\run.ps1 -I 12           # same as -d
     .\run.ps1 -I 1 -Clean     # wipe .resolved/, then run scripts/01-*/run.ps1
     .\run.ps1 -CleanOnly       # wipe .resolved/ and exit
     .\run.ps1 -Help            # show all available scripts
@@ -40,6 +41,8 @@
 
 param(
     [int]$I,
+
+    [switch]$d,
 
     [switch]$Merge,
 
@@ -61,6 +64,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "  Usage:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1                           Show this help (after git pull)"
+    Write-Host "    .\run.ps1 -d                         Shortcut for -I 12 (interactive menu)"
     Write-Host "    .\run.ps1 -I <number>               Run a specific script"
     Write-Host "    .\run.ps1 -I <number> -Merge        Run with merge flag (script 02)"
     Write-Host "    .\run.ps1 -I <number> -Clean        Wipe cache, then run"
@@ -105,7 +109,7 @@ function Show-RootHelp {
 }
 
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $I -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $I -and -not $d -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     # Load git pull helper and pull before showing help
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
@@ -137,6 +141,11 @@ if ($CleanOnly) {
         Write-Host "Nothing to clean -- .resolved/ does not exist"
     }
     exit 0
+}
+
+# ── Expand -d shortcut ────────────────────────────────────────────────
+if ($d) {
+    $I = 12
 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
