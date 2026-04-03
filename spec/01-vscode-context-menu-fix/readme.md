@@ -195,6 +195,9 @@ cd scripts\01-vscode-context-menu-fix
 | Main entry point at bottom | All functions defined first, single orchestration call |
 | Verbose logging at every step | Every path, value, and decision is logged for debugging |
 | External JSON configs | Easy to edit without touching script logic |
+| Config is read-only at runtime | Scripts never mutate config.json -- keeps it declarative and git-friendly |
+| .resolved/ for runtime state | Discovered paths, timestamps belong outside version control |
+| Cache-first path detection | Checks .resolved/ before probing filesystem, skips if cached path is still valid |
 | Env-var expansion at runtime | Supports both user & system installs portably |
 | Auto-fallback path detection | Reduces user friction if wrong type is selected |
 | Colored status badges | Clear visual feedback in the terminal |
