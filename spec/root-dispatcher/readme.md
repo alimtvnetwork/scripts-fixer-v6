@@ -45,19 +45,55 @@ When run with no parameters, it performs a git pull and shows help
 
 ## Execution Flow
 
-1. If no parameters at all: git pull, show help, exit
+1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
 2. If `-Help`: show help and exit
 3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
 4. Validate `-I` is provided (show usage help if missing)
 5. If `-Clean`: wipe `.resolved/` contents, then continue
 6. Dot-source `scripts/shared/git-pull.ps1`
-7. Resolve script folder from `-I` (e.g. `1` -> `scripts/01-*/`)
-8. Verify `run.ps1` exists in the target folder
+7. Resolve script folder from `-I` via registry lookup (see below)
+8. Verify `run.ps1` exists in the resolved folder
 9. Clean and recreate the target script's `logs/` folder
 10. `Invoke-GitPull` from the repo root
 11. Set `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts skip their own git pull
 12. Delegate to the child script, passing through any extra flags (`-Merge`)
 13. Clean up `$env:SCRIPTS_ROOT_RUN`
+
+## Script Resolution
+
+The dispatcher resolves `-I <number>` to a script folder using a two-tier strategy:
+
+### Primary: Registry lookup (`scripts/registry.json`)
+
+A flat JSON file maps zero-padded IDs to exact folder names:
+
+```json
+{
+  "scripts": {
+    "01": "01-install-vscode",
+    "04": "04-install-pnpm",
+    "11": "11-install-all-dev-tools"
+  }
+}
+```
+
+The dispatcher reads the registry, looks up the formatted prefix (e.g. `04`),
+and joins `scripts/<folder>` to get the exact path. This avoids glob ambiguity
+when stale or renamed folders share the same prefix.
+
+### Fallback: Glob matching
+
+If `registry.json` is missing, the dispatcher falls back to globbing
+`scripts/<NN>-*` and filtering to directories that contain a `run.ps1`.
+Only the first match is used.
+
+### Resolution errors
+
+| Condition | Behaviour |
+|-----------|-----------|
+| Registry entry exists but folder is missing on disk | `[ FAIL ]` with "No script folder found for ID NN" |
+| Registry missing + no glob match | `[ FAIL ]` with "No script folder found for ID NN" |
+| Folder found but no `run.ps1` inside | `[ FAIL ]` with "run.ps1 not found in <folder>" |
 
 ## Help Output
 
