@@ -6,9 +6,9 @@
         "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
       },
       "registryPaths": {
-        "file": "HKCR:\\*\\shell\\VSCode",
-        "directory": "HKCR:\\Directory\\shell\\VSCode",
-        "background": "HKCR:\\Directory\\Background\\shell\\VSCode"
+        "file": "Registry::HKEY_CLASSES_ROOT\\*\\shell\\VSCode",
+        "directory": "Registry::HKEY_CLASSES_ROOT\\Directory\\shell\\VSCode",
+        "background": "Registry::HKEY_CLASSES_ROOT\\Directory\\Background\\shell\\VSCode"
       },
       "contextMenuLabel": "Open with Code"
     },
@@ -18,9 +18,9 @@
         "system": "C:\\Program Files\\Microsoft VS Code Insiders\\Code - Insiders.exe"
       },
       "registryPaths": {
-        "file": "HKCR:\\*\\shell\\VSCodeInsiders",
-        "directory": "HKCR:\\Directory\\shell\\VSCodeInsiders",
-        "background": "HKCR:\\Directory\\Background\\shell\\VSCodeInsiders"
+        "file": "Registry::HKEY_CLASSES_ROOT\\*\\shell\\VSCodeInsiders",
+        "directory": "Registry::HKEY_CLASSES_ROOT\\Directory\\shell\\VSCodeInsiders",
+        "background": "Registry::HKEY_CLASSES_ROOT\\Directory\\Background\\shell\\VSCodeInsiders"
       },
       "contextMenuLabel": "Open with Code - Insiders"
     }

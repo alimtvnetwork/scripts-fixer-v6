@@ -198,7 +198,7 @@ function Test-RegistryEntry {
     )
 
     Write-Log "  Verifying: $RegistryPath"
-    if (Test-Path $RegistryPath) {
+    if (Test-Path -LiteralPath $RegistryPath) {
         Write-Log "  [pass] $Label -- $RegistryPath" "ok"
         return $true
     } else {
