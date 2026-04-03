@@ -158,7 +158,7 @@ function Invoke-Edition {
         [string]$EditionName,
         [string]$InstallType,
         [hashtable]$Steps,
-        [string]$ConfigPath
+        [string]$ScriptDir
     )
 
     Write-Host ""
@@ -176,9 +176,9 @@ function Invoke-Edition {
     }
     Write-Log "Using executable: $VsCodeExe" "ok"
 
-    # Persist resolved path back to config.json
-    if ($ConfigPath) {
-        Save-ResolvedPath -ConfigPath $ConfigPath -EditionName $EditionName -ResolvedExe $VsCodeExe
+    # Persist resolved path to .resolved/ (not config.json)
+    if ($ScriptDir) {
+        Save-ResolvedPath -ScriptDir $ScriptDir -EditionName $EditionName -ResolvedExe $VsCodeExe
     }
 
     $Label   = $Edition.contextMenuLabel
