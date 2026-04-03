@@ -51,7 +51,8 @@ When run with no parameters, it performs a git pull and shows help
 1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
 2. If `-Help`: show help and exit
 3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
-4. Validate `-I` is provided (show usage help if missing)
+4. If `-d`: set `$I = 12` (shortcut expansion)
+5. Validate `-I` is provided (show usage help if missing)
 5. If `-Clean`: wipe `.resolved/` contents, then continue
 6. Dot-source `scripts/shared/git-pull.ps1`
 7. Resolve script folder from `-I` via registry lookup (see below)
