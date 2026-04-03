@@ -3,8 +3,7 @@
     "stable": {
       "vscodePath": {
         "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
-        "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
-        "resolved": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+        "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
       },
       "registryPaths": {
         "file": "Registry::HKEY_CLASSES_ROOT\\*\\shell\\VSCode",
