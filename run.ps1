@@ -123,7 +123,7 @@ function Show-RootHelp {
 }
 
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $I -and -not $d -and -not $a -and -not $v -and -not $w -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $I -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     # Load git pull helper and pull before showing help
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
