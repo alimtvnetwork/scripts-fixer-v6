@@ -15,7 +15,8 @@ scripts/
     ├── git-pull.ps1      # Provides Invoke-GitPull function
     ├── logging.ps1       # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
     ├── json-utils.ps1    # Provides Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
-    └── resolved.ps1      # Provides Save-ResolvedData, Get-ResolvedDir
+    ├── resolved.ps1      # Provides Save-ResolvedData, Get-ResolvedDir
+    └── cleanup.ps1       # Provides Clear-ResolvedData
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
