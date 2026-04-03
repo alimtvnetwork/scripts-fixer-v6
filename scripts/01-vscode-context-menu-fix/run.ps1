@@ -80,6 +80,7 @@ try {
             -Edition     $edition `
             -EditionName $editionName `
             -InstallType $installType `
+            -ConfigPath  $cfgPath `
             -Steps       @{
                 detectInstall = $script:LogMessages.steps.detectInstall
                 regFile       = $script:LogMessages.steps.regFile
