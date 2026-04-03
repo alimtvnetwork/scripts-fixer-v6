@@ -14,6 +14,15 @@
     script's resolved.json instead of wiping the whole folder.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Clear-ResolvedData {
     param(
         [Parameter(Mandatory)]
@@ -22,12 +31,14 @@ function Clear-ResolvedData {
         [string]$EditionName
     )
 
+    $slm = $script:SharedLogMessages
+
     $repoRoot    = Split-Path -Parent (Split-Path -Parent $ScriptDir)
     $resolvedDir = Join-Path $repoRoot ".resolved"
 
     $isDirMissing = -not (Test-Path $resolvedDir)
     if ($isDirMissing) {
-        Write-Log "Nothing to clear -- .resolved/ does not exist" -Level "info"
+        Write-Log $slm.messages.cleanupNothingToClean -Level "info"
         return
     }
 
@@ -38,7 +49,7 @@ function Clear-ResolvedData {
 
         $hasNoResolvedFile = -not (Test-Path $resolvedFile)
         if ($hasNoResolvedFile) {
-            Write-Log "No resolved.json for $scriptName -- nothing to clear" -Level "info"
+            Write-Log ($slm.messages.cleanupNoResolvedJson -replace '\{script\}', $scriptName) -Level "info"
             return
         }
 
@@ -53,24 +64,24 @@ function Clear-ResolvedData {
 
             if ($ht.Count -eq 0) {
                 Remove-Item -Path $resolvedFile -Force
-                Write-Log "Removed resolved.json for $scriptName (was only $EditionName)" -Level "success"
+                Write-Log ($slm.messages.cleanupRemovedFile -replace '\{script\}', $scriptName -replace '\{edition\}', $EditionName) -Level "success"
             } else {
                 $json = $ht | ConvertTo-Json -Depth 10
                 [System.IO.File]::WriteAllText($resolvedFile, $json)
-                Write-Log "Cleared '$EditionName' from $scriptName/resolved.json" -Level "success"
+                Write-Log ($slm.messages.cleanupClearedEdition -replace '\{edition\}', $EditionName -replace '\{script\}', $scriptName) -Level "success"
             }
         } catch {
-            Write-Log "Failed to clear edition '$EditionName': $_" -Level "warn"
+            Write-Log ($slm.messages.cleanupEditionFailed -replace '\{edition\}', $EditionName -replace '\{error\}', $_) -Level "warn"
         }
         return
     }
 
     # Clear everything
-    Write-Log "Clearing all resolved data..." -Level "info"
+    Write-Log $slm.messages.cleanupClearingAll -Level "info"
     try {
         Get-ChildItem -Path $resolvedDir -Recurse -Force | Remove-Item -Recurse -Force
-        Write-Log "All .resolved/ contents removed" -Level "success"
+        Write-Log $slm.messages.cleanupAllRemoved -Level "success"
     } catch {
-        Write-Log "Failed to clear .resolved/: $_" -Level "warn"
+        Write-Log ($slm.messages.cleanupFailed -replace '\{error\}', $_) -Level "warn"
     }
 }

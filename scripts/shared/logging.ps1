@@ -102,20 +102,33 @@ function Import-JsonConfig {
         [string]$Label
     )
 
+    $slm = $script:SharedLogMessages
+
     $isLabelMissing = -not $Label
     if ($isLabelMissing) { $Label = Split-Path -Leaf $FilePath }
 
-    Write-Log "Loading $Label from: $FilePath" -Level "info"
+    # Use shared log messages if available, otherwise fall back to direct Write-Host
+    $hasSharedLogs = $null -ne $slm
+    if ($hasSharedLogs) {
+        Write-Log ($slm.messages.importLoading -replace '\{label\}', $Label -replace '\{path\}', $FilePath) -Level "info"
+    }
+
     $isFileMissing = -not (Test-Path $FilePath)
     if ($isFileMissing) {
-        Write-Log "$Label not found at path: $FilePath" -Level "error"
+        if ($hasSharedLogs) {
+            Write-Log ($slm.messages.importNotFound -replace '\{label\}', $Label -replace '\{path\}', $FilePath) -Level "error"
+        }
         return $null
     }
 
     $content = Get-Content $FilePath -Raw
-    Write-Log "$Label file size: $($content.Length) chars" -Level "info"
+    if ($hasSharedLogs) {
+        Write-Log ($slm.messages.importFileSize -replace '\{label\}', $Label -replace '\{size\}', $content.Length) -Level "info"
+    }
 
     $parsed = $content | ConvertFrom-Json
-    Write-Log "$Label loaded successfully" -Level "success"
+    if ($hasSharedLogs) {
+        Write-Log ($slm.messages.importLoaded -replace '\{label\}', $Label) -Level "success"
+    }
     return $parsed
 }

@@ -3,6 +3,15 @@
     Shared Chocolatey helpers: ensure installed, install/upgrade packages.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Assert-Choco {
     <#
     .SYNOPSIS
@@ -10,16 +19,18 @@ function Assert-Choco {
         Returns $true if available after the check.
     #>
 
-    Write-Log "Checking for Chocolatey..." -Level "info"
+    $slm = $script:SharedLogMessages
+
+    Write-Log $slm.messages.chocoChecking -Level "info"
     $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
 
     if ($chocoCmd) {
         $version = & choco.exe --version 2>&1
-        Write-Log "Chocolatey found: v$version" -Level "success"
+        Write-Log ($slm.messages.chocoFound -replace '\{version\}', $version) -Level "success"
         return $true
     }
 
-    Write-Log "Chocolatey not found -- installing..." -Level "warn"
+    Write-Log $slm.messages.chocoNotFound -Level "warn"
     try {
         Set-ExecutionPolicy Bypass -Scope Process -Force
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
@@ -30,14 +41,14 @@ function Assert-Choco {
 
         $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
         if ($chocoCmd) {
-            Write-Log "Chocolatey installed successfully" -Level "success"
+            Write-Log $slm.messages.chocoInstalled -Level "success"
             return $true
         } else {
-            Write-Log "Chocolatey install completed but choco.exe not found in PATH" -Level "error"
+            Write-Log $slm.messages.chocoNotInPath -Level "error"
             return $false
         }
     } catch {
-        Write-Log "Failed to install Chocolatey: $_" -Level "error"
+        Write-Log ($slm.messages.chocoInstallFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -54,29 +65,31 @@ function Install-ChocoPackage {
         [string]$Version
     )
 
-    Write-Log "Checking if '$PackageName' is installed via Chocolatey..." -Level "info"
+    $slm = $script:SharedLogMessages
+
+    Write-Log ($slm.messages.chocoCheckingPackage -replace '\{package\}', $PackageName) -Level "info"
 
     $installed = choco list --local-only --exact $PackageName 2>&1
     if ($LASTEXITCODE -eq 0 -and $installed -match $PackageName) {
-        Write-Log "'$PackageName' is already installed" -Level "success"
+        Write-Log ($slm.messages.chocoPackageInstalled -replace '\{package\}', $PackageName) -Level "success"
         return $true
     }
 
-    Write-Log "Installing '$PackageName' via Chocolatey..." -Level "info"
+    Write-Log ($slm.messages.chocoInstallingPackage -replace '\{package\}', $PackageName) -Level "info"
     try {
         $args = @("install", $PackageName, "-y")
         if ($Version) { $args += @("--version", $Version) }
 
         $output = & choco.exe @args 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "Chocolatey install failed for '$PackageName': $output" -Level "error"
+            Write-Log ($slm.messages.chocoPackageInstallFailed -replace '\{package\}', $PackageName -replace '\{output\}', $output) -Level "error"
             return $false
         }
 
-        Write-Log "'$PackageName' installed successfully" -Level "success"
+        Write-Log ($slm.messages.chocoPackageInstallSuccess -replace '\{package\}', $PackageName) -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to install '$PackageName': $_" -Level "error"
+        Write-Log ($slm.messages.chocoPackageInstallError -replace '\{package\}', $PackageName -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -91,18 +104,20 @@ function Upgrade-ChocoPackage {
         [string]$PackageName
     )
 
-    Write-Log "Upgrading '$PackageName' via Chocolatey..." -Level "info"
+    $slm = $script:SharedLogMessages
+
+    Write-Log ($slm.messages.chocoUpgradingPackage -replace '\{package\}', $PackageName) -Level "info"
     try {
         $output = & choco.exe upgrade $PackageName -y 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "Chocolatey upgrade failed for '$PackageName': $output" -Level "warn"
+            Write-Log ($slm.messages.chocoUpgradeFailed -replace '\{package\}', $PackageName -replace '\{output\}', $output) -Level "warn"
             return $false
         }
 
-        Write-Log "'$PackageName' upgraded successfully" -Level "success"
+        Write-Log ($slm.messages.chocoUpgradeSuccess -replace '\{package\}', $PackageName) -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to upgrade '$PackageName': $_" -Level "error"
+        Write-Log ($slm.messages.chocoUpgradeError -replace '\{package\}', $PackageName -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }

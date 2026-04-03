@@ -3,6 +3,15 @@
     Shared PATH manipulation helpers with dedup safety.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Test-InPath {
     <#
     .SYNOPSIS
@@ -33,8 +42,10 @@ function Add-ToUserPath {
         [string]$Directory
     )
 
+    $slm = $script:SharedLogMessages
+
     if (Test-InPath -Directory $Directory -Scope "User") {
-        Write-Log "Already in user PATH: $Directory" -Level "info"
+        Write-Log ($slm.messages.pathAlreadyInUser -replace '\{path\}', $Directory) -Level "info"
         return $true
     }
 
@@ -49,10 +60,10 @@ function Add-ToUserPath {
         [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
         # Also update current session
         $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + $newPath
-        Write-Log "Added to user PATH: $Directory" -Level "success"
+        Write-Log ($slm.messages.pathAddedToUser -replace '\{path\}', $Directory) -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to update user PATH: $_" -Level "error"
+        Write-Log ($slm.messages.pathUserUpdateFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }
@@ -67,8 +78,10 @@ function Add-ToMachinePath {
         [string]$Directory
     )
 
+    $slm = $script:SharedLogMessages
+
     if (Test-InPath -Directory $Directory -Scope "Machine") {
-        Write-Log "Already in machine PATH: $Directory" -Level "info"
+        Write-Log ($slm.messages.pathAlreadyInMachine -replace '\{path\}', $Directory) -Level "info"
         return $true
     }
 
@@ -82,10 +95,10 @@ function Add-ToMachinePath {
 
         [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
         $env:Path = $newPath + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-        Write-Log "Added to machine PATH: $Directory" -Level "success"
+        Write-Log ($slm.messages.pathAddedToMachine -replace '\{path\}', $Directory) -Level "success"
         return $true
     } catch {
-        Write-Log "Failed to update machine PATH: $_" -Level "error"
+        Write-Log ($slm.messages.pathMachineUpdateFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
 }

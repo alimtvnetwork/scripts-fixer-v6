@@ -3,27 +3,38 @@
     Shared JSON and file utilities used by multiple scripts.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Backup-File {
     param([string]$FilePath, [string]$BackupSuffix)
 
-    Write-Log "Checking backup target: $FilePath" -Level "info"
+    $slm = $script:SharedLogMessages
+
+    Write-Log ($slm.messages.backupChecking -replace '\{path\}', $FilePath) -Level "info"
     if (Test-Path $FilePath) {
         $dir       = Split-Path $FilePath -Parent
         $name      = Split-Path $FilePath -Leaf
         $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
         $backupName = "$name.$timestamp$BackupSuffix"
         $backupPath = Join-Path $dir $backupName
-        Write-Log "Backup destination: $backupPath" -Level "info"
+        Write-Log ($slm.messages.backupDest -replace '\{path\}', $backupPath) -Level "info"
         try {
             Copy-Item -Path $FilePath -Destination $backupPath -Force
-            Write-Log "Backup created: $backupName" -Level "success"
+            Write-Log ($slm.messages.backupCreated -replace '\{name\}', $backupName) -Level "success"
             return $true
         } catch {
-            Write-Log "Backup failed for $name -- $_" -Level "error"
+            Write-Log ($slm.messages.backupFailed -replace '\{name\}', $name -replace '\{error\}', $_) -Level "error"
             return $false
         }
     } else {
-        Write-Log "No existing $(Split-Path $FilePath -Leaf) to back up" -Level "info"
+        Write-Log ($slm.messages.backupNotNeeded -replace '\{name\}', (Split-Path $FilePath -Leaf)) -Level "info"
         return $true
     }
 }
