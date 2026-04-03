@@ -66,26 +66,59 @@ spec/
 | `errors.*`| string   | Error message templates                  |
 | `footer`  | string[] | Closing banner lines                     |
 
+## Script Architecture
+
+The script is organized into **small, focused functions** that are defined first,
+then invoked from a single `Main` entry point at the bottom of the file.
+
+### Function Breakdown
+
+| Function | Purpose |
+|----------|---------|
+| `Write-Log` | Prints a status-badged message and writes to transcript |
+| `Write-Banner` | Displays ASCII banner blocks |
+| `Assert-Admin` | Returns `$true` if running as Administrator |
+| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript |
+| `Import-JsonConfig` | Loads and returns a JSON file with verbose logging |
+| `Mount-RegistryDrive` | Maps `HKCR:` PSDrive if not already mapped |
+| `Resolve-VsCodePath` | Resolves exe path with fallback, logs every step |
+| `Register-ContextMenu` | Creates one registry entry (key + command subkey) |
+| `Test-RegistryEntry` | Verifies a registry path exists after creation |
+| `Invoke-Edition` | Processes a single edition (resolve, register, verify) |
+| `Main` | Orchestrates the full flow -- called at the end of the file |
+
+### Verbose Logging Rules
+
+Every function MUST log:
+- **What it is about to do** (the intent)
+- **The values it is working with** (paths, keys, labels)
+- **The outcome** (success, failure, skip, fallback)
+
+Example: path resolution must log the raw config value, the expanded value,
+whether the file exists, and which fallback (if any) was tried.
+
 ## Execution Flow
 
-1. Clean and recreate `logs/` subfolder in the script directory
-2. Start logging all output to `logs/run-<timestamp>.log`
-3. Load `log-messages.json` → display banner
-4. Verify Administrator privileges
-5. Load `config.json` → resolve VS Code exe path
-6. Validate that the exe exists (with auto-fallback to the other install type)
-7. Map `HKCR:` PSDrive if not already mapped
-8. Create three registry entries (file, directory, background) with `-Confirm:$false`
-9. Verify each entry exists
-10. Display summary footer
+1. `Main` is called at the bottom of the script
+2. `Initialize-Logging` -- clean `logs/`, start transcript
+3. `Import-JsonConfig` -- load `log-messages.json`, display banner
+4. `Assert-Admin` -- verify Administrator privileges
+5. `Import-JsonConfig` -- load `config.json`
+6. `Mount-RegistryDrive` -- map `HKCR:` PSDrive
+7. For each enabled edition → `Invoke-Edition`:
+   a. `Resolve-VsCodePath` -- find exe with fallback
+   b. `Register-ContextMenu` -- create 3 registry entries
+   c. `Test-RegistryEntry` -- verify each entry
+8. Display summary footer
 
 ## Logging
 
 - Each run creates a `logs/` subfolder inside the script directory
-- The `logs/` folder is cleaned (deleted and recreated) at the start of every run
+- The `logs/` folder is **deleted and recreated** at the start of every run
 - A timestamped log file (`run-YYYYMMDD-HHmmss.log`) captures all terminal output
 - The `logs` folder is already gitignored by the project-level `.gitignore`
 - All `New-Item` and `Set-ItemProperty` calls use `-Confirm:$false` to prevent hangs
+- **Every decision point** logs its inputs and outputs for easy debugging
 
 ## Prerequisites
 
@@ -98,8 +131,8 @@ spec/
 
 ```powershell
 # Open PowerShell as Administrator, then:
-cd scripts\vscode-context-menu-fix
-.\Fix-VSCodeContextMenu.ps1
+cd scripts\01-vscode-context-menu-fix
+.\run.ps1
 ```
 
 ## Naming Conventions
@@ -109,17 +142,19 @@ cd scripts\vscode-context-menu-fix
 | All file names use **lowercase-hyphenated** (kebab-case) | `run.ps1`, `log-messages.json`, `config.json` |
 | Never use PascalCase or camelCase for file names | ~~`Fix-VSCodeContextMenu.ps1`~~ → `run.ps1` |
 | Folder names also use lowercase-hyphenated | `01-vscode-context-menu-fix`, `logs` |
-| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Status`, `Test-Path` |
+| PowerShell functions inside scripts may use Verb-Noun PascalCase per PS convention | `Write-Log`, `Assert-Admin` |
 
 ## Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
+| Small focused functions | Each function does one thing; easy to test and debug |
+| Main entry point at bottom | All functions defined first, single orchestration call |
+| Verbose logging at every step | Every path, value, and decision is logged for debugging |
 | External JSON configs | Easy to edit without touching script logic |
 | Env-var expansion at runtime | Supports both user & system installs portably |
 | Auto-fallback path detection | Reduces user friction if wrong type is selected |
 | Colored status badges | Clear visual feedback in the terminal |
-| Verification step | Confirms entries were actually written |
 | Plain ASCII banners | Avoids Unicode alignment bugs in terminals |
 | Per-run log files | Debugging aid; cleaned each run to avoid clutter |
 | -Confirm:$false on all registry ops | Prevents interactive prompts that hang the script |
