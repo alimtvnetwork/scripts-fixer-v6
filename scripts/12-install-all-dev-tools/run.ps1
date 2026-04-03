@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 11 -- Install All Dev Tools
-#  Orchestrator: resolves dev directory, then runs scripts 01-10.
+#  Script 12 -- Install All Dev Tools
+#  Orchestrator: resolves dev directory, then runs scripts 01-11.
 #  Supports interactive grouped menu, -All, -Skip, and -Only filters.
 # --------------------------------------------------------------------------
 param(

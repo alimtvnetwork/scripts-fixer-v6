@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 10 -- VS Code Settings Sync
+#  Script 11 -- VS Code Settings Sync
 #  Imports settings, keybindings, and extensions for VS Code.
 # --------------------------------------------------------------------------
 param(

@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Script 09 -- VS Code Context Menu Fix
+#  Script 10 -- VS Code Context Menu Fix
 #  Restores "Open with Code" to the Windows right-click context menu.
 # --------------------------------------------------------------------------
 param(
