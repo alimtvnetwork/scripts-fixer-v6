@@ -21,7 +21,7 @@ function Install-Pnpm {
         Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         # Upgrade to latest
-        Write-Log "Upgrading pnpm to latest..." -Level "info"
+        Write-Log $LogMessages.messages.pnpmUpgrading -Level "info"
         & npm install -g pnpm@latest 2>$null
         $newVersion = & pnpm --version 2>$null
         Write-Log ($LogMessages.messages.pnpmUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
