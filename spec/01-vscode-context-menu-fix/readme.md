@@ -139,7 +139,7 @@ whether the file exists, and which fallback (if any) was tried.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+2. Dot-source shared helpers (`git-pull.ps1`, `resolved.ps1`) and call `Invoke-GitPull`
    - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
    - If run standalone, git pull executes normally
 3. `Initialize-Logging` -- clean `logs/`, start transcript
@@ -148,9 +148,10 @@ whether the file exists, and which fallback (if any) was tried.
 6. `Import-JsonConfig` -- load `config.json`
 7. `Mount-RegistryDrive` -- map `HKCR:` PSDrive (with `-Scope Global`)
 8. For each enabled edition -> `Invoke-Edition`:
-   a. `Resolve-VsCodePath` -- find exe with fallback
-   b. `Register-ContextMenu` -- create 3 registry entries
-   c. `Test-RegistryEntry` -- verify each entry
+   a. `Resolve-VsCodePath` -- **check `.resolved/` cache first**, then detect with fallback
+   b. `Save-ResolvedData` -- persist discovered path to `.resolved/`
+   c. `Register-ContextMenu` -- create 3 registry entries
+   d. `Test-RegistryEntry` -- verify each entry
 9. Display summary footer
 
 ## Logging
