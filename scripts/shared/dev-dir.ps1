@@ -53,7 +53,7 @@ function Resolve-DevDir {
     if ($DevDirConfig.mode -eq "json-or-prompt") {
         $userInput = Read-Host -Prompt "Enter dev directory (default: $default)"
         if (-not [string]::IsNullOrWhiteSpace($userInput)) {
-            Write-Log "User provided dev directory: $userInput" "info"
+            Write-Log "User provided dev directory: $userInput" -Level "info"
             return $userInput
         }
     }
