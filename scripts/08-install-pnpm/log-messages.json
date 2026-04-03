@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "Installs pnpm globally via npm and configures the global store.",
   "messages": {
-    "startingPnpmInstall": "Starting pnpm installation...",
+    
     "pnpmAlreadyInstalled": "pnpm is already installed: {version}",
     "pnpmInstallSuccess": "pnpm installed successfully: {version}",
     "pnpmUpgradeSuccess": "pnpm upgraded to latest: {version}",
@@ -13,7 +13,7 @@
     "addingToPath": "Adding pnpm global bin to PATH: {path}",
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "pnpm installation is disabled in config.",
-    "notAdmin": "This script requires administrator privileges.",
+    
     "pnpmUpgrading": "Upgrading pnpm to latest...",
     "pnpmNotFound": "pnpm not found, installing via npm...",
     "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 06 first.",
