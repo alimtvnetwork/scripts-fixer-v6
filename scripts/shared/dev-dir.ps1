@@ -93,7 +93,7 @@ function Initialize-DevDir {
         $subPath = Join-Path $DevDir $sub
         if (-not (Test-Path $subPath)) {
             New-Item -Path $subPath -ItemType Directory -Force -Confirm:$false | Out-Null
-            Write-Log "Created subdirectory: $sub" "ok"
+            Write-Log "Created subdirectory: $sub" -Level "success"
         }
     }
 
