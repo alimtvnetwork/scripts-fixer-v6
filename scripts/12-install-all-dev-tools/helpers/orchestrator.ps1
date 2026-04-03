@@ -279,7 +279,7 @@ function Show-Summary {
     Write-Host ""
     Write-Log $LogMessages.messages.summaryHeader -Level "info"
 
-    foreach ($r in $Results) {
+    foreach ($r in @($Results)) {
         $badge = switch ($r.Status) {
             "success"  { "OK" }
             "failed"   { "FAIL" }
