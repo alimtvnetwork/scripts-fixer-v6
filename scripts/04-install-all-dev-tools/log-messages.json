@@ -48,6 +48,8 @@
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -All",
+      ".\\run.ps1 -DryRun",
+      ".\\run.ps1 -DryRun -Only 03,05",
       ".\\run.ps1 -Skip 06,08",
       ".\\run.ps1 -Only 03,05",
       ".\\run.ps1 -Help"
