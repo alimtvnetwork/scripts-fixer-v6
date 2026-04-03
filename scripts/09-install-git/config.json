@@ -2,6 +2,12 @@
   "enabled": true,
   "chocoPackageName": "git",
   "alwaysUpgradeToLatest": true,
+  "githubCli": {
+    "enabled": true,
+    "chocoPackageName": "gh",
+    "alwaysUpgradeToLatest": true,
+    "promptLogin": true
+  },
   "gitConfig": {
     "userName": {
       "mode": "json-or-prompt",
@@ -14,7 +20,7 @@
       "promptOnFirstRun": true
     },
     "defaultBranch": {
-      "enabled": false,
+      "enabled": true,
       "value": "main"
     },
     "credentialManager": {
@@ -24,6 +30,13 @@
     "lineEndings": {
       "enabled": true,
       "autocrlf": "true"
+    },
+    "editor": {
+      "enabled": true,
+      "value": "code --wait"
+    },
+    "pushAutoSetupRemote": {
+      "enabled": true
     }
   },
   "path": {

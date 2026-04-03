@@ -1,16 +1,17 @@
-# Spec: Script 09 -- Install Git
+# Spec: Script 09 -- Install Git and GitHub CLI
 
 ## Purpose
 
-Install Git via Chocolatey and configure global settings including
-user identity, credential manager, and line endings.
+Install Git and GitHub CLI (gh) via Chocolatey and configure global git
+settings including user identity, default branch, credential manager,
+line endings, editor, and push behavior.
 
 ## Subcommands
 
 | Command | Description |
 |---------|-------------|
-| `all` | Install Git + configure globals (default) |
-| `install` | Install/upgrade Git only |
+| `all` | Install Git + gh CLI + configure settings (default) |
+| `install` | Install/upgrade Git and GitHub CLI only |
 | `configure` | Configure global git settings only |
 | `-Help` | Show usage information |
 
@@ -21,19 +22,29 @@ user identity, credential manager, and line endings.
 | `enabled` | bool | Master toggle |
 | `chocoPackageName` | string | Chocolatey package (`git`) |
 | `alwaysUpgradeToLatest` | bool | Upgrade on every run |
+| `githubCli.enabled` | bool | Install GitHub CLI |
+| `githubCli.chocoPackageName` | string | Chocolatey package (`gh`) |
+| `githubCli.promptLogin` | bool | Run `gh auth login` if not authenticated |
 | `gitConfig.userName` | object | user.name (json-or-prompt mode) |
 | `gitConfig.userEmail` | object | user.email (json-or-prompt mode) |
+| `gitConfig.defaultBranch` | object | init.defaultBranch (default: main) |
 | `gitConfig.credentialManager` | object | credential.helper config |
 | `gitConfig.lineEndings` | object | core.autocrlf config |
+| `gitConfig.editor` | object | core.editor (default: code --wait) |
+| `gitConfig.pushAutoSetupRemote` | object | push.autoSetupRemote toggle |
 | `path.updateUserPath` | bool | Add git bin to PATH |
 
 ## Flow
 
 1. Assert admin + Chocolatey
 2. Install/upgrade Git via Chocolatey
-3. Configure user.name (from config or prompt)
-4. Configure user.email (from config or prompt)
-5. Set credential.helper to `manager` (Git Credential Manager)
-6. Set core.autocrlf to `true`
-7. Ensure git bin is in PATH
-8. Save resolved state
+3. Install/upgrade GitHub CLI via Chocolatey
+4. If not authenticated: run `gh auth login` interactively
+5. Configure user.name + user.email (from config or prompt)
+6. Set init.defaultBranch to `main`
+7. Set credential.helper to `manager`
+8. Set core.autocrlf to `true`
+9. Set core.editor to `code --wait`
+10. Set push.autoSetupRemote to `true`
+11. Ensure git bin is in PATH
+12. Save resolved state (versions, configs, gh user)

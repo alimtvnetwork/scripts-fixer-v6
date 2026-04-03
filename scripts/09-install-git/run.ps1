@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
-#  Script 09 -- Install Git
-#  Installs Git via Chocolatey and configures global settings.
+#  Script 09 -- Install Git and GitHub CLI
+#  Installs Git + GitHub CLI via Chocolatey and configures global settings.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -61,11 +61,13 @@ Assert-Choco
 switch ($Command.ToLower()) {
     "all" {
         Install-Git -Config $config -LogMessages $logMessages
+        Install-GitHubCli -Config $config -LogMessages $logMessages
         Configure-GitGlobal -Config $config -LogMessages $logMessages
         Update-GitPath -Config $config -LogMessages $logMessages
     }
     "install" {
         Install-Git -Config $config -LogMessages $logMessages
+        Install-GitHubCli -Config $config -LogMessages $logMessages
     }
     "configure" {
         Configure-GitGlobal -Config $config -LogMessages $logMessages
@@ -79,19 +81,29 @@ switch ($Command.ToLower()) {
 
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
-$gitVersion   = & git --version 2>$null
-$userName     = & git config --global user.name 2>$null
-$userEmail    = & git config --global user.email 2>$null
-$credHelper   = & git config --global credential.helper 2>$null
-$autocrlf     = & git config --global core.autocrlf 2>$null
+$gitVersion    = & git --version 2>$null
+$userName      = & git config --global user.name 2>$null
+$userEmail     = & git config --global user.email 2>$null
+$credHelper    = & git config --global credential.helper 2>$null
+$autocrlf      = & git config --global core.autocrlf 2>$null
+$defaultBranch = & git config --global init.defaultBranch 2>$null
+$editor        = & git config --global core.editor 2>$null
+$pushAutoSetup = & git config --global push.autoSetupRemote 2>$null
+$ghVersion     = & gh --version 2>$null | Select-Object -First 1
+$ghUser        = & gh api user --jq '.login' 2>$null
 
 Save-ResolvedData -ScriptFolder "09-install-git" -Data @{
     gitVersion       = $gitVersion
+    ghVersion        = $ghVersion
+    ghUser           = $ghUser
     userName         = $userName
     userEmail        = $userEmail
     credentialHelper = $credHelper
     autocrlf         = $autocrlf
+    defaultBranch    = $defaultBranch
+    editor           = $editor
+    pushAutoSetup    = $pushAutoSetup
     timestamp        = (Get-Date -Format "o")
 }
 
-Write-Log "Git setup complete." -Level "success"
+Write-Log "Git and GitHub CLI setup complete." -Level "success"

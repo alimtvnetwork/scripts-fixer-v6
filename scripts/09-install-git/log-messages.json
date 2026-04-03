@@ -1,7 +1,7 @@
 {
-  "scriptName": "Install Git",
-  "version": "1.0.0",
-  "description": "Installs Git via Chocolatey and configures global settings.",
+  "scriptName": "Install Git and GitHub CLI",
+  "version": "1.1.0",
+  "description": "Installs Git and GitHub CLI via Chocolatey and configures global settings.",
   "messages": {
     "startingGitInstall": "Starting Git installation...",
     "gitAlreadyInstalled": "Git is already installed: {version}",
@@ -19,6 +19,20 @@
     "credentialManagerAlreadySet": "credential.helper already set: {value}",
     "settingAutocrlf": "Setting core.autocrlf: {value}",
     "autocrlfAlreadySet": "core.autocrlf already set: {value}",
+    "settingDefaultBranch": "Setting init.defaultBranch: {value}",
+    "defaultBranchAlreadySet": "init.defaultBranch already set: {value}",
+    "settingEditor": "Setting core.editor: {value}",
+    "editorAlreadySet": "core.editor already set: {value}",
+    "settingPushAutoSetup": "Setting push.autoSetupRemote: true",
+    "pushAutoSetupAlreadySet": "push.autoSetupRemote already set: {value}",
+    "ghAlreadyInstalled": "GitHub CLI is already installed: {version}",
+    "ghInstallSuccess": "GitHub CLI installed successfully: {version}",
+    "ghUpgradeSuccess": "GitHub CLI upgraded successfully: {version}",
+    "ghNotFound": "GitHub CLI not found, installing via Chocolatey...",
+    "ghUpgrading": "Upgrading GitHub CLI to latest...",
+    "ghLoginPrompt": "Run 'gh auth login' to authenticate with GitHub.",
+    "ghAlreadyAuthenticated": "GitHub CLI is already authenticated as: {user}",
+    "ghLoginStart": "Starting GitHub CLI authentication...",
     "addingToPath": "Adding Git to PATH: {path}",
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Git installation is disabled in config.",
@@ -26,8 +40,8 @@
   },
   "help": {
     "commands": {
-      "all": "Install Git and configure global settings (default)",
-      "install": "Install/upgrade Git only",
+      "all": "Install Git + GitHub CLI and configure settings (default)",
+      "install": "Install/upgrade Git and GitHub CLI only",
       "configure": "Configure global git settings only"
     },
     "examples": [

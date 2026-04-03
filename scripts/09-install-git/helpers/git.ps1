@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-#  Git helper functions
+#  Git and GitHub CLI helper functions
 # --------------------------------------------------------------------------
 
 function Install-Git {
@@ -30,6 +30,54 @@ function Install-Git {
 
         $installedVersion = & git --version 2>$null
         Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+    }
+}
+
+function Install-GitHubCli {
+    param(
+        [hashtable]$Config,
+        [hashtable]$LogMessages
+    )
+
+    $ghConfig = $Config.githubCli
+    if (-not $ghConfig.enabled) { return }
+
+    $packageName = $ghConfig.chocoPackageName
+
+    $existing = Get-Command gh -ErrorAction SilentlyContinue
+    if ($existing) {
+        $currentVersion = & gh --version 2>$null | Select-Object -First 1
+        Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+
+        if ($ghConfig.alwaysUpgradeToLatest) {
+            Write-Log $LogMessages.messages.ghUpgrading -Level "info"
+            Upgrade-ChocoPackage -PackageName $packageName
+            $newVersion = & gh --version 2>$null | Select-Object -First 1
+            Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+        }
+    }
+    else {
+        Write-Log $LogMessages.messages.ghNotFound -Level "warn"
+        Install-ChocoPackage -PackageName $packageName
+
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+        $installedVersion = & gh --version 2>$null | Select-Object -First 1
+        Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+    }
+
+    # Prompt for login if configured
+    if ($ghConfig.promptLogin) {
+        $authStatus = & gh auth status 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $ghUser = & gh api user --jq '.login' 2>$null
+            Write-Log ($LogMessages.messages.ghAlreadyAuthenticated -replace '\{user\}', $ghUser) -Level "info"
+        }
+        else {
+            Write-Log $LogMessages.messages.ghLoginStart -Level "info"
+            & gh auth login
+        }
     }
 }
 
@@ -78,6 +126,19 @@ function Configure-GitGlobal {
         }
     }
 
+    # -- init.defaultBranch ------------------------------------------------------
+    $branchConfig = $gc.defaultBranch
+    if ($branchConfig.enabled) {
+        $currentBranch = & git config --global init.defaultBranch 2>$null
+        if ($currentBranch -eq $branchConfig.value) {
+            Write-Log ($LogMessages.messages.defaultBranchAlreadySet -replace '\{value\}', $currentBranch) -Level "info"
+        }
+        else {
+            & git config --global init.defaultBranch $branchConfig.value
+            Write-Log ($LogMessages.messages.settingDefaultBranch -replace '\{value\}', $branchConfig.value) -Level "success"
+        }
+    }
+
     # -- credential.helper -------------------------------------------------------
     $credConfig = $gc.credentialManager
     if ($credConfig.enabled) {
@@ -101,6 +162,32 @@ function Configure-GitGlobal {
         else {
             & git config --global core.autocrlf $lineConfig.autocrlf
             Write-Log ($LogMessages.messages.settingAutocrlf -replace '\{value\}', $lineConfig.autocrlf) -Level "success"
+        }
+    }
+
+    # -- core.editor -------------------------------------------------------------
+    $editorConfig = $gc.editor
+    if ($editorConfig.enabled) {
+        $currentEditor = & git config --global core.editor 2>$null
+        if ($currentEditor -eq $editorConfig.value) {
+            Write-Log ($LogMessages.messages.editorAlreadySet -replace '\{value\}', $currentEditor) -Level "info"
+        }
+        else {
+            & git config --global core.editor $editorConfig.value
+            Write-Log ($LogMessages.messages.settingEditor -replace '\{value\}', $editorConfig.value) -Level "success"
+        }
+    }
+
+    # -- push.autoSetupRemote ----------------------------------------------------
+    $pushConfig = $gc.pushAutoSetupRemote
+    if ($pushConfig.enabled) {
+        $currentPush = & git config --global push.autoSetupRemote 2>$null
+        if ($currentPush -eq "true") {
+            Write-Log ($LogMessages.messages.pushAutoSetupAlreadySet -replace '\{value\}', $currentPush) -Level "info"
+        }
+        else {
+            & git config --global push.autoSetupRemote true
+            Write-Log $LogMessages.messages.settingPushAutoSetup -Level "success"
         }
     }
 }
