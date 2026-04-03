@@ -62,7 +62,7 @@ function Resolve-ScriptList {
         }
     }
 
-    return $result
+    return ,$result
 }
 
 function Show-InteractiveMenu {
@@ -191,7 +191,7 @@ function Show-InteractiveMenu {
         }
     }
 
-    return $result
+    return ,$result
 }
 
 function Show-DryRun {
