@@ -10,10 +10,11 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 1.2.0
+    Version: 2.0.0
 #>
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 function Write-Log {
     param(
         [string]$Message,
@@ -41,10 +42,71 @@ function Write-Banner {
     Write-Host ""
 }
 
+# ── Core Functions ───────────────────────────────────────────────────
+
 function Assert-Admin {
+    Write-Log "Checking Administrator privileges..." "info"
     $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $isAdmin   = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    Write-Log "Current user: $($identity.Name)" "info"
+    Write-Log "Is Administrator: $isAdmin" $(if ($isAdmin) { "ok" } else { "fail" })
+    return $isAdmin
+}
+
+function Initialize-Logging {
+    param([string]$ScriptDir)
+
+    $logsDir = Join-Path $ScriptDir "logs"
+    Write-Host "  [ INFO ] Log directory: $logsDir" -ForegroundColor Cyan
+
+    # Clean and recreate
+    if (Test-Path $logsDir) {
+        Write-Host "  [ INFO ] Removing old logs folder..." -ForegroundColor Cyan
+        Remove-Item -Path $logsDir -Recurse -Force -Confirm:$false
+    }
+    New-Item -Path $logsDir -ItemType Directory -Force -Confirm:$false | Out-Null
+    Write-Host "  [  OK  ] Logs folder created" -ForegroundColor Green
+
+    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $logFile   = Join-Path $logsDir "run-$timestamp.log"
+    Write-Host "  [ INFO ] Transcript file: $logFile" -ForegroundColor Cyan
+
+    Start-Transcript -Path $logFile -Force | Out-Null
+    return $logFile
+}
+
+function Import-JsonConfig {
+    param(
+        [string]$FilePath,
+        [string]$Label
+    )
+
+    Write-Log "Loading $Label from: $FilePath"
+    if (-not (Test-Path $FilePath)) {
+        Write-Log "$Label not found at path: $FilePath" "fail"
+        return $null
+    }
+
+    $content = Get-Content $FilePath -Raw
+    Write-Log "$Label file size: $($content.Length) chars" "info"
+
+    $parsed = $content | ConvertFrom-Json
+    Write-Log "$Label loaded successfully" "ok"
+    return $parsed
+}
+
+function Mount-RegistryDrive {
+    Write-Log "Checking HKCR PSDrive..."
+    $existing = Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue
+    if ($existing) {
+        Write-Log "HKCR PSDrive already mapped -- skipping" "skip"
+        return
+    }
+
+    Write-Log "Mapping HKCR PSDrive to HKEY_CLASSES_ROOT..."
+    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Confirm:$false | Out-Null
+    Write-Log "HKCR PSDrive mapped successfully" "ok"
 }
 
 function Resolve-VsCodePath {
@@ -53,181 +115,247 @@ function Resolve-VsCodePath {
         [string]$PreferredType
     )
 
+    Write-Log "Preferred installation type: $PreferredType"
+
+    # Try preferred path
     $rawPath = $PathConfig.$PreferredType
+    Write-Log "Raw config value ($PreferredType): $rawPath"
     $exePath = [System.Environment]::ExpandEnvironmentVariables($rawPath)
+    Write-Log "Expanded path: $exePath"
 
-    if (Test-Path $exePath) { return $exePath }
+    $exists = Test-Path $exePath
+    Write-Log "File exists at expanded path: $exists" $(if ($exists) { "ok" } else { "warn" })
 
-    # Fallback to the other type
-    $fallback = if ($PreferredType -eq "user") { "system" } else { "user" }
-    $fallbackRaw = $PathConfig.$fallback
+    if ($exists) { return $exePath }
+
+    # Fallback
+    $fallbackType = if ($PreferredType -eq "user") { "system" } else { "user" }
+    Write-Log "Trying fallback type: $fallbackType" "warn"
+
+    $fallbackRaw = $PathConfig.$fallbackType
+    Write-Log "Raw config value ($fallbackType): $fallbackRaw"
     $fallbackExe = [System.Environment]::ExpandEnvironmentVariables($fallbackRaw)
+    Write-Log "Expanded fallback path: $fallbackExe"
 
-    Write-Log "Primary path not found ($exePath), trying $fallback..." "warn"
-    if (Test-Path $fallbackExe) {
-        Write-Log "Fallback path valid: $fallbackExe" "ok"
-        return $fallbackExe
-    }
+    $fallbackExists = Test-Path $fallbackExe
+    Write-Log "File exists at fallback path: $fallbackExists" $(if ($fallbackExists) { "ok" } else { "fail" })
 
+    if ($fallbackExists) { return $fallbackExe }
+
+    Write-Log "No valid VS Code executable found for either type" "fail"
     return $null
 }
 
-# ── Main ─────────────────────────────────────────────────────────────
-$ErrorActionPreference = "Stop"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-
-# ── Setup file logging ──────────────────────────────────────────────
-$logsDir = Join-Path $ScriptDir "logs"
-if (-not (Test-Path $logsDir)) { New-Item -Path $logsDir -ItemType Directory -Force -Confirm:$false | Out-Null }
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$logFile   = Join-Path $logsDir "run-$timestamp.log"
-Start-Transcript -Path $logFile -Force | Out-Null
-
-try {
-
-# Load log messages
-$logPath = Join-Path $ScriptDir "log-messages.json"
-if (-not (Test-Path $logPath)) {
-    Write-Host "  [ FAIL ] log-messages.json not found at $logPath" -ForegroundColor Red
-    exit 1
-}
-$script:LogMessages = Get-Content $logPath -Raw | ConvertFrom-Json
-
-# Print banner
-Write-Banner $script:LogMessages.banner
-
-# Check admin
-Write-Log $script:LogMessages.steps.init
-if (-not (Assert-Admin)) {
-    Write-Log $script:LogMessages.errors.notAdmin "fail"
-    Write-Host ""
-    Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
-    exit 1
-}
-Write-Log "Running with Administrator privileges" "ok"
-
-# Load config
-Write-Log $script:LogMessages.steps.loadConfig
-$cfgPath = Join-Path $ScriptDir "config.json"
-if (-not (Test-Path $cfgPath)) {
-    Write-Log $script:LogMessages.errors.configNotFound "fail"
-    exit 1
-}
-$Config = Get-Content $cfgPath -Raw | ConvertFrom-Json
-Write-Log "Configuration loaded" "ok"
-
-# Map HKCR PSDrive
-Write-Log $script:LogMessages.steps.mapDrive
-if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Confirm:$false | Out-Null
-    Write-Log "HKCR PSDrive mapped" "ok"
-} else {
-    Write-Log "HKCR PSDrive already exists" "skip"
-}
-
-$installType     = $Config.installationType
-$enabledEditions = $Config.enabledEditions
-$totalSuccess    = $true
-
-Write-Log "Installation type preference: $installType" "info"
-Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
-Write-Host ""
-
-# ── Process each edition ─────────────────────────────────────────────
-foreach ($editionName in $enabledEditions) {
-    $edition = $Config.editions.$editionName
-
-    if (-not $edition) {
-        Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" "warn"
-        continue
-    }
-
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-    Write-Host "  |  Edition: $($edition.contextMenuLabel)" -ForegroundColor Cyan
-    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
-
-    # Resolve exe path
-    Write-Log $script:LogMessages.steps.detectInstall
-    $VsCodeExe = Resolve-VsCodePath -PathConfig $edition.vscodePath -PreferredType $installType
-
-    if (-not $VsCodeExe) {
-        Write-Log "$($edition.contextMenuLabel): executable not found -- skipping this edition" "warn"
-        $totalSuccess = $false
-        Write-Host ""
-        continue
-    }
-    Write-Log "Found: $VsCodeExe" "ok"
-
-    $Label   = $edition.contextMenuLabel
-    $IconVal = "`"$VsCodeExe`""
-
-    # Registry entries
-    $Entries = @(
-        @{
-            Step   = $script:LogMessages.steps.regFile
-            Path   = $edition.registryPaths.file
-            CmdArg = "`"$VsCodeExe`" `"%1`""
-        },
-        @{
-            Step   = $script:LogMessages.steps.regDir
-            Path   = $edition.registryPaths.directory
-            CmdArg = "`"$VsCodeExe`" `"%V`""
-        },
-        @{
-            Step   = $script:LogMessages.steps.regBg
-            Path   = $edition.registryPaths.background
-            CmdArg = "`"$VsCodeExe`" `"%V`""
-        }
+function Register-ContextMenu {
+    param(
+        [string]$StepLabel,
+        [string]$RegistryPath,
+        [string]$Label,
+        [string]$IconValue,
+        [string]$CommandArg
     )
 
-    foreach ($entry in $Entries) {
-        Write-Log $entry.Step
-        try {
-            New-Item         -Path $entry.Path -Force -Confirm:$false -ErrorAction Stop | Out-Null
-            Set-ItemProperty -Path $entry.Path -Name "(Default)" -Value $Label -Force -Confirm:$false -ErrorAction Stop
-            Set-ItemProperty -Path $entry.Path -Name "Icon"      -Value $IconVal -Force -Confirm:$false -ErrorAction Stop
+    Write-Log "$StepLabel"
+    Write-Log "  Registry path : $RegistryPath"
+    Write-Log "  Label         : $Label"
+    Write-Log "  Icon          : $IconValue"
+    Write-Log "  Command       : $CommandArg"
 
-            $cmdPath = "$($entry.Path)\command"
-            New-Item         -Path $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
-            Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $entry.CmdArg -Force -Confirm:$false -ErrorAction Stop
+    try {
+        Write-Log "  Creating registry key..." "info"
+        New-Item -Path $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        Write-Log "  Key created" "ok"
 
-            Write-Log "Registry key created" "ok"
-        } catch {
-            Write-Log "$($script:LogMessages.errors.registryFail) $_" "fail"
-            $totalSuccess = $false
-        }
+        Write-Log "  Setting (Default) = $Label" "info"
+        Set-ItemProperty -Path $RegistryPath -Name "(Default)" -Value $Label -Force -Confirm:$false -ErrorAction Stop
+        Write-Log "  (Default) set" "ok"
+
+        Write-Log "  Setting Icon = $IconValue" "info"
+        Set-ItemProperty -Path $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
+        Write-Log "  Icon set" "ok"
+
+        $cmdPath = "$RegistryPath\command"
+        Write-Log "  Creating command subkey: $cmdPath" "info"
+        New-Item -Path $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        Write-Log "  Command subkey created" "ok"
+
+        Write-Log "  Setting command (Default) = $CommandArg" "info"
+        Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
+        Write-Log "  Command value set" "ok"
+
+        return $true
+    } catch {
+        Write-Log "  FAILED: $_" "fail"
+        Write-Log "  Stack: $($_.ScriptStackTrace)" "fail"
+        return $false
+    }
+}
+
+function Test-RegistryEntry {
+    param(
+        [string]$RegistryPath,
+        [string]$Label
+    )
+
+    Write-Log "  Verifying: $RegistryPath"
+    if (Test-Path $RegistryPath) {
+        Write-Log "  [pass] $Label -- $RegistryPath" "ok"
+        return $true
+    } else {
+        Write-Log "  [miss] $Label -- $RegistryPath" "fail"
+        return $false
+    }
+}
+
+function Invoke-Edition {
+    param(
+        [PSCustomObject]$Edition,
+        [string]$EditionName,
+        [string]$InstallType,
+        [hashtable]$Steps
+    )
+
+    Write-Host ""
+    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host "  |  Edition: $($Edition.contextMenuLabel)" -ForegroundColor Cyan
+    Write-Host "  +----------------------------------------------" -ForegroundColor DarkCyan
+
+    # Resolve exe
+    Write-Log $Steps.detectInstall
+    $VsCodeExe = Resolve-VsCodePath -PathConfig $Edition.vscodePath -PreferredType $InstallType
+
+    if (-not $VsCodeExe) {
+        Write-Log "$($Edition.contextMenuLabel): executable not found -- skipping" "warn"
+        return $false
+    }
+    Write-Log "Using executable: $VsCodeExe" "ok"
+
+    $Label   = $Edition.contextMenuLabel
+    $IconVal = "`"$VsCodeExe`""
+
+    # Define entries
+    $entries = @(
+        @{ Step = $Steps.regFile; Path = $Edition.registryPaths.file;       CmdArg = "`"$VsCodeExe`" `"%1`"" },
+        @{ Step = $Steps.regDir;  Path = $Edition.registryPaths.directory;  CmdArg = "`"$VsCodeExe`" `"%V`"" },
+        @{ Step = $Steps.regBg;   Path = $Edition.registryPaths.background; CmdArg = "`"$VsCodeExe`" `"%V`"" }
+    )
+
+    $allOk = $true
+
+    # Register
+    foreach ($entry in $entries) {
+        $result = Register-ContextMenu `
+            -StepLabel  $entry.Step `
+            -RegistryPath $entry.Path `
+            -Label      $Label `
+            -IconValue  $IconVal `
+            -CommandArg $entry.CmdArg
+        if (-not $result) { $allOk = $false }
     }
 
     # Verify
-    Write-Log $script:LogMessages.steps.verify
-    foreach ($entry in $Entries) {
-        if (Test-Path $entry.Path) {
-            Write-Log "  [pass] $($entry.Path)" "ok"
-        } else {
-            Write-Log "  [miss] $($entry.Path)" "fail"
-            $totalSuccess = $false
-        }
+    Write-Log $Steps.verify
+    foreach ($entry in $entries) {
+        $result = Test-RegistryEntry -RegistryPath $entry.Path -Label $entry.Step
+        if (-not $result) { $allOk = $false }
     }
 
-    Write-Host ""
+    return $allOk
 }
 
-# ── Summary ──────────────────────────────────────────────────────────
-if ($totalSuccess) {
-    Write-Log $script:LogMessages.steps.done "ok"
-} else {
-    Write-Log "Completed with some warnings -- check output above." "warn"
+# ── Main ─────────────────────────────────────────────────────────────
+
+function Main {
+    $ErrorActionPreference = "Stop"
+    $ScriptDir = Split-Path -Parent $MyInvocation.PSCommandPath
+
+    # If PSCommandPath is empty (PS 2.0), fall back
+    if (-not $ScriptDir) {
+        $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    }
+
+    Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
+
+    # Start logging
+    $logFile = Initialize-Logging -ScriptDir $ScriptDir
+
+    try {
+        # Load log messages
+        $logPath = Join-Path $ScriptDir "log-messages.json"
+        $script:LogMessages = Import-JsonConfig -FilePath $logPath -Label "log-messages.json"
+        if (-not $script:LogMessages) { exit 1 }
+
+        Write-Banner $script:LogMessages.banner
+
+        # Check admin
+        if (-not (Assert-Admin)) {
+            Write-Log $script:LogMessages.errors.notAdmin "fail"
+            Write-Host ""
+            Write-Host "  Tip: Right-click PowerShell -> 'Run as Administrator'" -ForegroundColor Yellow
+            exit 1
+        }
+
+        # Load config
+        $cfgPath = Join-Path $ScriptDir "config.json"
+        $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
+        if (-not $Config) { exit 1 }
+
+        # Map HKCR
+        Mount-RegistryDrive
+
+        $installType     = $Config.installationType
+        $enabledEditions = $Config.enabledEditions
+        $totalSuccess    = $true
+
+        Write-Log "Installation type preference: $installType" "info"
+        Write-Log "Enabled editions: $($enabledEditions -join ', ')" "info"
+
+        # Process each edition
+        foreach ($editionName in $enabledEditions) {
+            $edition = $Config.editions.$editionName
+
+            if (-not $edition) {
+                Write-Log "Unknown edition '$editionName' in enabledEditions -- skipping" "warn"
+                $totalSuccess = $false
+                continue
+            }
+
+            $result = Invoke-Edition `
+                -Edition     $edition `
+                -EditionName $editionName `
+                -InstallType $installType `
+                -Steps       @{
+                    detectInstall = $script:LogMessages.steps.detectInstall
+                    regFile       = $script:LogMessages.steps.regFile
+                    regDir        = $script:LogMessages.steps.regDir
+                    regBg         = $script:LogMessages.steps.regBg
+                    verify        = $script:LogMessages.steps.verify
+                }
+
+            if (-not $result) { $totalSuccess = $false }
+        }
+
+        # Summary
+        Write-Host ""
+        if ($totalSuccess) {
+            Write-Log $script:LogMessages.steps.done "ok"
+        } else {
+            Write-Log "Completed with some warnings -- check output above." "warn"
+        }
+
+        Write-Banner $script:LogMessages.footer "Green"
+
+    } catch {
+        Write-Host ""
+        Write-Log "Unhandled error: $_" "fail"
+        Write-Log "Stack: $($_.ScriptStackTrace)" "fail"
+        Write-Host ""
+        Write-Log "Log saved to: $logFile" "info"
+    } finally {
+        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+        Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
+    }
 }
 
-Write-Banner $script:LogMessages.footer "Green"
-
-} catch {
-    Write-Host ""
-    Write-Host "  [ FAIL ] Unhandled error: $_" -ForegroundColor Red
-    Write-Host "  [ FAIL ] Stack: $($_.ScriptStackTrace)" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "  [ INFO ] Log saved to: $logFile" -ForegroundColor Yellow
-} finally {
-    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
-    Write-Host "  [ LOG  ] Transcript saved: $logFile" -ForegroundColor DarkGray
-}
+# ── Entry Point ──────────────────────────────────────────────────────
+Main
