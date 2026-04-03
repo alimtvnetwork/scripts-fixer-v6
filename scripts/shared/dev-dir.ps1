@@ -80,7 +80,7 @@ function Initialize-DevDir {
     # Support -Path alias
     if ($Path -and -not $DevDir) { $DevDir = $Path }
 
-    Write-Log "Initializing dev directory: $DevDir" "info"
+    Write-Log "Initializing dev directory: $DevDir" -Level "info"
 
     if (-not (Test-Path $DevDir)) {
         New-Item -Path $DevDir -ItemType Directory -Force -Confirm:$false | Out-Null
