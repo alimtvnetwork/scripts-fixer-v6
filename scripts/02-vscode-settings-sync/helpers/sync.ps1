@@ -189,7 +189,7 @@ function Invoke-Edition {
     param(
         [PSCustomObject]$Edition,
         [string]$EditionName,
-        [hashtable]$Sources,
+        $Sources,
         [string]$BackupSuffix,
         [bool]$MergeMode,
         [string]$ScriptDir
