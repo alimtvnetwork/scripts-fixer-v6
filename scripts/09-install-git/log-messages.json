@@ -1,13 +1,18 @@
 {
-  "scriptName": "Install Git and GitHub CLI",
-  "version": "1.1.0",
-  "description": "Installs Git and GitHub CLI via Chocolatey and configures global settings.",
+  "scriptName": "Install Git, Git LFS, and GitHub CLI",
+  "version": "1.2.0",
+  "description": "Installs Git, Git LFS, and GitHub CLI via Chocolatey and configures global settings.",
   "messages": {
     "startingGitInstall": "Starting Git installation...",
     "gitAlreadyInstalled": "Git is already installed: {version}",
     "gitInstallSuccess": "Git installed successfully: {version}",
     "gitUpgradeSuccess": "Git upgraded successfully: {version}",
     "gitNotFound": "Git not found, installing via Chocolatey...",
+    "lfsAlreadyInstalled": "Git LFS is already installed: {version}",
+    "lfsInstallSuccess": "Git LFS installed successfully: {version}",
+    "lfsUpgradeSuccess": "Git LFS upgraded successfully: {version}",
+    "lfsNotFound": "Git LFS not found, installing via Chocolatey...",
+    "lfsInitSuccess": "Git LFS initialized (git lfs install).",
     "configuringGit": "Configuring global git settings...",
     "settingUserName": "Setting git user.name: {value}",
     "settingUserEmail": "Setting git user.email: {value}",
@@ -41,8 +46,8 @@
   },
   "help": {
     "commands": {
-      "all": "Install Git + GitHub CLI and configure settings (default)",
-      "install": "Install/upgrade Git and GitHub CLI only",
+      "all": "Install Git + Git LFS + GitHub CLI and configure settings (default)",
+      "install": "Install/upgrade Git, Git LFS, and GitHub CLI only",
       "configure": "Configure global git settings only"
     },
     "examples": [

@@ -2,6 +2,11 @@
   "enabled": true,
   "chocoPackageName": "git",
   "alwaysUpgradeToLatest": true,
+  "gitLfs": {
+    "enabled": true,
+    "chocoPackageName": "git-lfs",
+    "alwaysUpgradeToLatest": true
+  },
   "githubCli": {
     "enabled": true,
     "chocoPackageName": "gh",
