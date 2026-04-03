@@ -1,4 +1,4 @@
-# Spec: Script 05 -- Install Node.js
+# Spec: Script 06 -- Install Node.js
 
 ## Purpose
 
@@ -17,7 +17,7 @@ to reside inside the shared dev directory, keeping global packages organised.
 ## File Structure
 
 ```
-scripts/05-install-nodejs/
+scripts/06-install-nodejs/
   config.json
   log-messages.json
   run.ps1
