@@ -162,6 +162,7 @@ if ($d) { $I = 12 }
 if ($a) { $I = 13 }
 if ($v) { $I = 1 }
 if ($w) { $I = 14 }
+if ($t) { $I = 15 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
