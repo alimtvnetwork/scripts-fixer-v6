@@ -102,10 +102,12 @@ function Import-JsonConfig {
         [string]$Label
     )
 
-    if (-not $Label) { $Label = Split-Path -Leaf $FilePath }
+    $isLabelMissing = -not $Label
+    if ($isLabelMissing) { $Label = Split-Path -Leaf $FilePath }
 
     Write-Log "Loading $Label from: $FilePath" -Level "info"
-    if (-not (Test-Path $FilePath)) {
+    $isFileMissing = -not (Test-Path $FilePath)
+    if ($isFileMissing) {
         Write-Log "$Label not found at path: $FilePath" -Level "error"
         return $null
     }
