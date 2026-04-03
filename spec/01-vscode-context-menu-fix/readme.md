@@ -33,13 +33,23 @@ A structured PowerShell script that:
 run.ps1                              # Root dispatcher (git pull + delegate)
 scripts/
 ├── shared/
-│   └── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
+│   ├── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
+│   ├── logging.ps1                  # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+│   ├── json-utils.ps1               # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+│   └── resolved.ps1                 # Save-ResolvedData, Get-ResolvedDir
 └── 01-vscode-context-menu-fix/
-    ├── config.json                  # Paths & settings (user-editable)
+    ├── config.json                  # Paths & settings (user-editable, never mutated at runtime)
     ├── log-messages.json            # All display strings & banners
     ├── run.ps1                      # Main script
+    ├── helpers/
+    │   ├── logging.ps1              # Script-specific logging (dot-sources shared)
+    │   └── registry.ps1             # Registry & VS Code resolution helpers
     └── logs/                        # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log      # Timestamped execution log
+
+.resolved/                           # Runtime-resolved data (gitignored)
+└── 01-vscode-context-menu-fix/
+    └── resolved.json                # Cached exe paths, timestamps, username
 
 spec/
 ├── shared/
@@ -50,6 +60,9 @@ spec/
 
 ## config.json Schema
 
+`config.json` is **read-only at runtime**. Scripts never write back to it.
+Runtime-discovered state goes to `.resolved/` instead.
+
 | Key                  | Type   | Description                                        |
 |----------------------|--------|----------------------------------------------------|
 | `vscodePath.user`    | string | Path for per-user VS Code install (with env vars)  |
@@ -59,6 +72,28 @@ spec/
 | `registryPaths.background` | string | Registry key for folder background menu     |
 | `contextMenuLabel`   | string | Label shown in the context menu                    |
 | `installationType`   | string | `"user"` or `"system"` — which path to try first   |
+
+## .resolved/ Schema
+
+Written automatically by the script to `.resolved/01-vscode-context-menu-fix/resolved.json`:
+
+```json
+{
+  "stable": {
+    "resolvedExe": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+    "resolvedAt": "2026-04-03T18:10:02+08:00",
+    "resolvedBy": "alim"
+  },
+  "insiders": {
+    "resolvedExe": "C:\\Program Files\\Microsoft VS Code Insiders\\Code - Insiders.exe",
+    "resolvedAt": "2026-04-03T18:10:05+08:00",
+    "resolvedBy": "alim"
+  }
+}
+```
+
+On subsequent runs, `Resolve-VsCodePath` checks the cache first and skips
+detection if the cached exe path still exists on disk.
 
 ## log-messages.json Schema
 
@@ -104,7 +139,7 @@ whether the file exists, and which fallback (if any) was tried.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+2. Dot-source shared helpers (`git-pull.ps1`, `resolved.ps1`) and call `Invoke-GitPull`
    - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
    - If run standalone, git pull executes normally
 3. `Initialize-Logging` -- clean `logs/`, start transcript
@@ -113,9 +148,10 @@ whether the file exists, and which fallback (if any) was tried.
 6. `Import-JsonConfig` -- load `config.json`
 7. `Mount-RegistryDrive` -- map `HKCR:` PSDrive (with `-Scope Global`)
 8. For each enabled edition -> `Invoke-Edition`:
-   a. `Resolve-VsCodePath` -- find exe with fallback
-   b. `Register-ContextMenu` -- create 3 registry entries
-   c. `Test-RegistryEntry` -- verify each entry
+   a. `Resolve-VsCodePath` -- **check `.resolved/` cache first**, then detect with fallback
+   b. `Save-ResolvedData` -- persist discovered path to `.resolved/`
+   c. `Register-ContextMenu` -- create 3 registry entries
+   d. `Test-RegistryEntry` -- verify each entry
 9. Display summary footer
 
 ## Logging
@@ -159,6 +195,9 @@ cd scripts\01-vscode-context-menu-fix
 | Main entry point at bottom | All functions defined first, single orchestration call |
 | Verbose logging at every step | Every path, value, and decision is logged for debugging |
 | External JSON configs | Easy to edit without touching script logic |
+| Config is read-only at runtime | Scripts never mutate config.json -- keeps it declarative and git-friendly |
+| .resolved/ for runtime state | Discovered paths, timestamps belong outside version control |
+| Cache-first path detection | Checks .resolved/ before probing filesystem, skips if cached path is still valid |
 | Env-var expansion at runtime | Supports both user & system installs portably |
 | Auto-fallback path detection | Reduces user friction if wrong type is selected |
 | Colored status badges | Clear visual feedback in the terminal |

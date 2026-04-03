@@ -38,9 +38,12 @@ A structured PowerShell script that:
 run.ps1                                # Root dispatcher (git pull + delegate)
 scripts/
 ├── shared/
-│   └── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
+│   ├── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
+│   ├── logging.ps1                    # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+│   ├── json-utils.ps1                 # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+│   └── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
 └── 02-vscode-settings-sync/
-    ├── config.json                    # Paths & edition settings
+    ├── config.json                    # Paths & edition settings (never mutated at runtime)
     ├── log-messages.json              # All display strings & banners
     ├── settings.json                  # Extracted/provided VS Code settings
     ├── keybindings.json               # Extracted/provided keybindings
@@ -49,6 +52,10 @@ scripts/
     ├── run.ps1                        # Main script
     └── logs/                          # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log        # Timestamped execution log
+
+.resolved/                             # Runtime-resolved data (gitignored)
+└── 02-vscode-settings-sync/
+    └── resolved.json                  # Resolved settings dirs, CLI commands, timestamps
 
 spec/
 ├── shared/
@@ -95,21 +102,22 @@ then invoked from a single `Main` entry point at the bottom of the file.
 
 ### Function Breakdown
 
-| Function | Purpose |
-|----------|---------|
-| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) and writes to transcript |
-| `Write-Banner` | Displays ASCII banner blocks in a specified color |
-| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript with timestamped file |
-| `Import-JsonConfig` | Loads and returns a JSON file with verbose logging (size, parse status) |
-| `Resolve-SourceFiles` | Scans for `.code-profile` first, extracts settings/keybindings/extensions; falls back to individual JSON files |
-| `Backup-File` | Creates a timestamped backup of an existing file before overwriting |
-| `Merge-JsonDeep` | Recursively deep-merges two hashtables (used for `-Merge` mode) |
-| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` to an ordered hashtable for merging |
-| `Apply-Settings` | Backs up and copies/merges `settings.json` to the target edition path |
-| `Apply-Keybindings` | Backs up and copies `keybindings.json` to the target edition path |
-| `Install-Extensions` | Installs each extension via the VS Code CLI (`--install-extension --force`) |
-| `Invoke-Edition` | Orchestrates the full update for a single edition (CLI check, path setup, apply settings/keybindings, install extensions, verify) |
-| `Main` | Orchestrates the full flow -- called at the end of the file |
+| Function | Source | Purpose |
+|----------|--------|---------|
+| `Write-Log` | `shared/logging.ps1` | Prints a status-badged message and writes to transcript |
+| `Write-Banner` | `shared/logging.ps1` | Displays ASCII banner blocks in a specified color |
+| `Initialize-Logging` | `shared/logging.ps1` | Cleans and recreates `logs/`, starts transcript |
+| `Import-JsonConfig` | `shared/logging.ps1` | Loads and returns a JSON file with verbose logging |
+| `Backup-File` | `shared/json-utils.ps1` | Creates a timestamped backup of an existing file |
+| `Merge-JsonDeep` | `shared/json-utils.ps1` | Recursively deep-merges two hashtables |
+| `ConvertTo-OrderedHashtable` | `shared/json-utils.ps1` | Converts `PSCustomObject` to ordered hashtable |
+| `Save-ResolvedData` | `shared/resolved.ps1` | Persists runtime-discovered state to `.resolved/` |
+| `Resolve-SourceFiles` | `run.ps1` (local) | Scans for `.code-profile` first, falls back to individual JSON files |
+| `Apply-Settings` | `run.ps1` (local) | Backs up and copies/merges `settings.json` |
+| `Apply-Keybindings` | `run.ps1` (local) | Backs up and copies `keybindings.json` |
+| `Install-Extensions` | `run.ps1` (local) | Installs extensions via VS Code CLI, checks `$LASTEXITCODE` |
+| `Invoke-Edition` | `run.ps1` (local) | Orchestrates the full update for a single edition |
+| `Main` | `run.ps1` (local) | Orchestrates the full flow |
 
 ### Verbose Logging Rules
 
@@ -124,7 +132,7 @@ what was extracted from it, and which fallback JSON files were used.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+2. Dot-source shared helpers (`git-pull.ps1`, `logging.ps1`, `json-utils.ps1`, `resolved.ps1`)
    - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
    - If run standalone, git pull executes normally
 3. `Initialize-Logging` -- clean `logs/`, start transcript
@@ -135,10 +143,11 @@ what was extracted from it, and which fallback JSON files were used.
 8. For each enabled edition -> `Invoke-Edition`:
    a. Check CLI command availability (`code` / `code-insiders`)
    b. Resolve and create settings directory if needed
-   c. `Apply-Settings` -- backup existing, then copy or deep-merge
-   d. `Apply-Keybindings` -- backup existing, then copy
-   e. `Install-Extensions` -- install each extension via CLI
-   f. Verify applied files exist at destination
+   c. `Save-ResolvedData` -- persist resolved settings dir + CLI command to `.resolved/`
+   d. `Apply-Settings` -- backup existing, then copy or deep-merge
+   e. `Apply-Keybindings` -- backup existing, then copy
+   f. `Install-Extensions` -- install each extension via CLI (checks `$LASTEXITCODE`)
+   g. Verify applied files exist at destination
 9. Display summary footer
 
 ## Logging
@@ -185,6 +194,10 @@ what was extracted from it, and which fallback JSON files were used.
 | Verbose logging at every step | Every path, value, and decision is logged for debugging    |
 | Profile-first parsing       | Users can drop a .code-profile export and it just works     |
 | Fallback to individual JSON | Flexibility -- users can also curate files manually          |
+| Config is read-only at runtime | Scripts never mutate config.json -- keeps it declarative  |
+| .resolved/ for runtime state | Resolved settings dirs and CLI info belong outside git     |
+| Shared helpers in scripts/shared/ | Backup-File, Merge-JsonDeep etc. are reused across scripts |
+| $LASTEXITCODE check on CLI  | Catches failed extension installs that don't throw exceptions |
 | Keybindings support         | Profiles include keybindings; a complete import requires them |
 | Separate extensions.json    | Easy to maintain extension list without editing script logic |
 | Timestamp backup            | Never lose existing settings, multiple backups coexist       |

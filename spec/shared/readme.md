@@ -12,9 +12,19 @@ by individual scripts. This avoids duplicating common logic across scripts.
 ```
 scripts/
 └── shared/
-    ├── git-pull.ps1    # Provides Invoke-GitPull function
-    └── logging.ps1     # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+    ├── git-pull.ps1      # Provides Invoke-GitPull function
+    ├── logging.ps1       # Provides Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+    ├── json-utils.ps1    # Provides Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+    └── resolved.ps1      # Provides Save-ResolvedData, Get-ResolvedDir
+
+.resolved/                # Runtime-resolved data (gitignored, never committed)
+├── 01-vscode-context-menu-fix/
+│   └── resolved.json     # Discovered exe paths, timestamps
+└── 02-vscode-settings-sync/
+    └── resolved.json     # Resolved settings dirs, CLI commands
 ```
+
+---
 
 ## git-pull.ps1
 
@@ -47,6 +57,124 @@ if (Test-Path $sharedGitPull) {
 }
 ```
 
+---
+
+## logging.ps1
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) |
+| `Write-Banner` | Displays ASCII banner blocks in a specified color |
+| `Initialize-Logging` | Cleans and recreates `logs/`, starts transcript |
+| `Import-JsonConfig` | Loads and returns a JSON file with verbose logging |
+
+---
+
+## json-utils.ps1
+
+### Purpose
+
+Provides common JSON and file utilities extracted from script 02 so all scripts can reuse them.
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Backup-File` | Creates a timestamped backup copy of an existing file before overwriting |
+| `ConvertTo-OrderedHashtable` | Converts a `PSCustomObject` (from `ConvertFrom-Json`) to an ordered hashtable for deep merging |
+| `Merge-JsonDeep` | Recursively deep-merges two hashtables; incoming keys overwrite, existing-only keys are preserved |
+
+### How Child Scripts Use It
+
+```powershell
+$sharedJsonUtils = Join-Path $PSScriptRoot "..\shared\json-utils.ps1"
+if (Test-Path $sharedJsonUtils) { . $sharedJsonUtils }
+```
+
+---
+
+## resolved.ps1
+
+### Purpose
+
+Provides a shared mechanism for persisting **runtime-discovered state** to the
+`.resolved/` folder at the repo root. This keeps `config.json` files **purely
+declarative** -- they are never mutated by scripts.
+
+### Design Principle
+
+**Config files are input. Resolved data is output.**
+
+- `config.json` contains user-editable, declarative settings (paths with env vars, labels, edition preferences)
+- `.resolved/` contains runtime state discovered by the script (expanded paths, timestamps, usernames)
+- Config is committed to git. Resolved data is gitignored.
+
+### Functions
+
+| Function | Signature | Purpose |
+|----------|-----------|---------|
+| `Get-ResolvedDir` | `-ScriptDir <string>` | Returns `.resolved/<script-folder>/` path, creating the directory if needed |
+| `Save-ResolvedData` | `-ScriptDir <string> -Data <hashtable>` | Merges new keys into `resolved.json`, preserving existing data |
+
+### Folder Layout
+
+```
+<repo-root>/
+└── .resolved/                              # gitignored
+    ├── 01-vscode-context-menu-fix/
+    │   └── resolved.json                   # { "stable": { "resolvedExe": "...", "resolvedAt": "...", "resolvedBy": "..." } }
+    └── 02-vscode-settings-sync/
+        └── resolved.json                   # { "stable": { "settingsDir": "...", "cliCommand": "...", "resolvedAt": "..." } }
+```
+
+### How It Works
+
+1. Script calls `Save-ResolvedData -ScriptDir $ScriptDir -Data @{ ... }`
+2. Helper computes `<repo-root>/.resolved/<script-folder-name>/`
+3. If `resolved.json` already exists, it reads and merges (new keys overlay, old keys preserved)
+4. Writes merged result back as JSON
+
+### Cache-First Pattern (Script 01)
+
+Script 01 checks `.resolved/` **before** running path detection:
+
+```powershell
+# Inside Resolve-VsCodePath:
+$resolvedDir  = Get-ResolvedDir -ScriptDir $ScriptDir
+$resolvedFile = Join-Path $resolvedDir "resolved.json"
+if (Test-Path $resolvedFile) {
+    $cached = Get-Content $resolvedFile -Raw | ConvertFrom-Json
+    $cachedExe = $cached.$EditionName.resolvedExe
+    if ($cachedExe -and (Test-Path $cachedExe)) {
+        # Use cached path, skip detection
+        return $cachedExe
+    }
+    # Cached path stale -- fall through to full detection
+}
+```
+
+If the cached exe still exists on disk, detection is skipped entirely. If stale (uninstalled/moved), normal detection runs and the cache is updated.
+
+### How Child Scripts Use It
+
+```powershell
+$sharedResolved = Join-Path $ScriptDir "..\shared\resolved.ps1"
+if (Test-Path $sharedResolved) { . $sharedResolved }
+
+# After resolving a path:
+Save-ResolvedData -ScriptDir $ScriptDir -Data @{
+    $EditionName = @{
+        resolvedExe = $VsCodeExe
+        resolvedAt  = (Get-Date -Format "o")
+        resolvedBy  = $env:USERNAME
+    }
+}
+```
+
+---
+
 ## Naming Conventions
 
 | Rule | Example |
@@ -63,3 +191,7 @@ if (Test-Path $sharedGitPull) {
 | Dot-sourcing (not module) | No module manifest overhead, just a simple function import |
 | Graceful fallback | If shared helper is missing, scripts warn and continue |
 | Root cleans flag after run | Prevents stale flag from affecting future standalone runs |
+| Config is read-only at runtime | Scripts never mutate their own config.json -- keeps it declarative and git-friendly |
+| .resolved/ is gitignored | Runtime state (discovered paths, timestamps) belongs outside version control |
+| Merge semantics in Save-ResolvedData | Multiple editions can write to the same resolved.json without overwriting each other |
+| Cache-first detection | Avoids redundant filesystem probing on repeated runs |
