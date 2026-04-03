@@ -174,6 +174,38 @@ Save-ResolvedData -ScriptDir $ScriptDir -Data @{
 }
 ```
 
+## cleanup.ps1
+
+### Purpose
+
+Provides `Clear-ResolvedData` to wipe cached runtime state for a fresh start.
+
+### Function Signature
+
+```powershell
+Clear-ResolvedData -ScriptDir <string> [-EditionName <string>]
+```
+
+### Modes
+
+| Call | Effect |
+|------|--------|
+| `Clear-ResolvedData -ScriptDir $ScriptDir` | Removes **all** contents of `.resolved/` |
+| `Clear-ResolvedData -ScriptDir $ScriptDir -EditionName "stable"` | Removes only the `"stable"` key from that script's `resolved.json` |
+
+### How to Use
+
+```powershell
+$sharedCleanup = Join-Path $ScriptDir "..\shared\cleanup.ps1"
+if (Test-Path $sharedCleanup) { . $sharedCleanup }
+
+# Wipe everything:
+Clear-ResolvedData -ScriptDir $ScriptDir
+
+# Or just one edition:
+Clear-ResolvedData -ScriptDir $ScriptDir -EditionName "insiders"
+```
+
 ---
 
 ## Naming Conventions
@@ -195,4 +227,5 @@ Save-ResolvedData -ScriptDir $ScriptDir -Data @{
 | Config is read-only at runtime | Scripts never mutate their own config.json -- keeps it declarative and git-friendly |
 | .resolved/ is gitignored | Runtime state (discovered paths, timestamps) belongs outside version control |
 | Merge semantics in Save-ResolvedData | Multiple editions can write to the same resolved.json without overwriting each other |
+| Granular cleanup | Clear-ResolvedData supports per-edition clearing, not just full wipe |
 | Cache-first detection | Avoids redundant filesystem probing on repeated runs |
