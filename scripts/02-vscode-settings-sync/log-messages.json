@@ -6,7 +6,9 @@
     "done": "All settings and extensions applied successfully!",
     "settingsNotFound": "settings.json not found in script directory.",
     "extensionsNotFound": "extensions.json not found in script directory.",
-    "cliNotFound": "CLI command not found in PATH -- skipping this edition."
+    "cliNotFound": "CLI command not found in PATH -- skipping this edition.",
+    "scriptDisabled": "VS Code settings sync is disabled in config.",
+    "notAdmin": "This script must be run as Administrator."
   },
   "help": {
     "commands": {
