@@ -35,7 +35,91 @@ function Resolve-ScriptList {
             Id      = $id
             Folder  = $entry.folder
             Name    = $entry.name
+            Desc    = if ($entry.desc) { $entry.desc } else { "" }
             Enabled = $entry.enabled
+        }
+    }
+
+    return $result
+}
+
+function Show-InteractiveMenu {
+    param(
+        [array]$ScriptList,
+        $LogMessages
+    )
+
+    # Build selection state (all enabled by default)
+    $selected = @{}
+    for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+        $selected[$i] = $ScriptList[$i].Enabled
+    }
+
+    while ($true) {
+        Write-Host ""
+        Write-Host "  $($LogMessages.messages.menuTitle)" -ForegroundColor Cyan
+        Write-Host "  $('=' * $LogMessages.messages.menuTitle.Length)" -ForegroundColor DarkGray
+        Write-Host ""
+
+        for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+            $check = if ($selected[$i]) { "x" } else { " " }
+            $num   = $i + 1
+            $name  = $ScriptList[$i].Name.PadRight(26)
+            $desc  = $ScriptList[$i].Desc
+
+            Write-Host "  [" -NoNewline
+            if ($selected[$i]) {
+                Write-Host $check -ForegroundColor Green -NoNewline
+            } else {
+                Write-Host $check -NoNewline
+            }
+            Write-Host "] " -NoNewline
+            Write-Host "$num. " -ForegroundColor Yellow -NoNewline
+            Write-Host "$name " -NoNewline
+            Write-Host $desc -ForegroundColor DarkGray
+        }
+
+        Write-Host ""
+        Write-Host "  " -NoNewline
+        $input = Read-Host $LogMessages.messages.menuPrompt
+
+        $isEnterPressed = [string]::IsNullOrWhiteSpace($input)
+        if ($isEnterPressed) { break }
+
+        $upperInput = $input.Trim().ToUpper()
+
+        $isSelectAll = $upperInput -eq "A"
+        if ($isSelectAll) {
+            for ($i = 0; $i -lt $ScriptList.Count; $i++) { $selected[$i] = $true }
+            continue
+        }
+
+        $isSelectNone = $upperInput -eq "N"
+        if ($isSelectNone) {
+            for ($i = 0; $i -lt $ScriptList.Count; $i++) { $selected[$i] = $false }
+            continue
+        }
+
+        # Toggle individual numbers
+        $numbers = $input -split '\s+' | ForEach-Object { $_.Trim() }
+        foreach ($n in $numbers) {
+            $isValidNumber = $n -match '^\d+$'
+            if ($isValidNumber) {
+                $idx = [int]$n - 1
+                $isInRange = $idx -ge 0 -and $idx -lt $ScriptList.Count
+                if ($isInRange) {
+                    $selected[$idx] = -not $selected[$idx]
+                }
+            }
+        }
+    }
+
+    # Return only selected scripts
+    $result = @()
+    for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+        $isSelected = $selected[$i]
+        if ($isSelected) {
+            $result += $ScriptList[$i]
         }
     }
 

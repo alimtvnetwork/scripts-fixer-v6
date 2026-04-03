@@ -6,48 +6,66 @@ The root-level `run.ps1` is the single entry point for running any numbered
 script in the project. It handles git pull, log cleanup, environment flags,
 and cache management before delegating to the target script.
 
+When run with no parameters, it performs a git pull and shows help
+(available scripts and usage).
+
 ---
 
 ## Usage
 
 ```powershell
-.\run.ps1 -I <number>                  # Run a script
-.\run.ps1 -I <number> -Merge           # Run with -Merge passed through
-.\run.ps1 -I <number> -Clean           # Wipe .resolved/ cache, then run
-.\run.ps1 -CleanOnly                   # Wipe .resolved/ cache and exit
+.\run.ps1                          # Git pull + show help
+.\run.ps1 -I <number>              # Run a script
+.\run.ps1 -I <number> -Merge       # Run with -Merge passed through
+.\run.ps1 -I <number> -Clean       # Wipe .resolved/ cache, then run
+.\run.ps1 -CleanOnly               # Wipe .resolved/ cache and exit
+.\run.ps1 -Help                    # Show help (same as no params)
 ```
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `-I` | int | Yes (unless `-CleanOnly`) | Script number to run (maps to `scripts/<NN>-*/run.ps1`) |
+| `-I` | int | No | Script number to run (maps to `scripts/<NN>-*/run.ps1`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
 | `-CleanOnly` | switch | No | Wipes all `.resolved/` data and exits without running any script |
+| `-Help` | switch | No | Show help (also shown when no params given) |
 
 ## Examples
 
 ```powershell
+.\run.ps1                   # Pull, show help
 .\run.ps1 -I 1              # Pull, then run scripts/01-*/run.ps1
 .\run.ps1 -I 2 -Merge       # Pull, then run scripts/02-*/run.ps1 with merge mode
+.\run.ps1 -I 4              # Pull, then run install-all-dev-tools (interactive menu)
 .\run.ps1 -I 1 -Clean       # Wipe cache, pull, then run scripts/01-*/run.ps1
 .\run.ps1 -CleanOnly         # Wipe all cached resolved data
 ```
 
 ## Execution Flow
 
-1. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
-2. Validate `-I` is provided (show usage help if missing)
-3. If `-Clean`: wipe `.resolved/` contents, then continue
-4. Dot-source `scripts/shared/git-pull.ps1`
-5. Resolve script folder from `-I` (e.g. `1` -> `scripts/01-*/`)
-6. Verify `run.ps1` exists in the target folder
-7. Clean and recreate the target script's `logs/` folder
-8. `Invoke-GitPull` from the repo root
-9. Set `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts skip their own git pull
-10. Delegate to the child script, passing through any extra flags (`-Merge`)
-11. Clean up `$env:SCRIPTS_ROOT_RUN`
+1. If no parameters at all: git pull, show help, exit
+2. If `-Help`: show help and exit
+3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
+4. Validate `-I` is provided (show usage help if missing)
+5. If `-Clean`: wipe `.resolved/` contents, then continue
+6. Dot-source `scripts/shared/git-pull.ps1`
+7. Resolve script folder from `-I` (e.g. `1` -> `scripts/01-*/`)
+8. Verify `run.ps1` exists in the target folder
+9. Clean and recreate the target script's `logs/` folder
+10. `Invoke-GitPull` from the repo root
+11. Set `$env:SCRIPTS_ROOT_RUN = "1"` so child scripts skip their own git pull
+12. Delegate to the child script, passing through any extra flags (`-Merge`)
+13. Clean up `$env:SCRIPTS_ROOT_RUN`
+
+## Help Output
+
+The help display shows:
+- Project title and usage syntax
+- All available scripts with ID, name, and description of what each folder does
+- Script 04 specific options (interactive menu, -All, -Skip, -Only)
+- How to get per-script help
 
 ## Environment Variables
 
@@ -73,7 +91,8 @@ runtime cache without needing to manually delete folders.
 
 | Decision | Rationale |
 |----------|-----------|
-| `-I` is optional (not `Mandatory`) | Allows `-CleanOnly` to work without a script number |
+| No params = git pull + help | User discovers available scripts on first run |
+| `-I` is optional (not `Mandatory`) | Allows `-CleanOnly` and default help to work without a script number |
 | Usage help on missing `-I` | Better UX than a raw PowerShell parameter error |
 | Clean before git pull | Ensures fresh detection even if git pull brings new config |
 | Inline wipe (not via cleanup.ps1) | Root dispatcher runs before shared helpers are loaded; avoids dependency on logging |
