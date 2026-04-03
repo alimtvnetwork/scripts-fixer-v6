@@ -1,7 +1,7 @@
 # Windows Dev Environment Setup Scripts
 
 A collection of PowerShell scripts that automate Windows development environment
-configuration -- from VS Code settings to installing Go, Node.js, Python, and pnpm.
+configuration -- from VS Code settings to installing Git, Go, Node.js, Python, and pnpm.
 
 ## Quick Start
 
@@ -28,7 +28,8 @@ configuration -- from VS Code settings to installing Go, Node.js, Python, and pn
 | 05 | `05-install-nodejs` | Install Node.js (LTS), configure npm prefix | Yes |
 | 06 | `06-install-python` | Install Python, configure pip user site | Yes |
 | 07 | `07-install-pnpm` | Install pnpm, configure global store | No |
-| 08 | `08-install-all-dev-tools` | Orchestrator: runs 03-07 in sequence | Yes |
+| 08 | `08-install-all-dev-tools` | Orchestrator: runs 03-09 in sequence | Yes |
+| 09 | `09-install-git` | Install Git, configure user/credentials/autocrlf | Yes |
 
 ## Dev Directory
 
@@ -74,6 +75,7 @@ scripts/
   06-.../              # Python
   07-.../              # pnpm
   08-.../              # Orchestrator
+  09-.../              # Git
 spec/                  # Specifications per script
 suggestions/           # Improvement ideas
 .resolved/             # Runtime state (git-ignored)
