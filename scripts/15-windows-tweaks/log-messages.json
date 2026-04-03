@@ -1,0 +1,23 @@
+{
+  "scriptName": "Windows Tweaks",
+  "version": "1.0.0",
+  "description": "Launches the Chris Titus Windows Utility for system tweaks and debloating.",
+  "messages": {
+    "notAdmin": "This script must be run as Administrator.",
+    "scriptDisabled": "Windows Tweaks is disabled in config.",
+    "launching": "Launching Chris Titus Windows Utility...",
+    "launchUrl": "Source: {url}",
+    "confirm": "This will download and run the Chris Titus Windows Utility. Continue? (Y/N)",
+    "cancelled": "User cancelled -- exiting.",
+    "launchSuccess": "Chris Titus Windows Utility launched successfully.",
+    "launchFailed": "Failed to launch utility: {error}",
+    "setupComplete": "Windows Tweaks complete."
+  },
+  "help": {
+    "commands": {},
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Help"
+    ]
+  }
+}

@@ -50,6 +50,8 @@ param(
 
     [switch]$w,
 
+    [switch]$t,
+
     [switch]$Merge,
 
     [switch]$Clean,
@@ -74,6 +76,7 @@ function Show-RootHelp {
     Write-Host "    .\run.ps1 -a                         Shortcut for -I 13 (audit mode)"
     Write-Host "    .\run.ps1 -v                         Shortcut for -I 1  (install VS Code)"
     Write-Host "    .\run.ps1 -w                         Shortcut for -I 14 (install Winget)"
+    Write-Host "    .\run.ps1 -t                         Shortcut for -I 15 (Windows tweaks)"
     Write-Host "    .\run.ps1 -I <number>               Run a specific script"
     Write-Host "    .\run.ps1 -I <number> -Merge        Run with merge flag (script 02)"
     Write-Host "    .\run.ps1 -I <number> -Clean        Wipe cache, then run"
@@ -106,6 +109,7 @@ function Show-RootHelp {
     Write-Host "    Utilities" -ForegroundColor Magenta
     Write-Host "    13  Audit Mode                    " -NoNewline; Write-Host "Scan configs, specs, suggestions for stale IDs" -ForegroundColor DarkGray
     Write-Host "    14  Install Winget                " -NoNewline; Write-Host "Install/verify Winget package manager (standalone)" -ForegroundColor DarkGray
+    Write-Host "    15  Windows Tweaks                " -NoNewline; Write-Host "Chris Titus Windows Utility (tweaks and debloating)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
@@ -119,7 +123,7 @@ function Show-RootHelp {
 }
 
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $I -and -not $d -and -not $a -and -not $v -and -not $w -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $I -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     # Load git pull helper and pull before showing help
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
@@ -158,6 +162,7 @@ if ($d) { $I = 12 }
 if ($a) { $I = 13 }
 if ($v) { $I = 1 }
 if ($w) { $I = 14 }
+if ($t) { $I = 15 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
