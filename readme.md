@@ -29,7 +29,7 @@ configuration -- from VS Code settings to installing Git, Go, Node.js, Python, a
 | 06 | `06-install-python` | Install Python, configure pip user site | Yes |
 | 07 | `07-install-pnpm` | Install pnpm, configure global store | No |
 | 08 | `08-install-all-dev-tools` | Orchestrator: runs 03-09 in sequence | Yes |
-| 09 | `09-install-git` | Install Git, configure user/credentials/autocrlf | Yes |
+| 09 | `09-install-git` | Install Git + GitHub CLI, configure globals | Yes |
 
 ## Dev Directory
 
