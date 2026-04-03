@@ -32,6 +32,8 @@ A structured PowerShell script that:
 ```
 run.ps1                              # Root dispatcher (git pull + delegate)
 scripts/
+├── shared/
+│   └── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
 └── 01-vscode-context-menu-fix/
     ├── config.json                  # Paths & settings (user-editable)
     ├── log-messages.json            # All display strings & banners
@@ -40,6 +42,8 @@ scripts/
         └── run-<timestamp>.log      # Timestamped execution log
 
 spec/
+├── shared/
+│   └── readme.md                    # Shared helpers specification
 └── 01-vscode-context-menu-fix/
     └── readme.md                    # This specification
 ```
@@ -100,16 +104,19 @@ whether the file exists, and which fallback (if any) was tried.
 ## Execution Flow
 
 1. `Main` is called at the bottom of the script
-2. `Initialize-Logging` -- clean `logs/`, start transcript
-3. `Import-JsonConfig` -- load `log-messages.json`, display banner
-4. `Assert-Admin` -- verify Administrator privileges
-5. `Import-JsonConfig` -- load `config.json`
-6. `Mount-RegistryDrive` -- map `HKCR:` PSDrive
-7. For each enabled edition → `Invoke-Edition`:
+2. Dot-source `scripts/shared/git-pull.ps1` and call `Invoke-GitPull`
+   - If `$env:SCRIPTS_ROOT_RUN` is `"1"` (set by root dispatcher), git pull is skipped
+   - If run standalone, git pull executes normally
+3. `Initialize-Logging` -- clean `logs/`, start transcript
+4. `Import-JsonConfig` -- load `log-messages.json`, display banner
+5. `Assert-Admin` -- verify Administrator privileges
+6. `Import-JsonConfig` -- load `config.json`
+7. `Mount-RegistryDrive` -- map `HKCR:` PSDrive (with `-Scope Global`)
+8. For each enabled edition -> `Invoke-Edition`:
    a. `Resolve-VsCodePath` -- find exe with fallback
    b. `Register-ContextMenu` -- create 3 registry entries
    c. `Test-RegistryEntry` -- verify each entry
-8. Display summary footer
+9. Display summary footer
 
 ## Logging
 

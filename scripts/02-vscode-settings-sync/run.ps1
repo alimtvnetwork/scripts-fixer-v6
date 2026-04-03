@@ -423,6 +423,17 @@ function Main {
 
     Write-Host "  [ INFO ] Script directory: $ScriptDir" -ForegroundColor Cyan
 
+    # Load shared git-pull helper and run
+    $sharedGitPull = Join-Path $ScriptDir "..\shared\git-pull.ps1"
+    if (Test-Path $sharedGitPull) {
+        . $sharedGitPull
+        $repoRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+        Invoke-GitPull -RepoRoot $repoRoot
+    } else {
+        Write-Host "  [ WARN  ] " -ForegroundColor Yellow -NoNewline
+        Write-Host "Shared git-pull helper not found -- skipping git pull"
+    }
+
     # Start logging
     $logFile = Initialize-Logging -ScriptDir $ScriptDir
 
