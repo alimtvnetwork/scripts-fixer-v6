@@ -7,6 +7,15 @@
     or user prompt) and create the standard subdirectory structure.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Resolve-DevDir {
     <#
     .SYNOPSIS
@@ -25,20 +34,22 @@ function Resolve-DevDir {
         [PSCustomObject]$Config
     )
 
+    $slm = $script:SharedLogMessages
+
     # Support -Config alias
     if ($Config -and -not $DevDirConfig) { $DevDirConfig = $Config }
 
     # Check environment variable first (set by orchestrator)
     $hasDevDirEnv = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
     if ($hasDevDirEnv) {
-        Write-Log "Using dev directory from environment: $env:DEV_DIR" -Level "success"
+        Write-Log ($slm.messages.devDirFromEnv -replace '\{path\}', $env:DEV_DIR) -Level "success"
         return $env:DEV_DIR
     }
 
     $hasNoConfig = -not $DevDirConfig
     if ($hasNoConfig) {
         $fallback = "E:\dev"
-        Write-Log "No dev directory config -- using fallback: $fallback" -Level "warn"
+        Write-Log ($slm.messages.devDirNoConfig -replace '\{path\}', $fallback) -Level "warn"
         return $fallback
     }
 
@@ -48,7 +59,7 @@ function Resolve-DevDir {
     # Config override takes precedence
     $hasOverride = -not [string]::IsNullOrWhiteSpace($override)
     if ($hasOverride) {
-        Write-Log "Using dev directory override from config: $override" -Level "info"
+        Write-Log ($slm.messages.devDirOverride -replace '\{path\}', $override) -Level "info"
         return $override
     }
 
@@ -57,12 +68,12 @@ function Resolve-DevDir {
         $userInput = Read-Host -Prompt "Enter dev directory (default: $default)"
         $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
         if ($hasUserInput) {
-            Write-Log "User provided dev directory: $userInput" -Level "info"
+            Write-Log ($slm.messages.devDirUserProvided -replace '\{path\}', $userInput) -Level "info"
             return $userInput
         }
     }
 
-    Write-Log "Using default dev directory: $default" -Level "info"
+    Write-Log ($slm.messages.devDirDefault -replace '\{path\}', $default) -Level "info"
     return $default
 }
 
@@ -81,17 +92,19 @@ function Initialize-DevDir {
         [string[]]$Subdirectories = @()
     )
 
+    $slm = $script:SharedLogMessages
+
     # Support -Path alias
     if ($Path -and -not $DevDir) { $DevDir = $Path }
 
-    Write-Log "Initializing dev directory: $DevDir" -Level "info"
+    Write-Log ($slm.messages.devDirInitializing -replace '\{path\}', $DevDir) -Level "info"
 
     $isDirMissing = -not (Test-Path $DevDir)
     if ($isDirMissing) {
         New-Item -Path $DevDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created dev directory: $DevDir" -Level "success"
+        Write-Log ($slm.messages.devDirCreated -replace '\{path\}', $DevDir) -Level "success"
     } else {
-        Write-Log "Dev directory already exists: $DevDir" -Level "info"
+        Write-Log ($slm.messages.devDirExists -replace '\{path\}', $DevDir) -Level "info"
     }
 
     foreach ($sub in $Subdirectories) {
@@ -99,7 +112,7 @@ function Initialize-DevDir {
         $isSubMissing = -not (Test-Path $subPath)
         if ($isSubMissing) {
             New-Item -Path $subPath -ItemType Directory -Force -Confirm:$false | Out-Null
-            Write-Log "Created subdirectory: $sub" -Level "success"
+            Write-Log ($slm.messages.devDirSubCreated -replace '\{name\}', $sub) -Level "success"
         }
     }
 

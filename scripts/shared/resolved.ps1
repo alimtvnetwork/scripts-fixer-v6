@@ -10,6 +10,15 @@
     The .resolved/ folder is gitignored and safe to overwrite on every run.
 #>
 
+# Load shared log messages (only once)
+if (-not $script:SharedLogMessages) {
+    $sharedDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    $sharedLogPath = Join-Path $sharedDir "log-messages.json"
+    if (Test-Path $sharedLogPath) {
+        $script:SharedLogMessages = Get-Content $sharedLogPath -Raw | ConvertFrom-Json
+    }
+}
+
 function Get-ResolvedDir {
     <#
     .SYNOPSIS
@@ -20,6 +29,8 @@ function Get-ResolvedDir {
         [string]$ScriptDir
     )
 
+    $slm = $script:SharedLogMessages
+
     $repoRoot    = Split-Path -Parent (Split-Path -Parent $ScriptDir)
     $scriptName  = Split-Path -Leaf $ScriptDir
     $resolvedDir = Join-Path $repoRoot ".resolved" | Join-Path -ChildPath $scriptName
@@ -27,7 +38,7 @@ function Get-ResolvedDir {
     $isDirMissing = -not (Test-Path $resolvedDir)
     if ($isDirMissing) {
         New-Item -Path $resolvedDir -ItemType Directory -Force -Confirm:$false | Out-Null
-        Write-Log "Created .resolved directory: $resolvedDir" -Level "info"
+        Write-Log ($slm.messages.resolvedDirCreated -replace '\{path\}', $resolvedDir) -Level "info"
     }
 
     return $resolvedDir
@@ -46,6 +57,8 @@ function Save-ResolvedData {
         [Parameter(Mandatory)]
         $Data
     )
+
+    $slm = $script:SharedLogMessages
 
     # Resolve the directory path
     $hasScriptFolder = $ScriptFolder -and -not $ScriptDir
@@ -78,7 +91,7 @@ function Save-ResolvedData {
                 $existing[$prop.Name] = $prop.Value
             }
         } catch {
-            Write-Log "Could not read existing resolved.json -- overwriting" -Level "warn"
+            Write-Log $slm.messages.resolvedReadFailed -Level "warn"
         }
     }
 
@@ -90,8 +103,8 @@ function Save-ResolvedData {
     try {
         $json = $existing | ConvertTo-Json -Depth 10
         [System.IO.File]::WriteAllText($resolvedFile, $json)
-        Write-Log "Resolved data saved: $resolvedFile" -Level "success"
+        Write-Log ($slm.messages.resolvedSaved -replace '\{path\}', $resolvedFile) -Level "success"
     } catch {
-        Write-Log "Failed to save resolved data: $_" -Level "warn"
+        Write-Log ($slm.messages.resolvedSaveFailed -replace '\{error\}', $_) -Level "warn"
     }
 }
