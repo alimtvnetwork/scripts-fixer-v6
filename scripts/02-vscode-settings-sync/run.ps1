@@ -280,7 +280,8 @@ function Invoke-Edition {
         [string]$EditionName,
         [hashtable]$Sources,
         [string]$BackupSuffix,
-        [bool]$MergeMode
+        [bool]$MergeMode,
+        [string]$ScriptDir
     )
 
     Write-Host ""
