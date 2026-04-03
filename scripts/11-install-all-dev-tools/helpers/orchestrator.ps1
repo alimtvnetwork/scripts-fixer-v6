@@ -32,6 +32,17 @@ function Resolve-ScriptList {
         $sequence = $sequence | Where-Object { $_ -notin $skipList }
     }
 
+    # Build groups lookup for default selection state
+    $groupDefaults = @{}
+    $hasGroups = $null -ne $Config.groups
+    if ($hasGroups) {
+        foreach ($group in $Config.groups) {
+            foreach ($gid in $group.ids) {
+                $groupDefaults[$gid] = $group.checkedByDefault
+            }
+        }
+    }
+
     # Filter disabled
     $result = @()
     foreach ($id in $sequence) {
@@ -39,12 +50,15 @@ function Resolve-ScriptList {
         $hasNoEntry = -not $entry
         if ($hasNoEntry) { continue }
 
+        $checkedByDefault = if ($groupDefaults.ContainsKey($id)) { $groupDefaults[$id] } else { $entry.enabled }
+
         $result += @{
-            Id      = $id
-            Folder  = $entry.folder
-            Name    = $entry.name
-            Desc    = if ($entry.desc) { $entry.desc } else { "" }
-            Enabled = $entry.enabled
+            Id              = $id
+            Folder          = $entry.folder
+            Name            = $entry.name
+            Desc            = if ($entry.desc) { $entry.desc } else { "" }
+            Enabled         = $entry.enabled
+            CheckedByDefault = $checkedByDefault
         }
     }
 
@@ -54,37 +68,83 @@ function Resolve-ScriptList {
 function Show-InteractiveMenu {
     param(
         [array]$ScriptList,
-        $LogMessages
+        $LogMessages,
+        $Groups
     )
 
-    # Build selection state (all enabled by default)
+    # Build selection state from group defaults
     $selected = @{}
     for ($i = 0; $i -lt $ScriptList.Count; $i++) {
-        $selected[$i] = $ScriptList[$i].Enabled
+        $selected[$i] = $ScriptList[$i].CheckedByDefault
+    }
+
+    # Build group ranges for display
+    $groupRanges = @()
+    $hasGroups = $null -ne $Groups
+    if ($hasGroups) {
+        foreach ($group in $Groups) {
+            $groupIds = @($group.ids)
+            $groupRanges += @{
+                Label = $group.label
+                Ids   = $groupIds
+            }
+        }
     }
 
     while ($true) {
         Write-Host ""
         Write-Host "  $($LogMessages.messages.menuTitle)" -ForegroundColor Cyan
         Write-Host "  $('=' * $LogMessages.messages.menuTitle.Length)" -ForegroundColor DarkGray
-        Write-Host ""
 
-        for ($i = 0; $i -lt $ScriptList.Count; $i++) {
-            $check = if ($selected[$i]) { "x" } else { " " }
-            $num   = $i + 1
-            $name  = $ScriptList[$i].Name.PadRight(26)
-            $desc  = $ScriptList[$i].Desc
+        if ($hasGroups) {
+            # Display with group headers
+            foreach ($gr in $groupRanges) {
+                Write-Host ""
+                Write-Host "  $($gr.Label)" -ForegroundColor Magenta
+                Write-Host "  $('-' * $gr.Label.Length)" -ForegroundColor DarkGray
 
-            Write-Host "  [" -NoNewline
-            if ($selected[$i]) {
-                Write-Host $check -ForegroundColor Green -NoNewline
-            } else {
-                Write-Host $check -NoNewline
+                for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+                    $isInGroup = $ScriptList[$i].Id -in $gr.Ids
+                    if (-not $isInGroup) { continue }
+
+                    $check = if ($selected[$i]) { "x" } else { " " }
+                    $num   = $i + 1
+                    $name  = $ScriptList[$i].Name.PadRight(28)
+                    $desc  = $ScriptList[$i].Desc
+
+                    Write-Host "  [" -NoNewline
+                    if ($selected[$i]) {
+                        Write-Host $check -ForegroundColor Green -NoNewline
+                    } else {
+                        Write-Host $check -NoNewline
+                    }
+                    Write-Host "] " -NoNewline
+                    Write-Host "$num. " -ForegroundColor Yellow -NoNewline
+                    Write-Host "$name " -NoNewline
+                    Write-Host $desc -ForegroundColor DarkGray
+                }
             }
-            Write-Host "] " -NoNewline
-            Write-Host "$num. " -ForegroundColor Yellow -NoNewline
-            Write-Host "$name " -NoNewline
-            Write-Host $desc -ForegroundColor DarkGray
+        }
+        else {
+            # Flat display (no groups)
+            Write-Host ""
+            for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+                $check = if ($selected[$i]) { "x" } else { " " }
+                $num   = $i + 1
+                $name  = $ScriptList[$i].Name.PadRight(28)
+                $desc  = $ScriptList[$i].Desc
+
+                Write-Host "  [" -NoNewline
+                if ($selected[$i]) {
+                    Write-Host $check -ForegroundColor Green -NoNewline
+                } else {
+                    Write-Host $check -NoNewline
+                }
+                Write-Host "] " -NoNewline
+                Write-Host "$num. " -ForegroundColor Yellow -NoNewline
+                Write-Host "$name " -NoNewline
+                Write-Host $desc -ForegroundColor DarkGray
+            }
         }
 
         Write-Host ""
