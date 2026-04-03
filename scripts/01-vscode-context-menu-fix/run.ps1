@@ -96,18 +96,6 @@ function Import-JsonConfig {
     return $parsed
 }
 
-function Mount-RegistryDrive {
-    Write-Log "Checking HKCR PSDrive..."
-    $existing = Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue
-    if ($existing) {
-        Write-Log "HKCR PSDrive already mapped -- skipping" "skip"
-        return
-    }
-
-    Write-Log "Mapping HKCR PSDrive to HKEY_CLASSES_ROOT..."
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global -Confirm:$false | Out-Null
-    Write-Log "HKCR PSDrive mapped successfully" "ok"
-}
 
 function Resolve-VsCodePath {
     param(
@@ -163,24 +151,24 @@ function Register-ContextMenu {
 
     try {
         Write-Log "  Creating registry key..." "info"
-        New-Item -Path $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        New-Item -LiteralPath $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
         Write-Log "  Key created" "ok"
 
         Write-Log "  Setting (Default) = $Label" "info"
-        Set-Item -Path $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
+        Set-Item -LiteralPath $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  (Default) set" "ok"
 
         Write-Log "  Setting Icon = $IconValue" "info"
-        Set-ItemProperty -Path $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
+        Set-ItemProperty -LiteralPath $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Icon set" "ok"
 
         $cmdPath = "$RegistryPath\command"
         Write-Log "  Creating command subkey: $cmdPath" "info"
-        New-Item -Path $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        New-Item -LiteralPath $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
         Write-Log "  Command subkey created" "ok"
 
         Write-Log "  Setting command (Default) = $CommandArg" "info"
-        Set-Item -Path $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
+        Set-Item -LiteralPath $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Command value set" "ok"
 
         return $true
@@ -198,7 +186,7 @@ function Test-RegistryEntry {
     )
 
     Write-Log "  Verifying: $RegistryPath"
-    if (Test-Path $RegistryPath) {
+    if (Test-Path -LiteralPath $RegistryPath) {
         Write-Log "  [pass] $Label -- $RegistryPath" "ok"
         return $true
     } else {
@@ -310,9 +298,6 @@ function Main {
         $cfgPath = Join-Path $ScriptDir "config.json"
         $Config = Import-JsonConfig -FilePath $cfgPath -Label "config.json"
         if (-not $Config) { exit 1 }
-
-        # Map HKCR
-        Mount-RegistryDrive
 
         $installType     = $Config.installationType
         $enabledEditions = $Config.enabledEditions
