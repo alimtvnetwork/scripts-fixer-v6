@@ -44,6 +44,10 @@ param(
 
     [switch]$d,
 
+    [switch]$a,
+
+    [switch]$v,
+
     [switch]$Merge,
 
     [switch]$Clean,
@@ -65,6 +69,8 @@ function Show-RootHelp {
     Write-Host "  Usage:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1                           Show this help (after git pull)"
     Write-Host "    .\run.ps1 -d                         Shortcut for -I 12 (interactive menu)"
+    Write-Host "    .\run.ps1 -a                         Shortcut for -I 13 (audit mode)"
+    Write-Host "    .\run.ps1 -v                         Shortcut for -I 1  (install VS Code)"
     Write-Host "    .\run.ps1 -I <number>               Run a specific script"
     Write-Host "    .\run.ps1 -I <number> -Merge        Run with merge flag (script 02)"
     Write-Host "    .\run.ps1 -I <number> -Clean        Wipe cache, then run"
@@ -109,7 +115,7 @@ function Show-RootHelp {
 }
 
 # ── No params = git pull + help ──────────────────────────────────────
-$hasNoParams = -not $I -and -not $d -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $I -and -not $d -and -not $a -and -not $v -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     # Load git pull helper and pull before showing help
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
@@ -143,10 +149,10 @@ if ($CleanOnly) {
     exit 0
 }
 
-# ── Expand -d shortcut ────────────────────────────────────────────────
-if ($d) {
-    $I = 12
-}
+# ── Expand shortcuts ──────────────────────────────────────────────────
+if ($d) { $I = 12 }
+if ($a) { $I = 13 }
+if ($v) { $I = 1 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
