@@ -24,7 +24,8 @@ function Get-ResolvedDir {
     $scriptName  = Split-Path -Leaf $ScriptDir
     $resolvedDir = Join-Path $repoRoot ".resolved" | Join-Path -ChildPath $scriptName
 
-    if (-not (Test-Path $resolvedDir)) {
+    $isDirMissing = -not (Test-Path $resolvedDir)
+    if ($isDirMissing) {
         New-Item -Path $resolvedDir -ItemType Directory -Force -Confirm:$false | Out-Null
         Write-Log "Created .resolved directory: $resolvedDir" -Level "info"
     }
@@ -36,7 +37,7 @@ function Save-ResolvedData {
     <#
     .SYNOPSIS
         Writes a hashtable as JSON to .resolved/<script-folder>/resolved.json.
-        Accepts either -ScriptDir (full path) or -ScriptFolder (folder name string).
+        Uses -ScriptFolder (folder name string) to locate the output directory.
     #>
     param(
         [string]$ScriptDir,
@@ -47,7 +48,8 @@ function Save-ResolvedData {
     )
 
     # Resolve the directory path
-    if ($ScriptFolder -and -not $ScriptDir) {
+    $hasScriptFolder = $ScriptFolder -and -not $ScriptDir
+    if ($hasScriptFolder) {
         # Derive from ScriptFolder name: walk up to repo root from the calling script
         $callerDir = if ($script:ScriptDir) { $script:ScriptDir }
                      elseif ($scriptDir) { $scriptDir }
@@ -55,7 +57,8 @@ function Save-ResolvedData {
         $repoRoot    = Split-Path -Parent (Split-Path -Parent $callerDir)
         $resolvedDir = Join-Path $repoRoot ".resolved" | Join-Path -ChildPath $ScriptFolder
 
-        if (-not (Test-Path $resolvedDir)) {
+        $isDirMissing = -not (Test-Path $resolvedDir)
+        if ($isDirMissing) {
             New-Item -Path $resolvedDir -ItemType Directory -Force -Confirm:$false | Out-Null
         }
     }
@@ -67,7 +70,8 @@ function Save-ResolvedData {
 
     # Merge with existing data if present
     $existing = @{}
-    if (Test-Path $resolvedFile) {
+    $hasExistingFile = Test-Path $resolvedFile
+    if ($hasExistingFile) {
         try {
             $raw = Get-Content $resolvedFile -Raw | ConvertFrom-Json
             foreach ($prop in $raw.PSObject.Properties) {

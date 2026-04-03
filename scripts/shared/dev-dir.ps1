@@ -29,12 +29,14 @@ function Resolve-DevDir {
     if ($Config -and -not $DevDirConfig) { $DevDirConfig = $Config }
 
     # Check environment variable first (set by orchestrator)
-    if (-not [string]::IsNullOrWhiteSpace($env:DEV_DIR)) {
+    $hasDevDirEnv = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
+    if ($hasDevDirEnv) {
         Write-Log "Using dev directory from environment: $env:DEV_DIR" -Level "success"
         return $env:DEV_DIR
     }
 
-    if (-not $DevDirConfig) {
+    $hasNoConfig = -not $DevDirConfig
+    if ($hasNoConfig) {
         $fallback = "E:\dev"
         Write-Log "No dev directory config -- using fallback: $fallback" -Level "warn"
         return $fallback
@@ -44,7 +46,8 @@ function Resolve-DevDir {
     $override = if ($DevDirConfig.override) { $DevDirConfig.override } else { "" }
 
     # Config override takes precedence
-    if (-not [string]::IsNullOrWhiteSpace($override)) {
+    $hasOverride = -not [string]::IsNullOrWhiteSpace($override)
+    if ($hasOverride) {
         Write-Log "Using dev directory override from config: $override" -Level "info"
         return $override
     }
@@ -52,7 +55,8 @@ function Resolve-DevDir {
     # Prompt if mode allows
     if ($DevDirConfig.mode -eq "json-or-prompt") {
         $userInput = Read-Host -Prompt "Enter dev directory (default: $default)"
-        if (-not [string]::IsNullOrWhiteSpace($userInput)) {
+        $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
+        if ($hasUserInput) {
             Write-Log "User provided dev directory: $userInput" -Level "info"
             return $userInput
         }
@@ -82,7 +86,8 @@ function Initialize-DevDir {
 
     Write-Log "Initializing dev directory: $DevDir" -Level "info"
 
-    if (-not (Test-Path $DevDir)) {
+    $isDirMissing = -not (Test-Path $DevDir)
+    if ($isDirMissing) {
         New-Item -Path $DevDir -ItemType Directory -Force -Confirm:$false | Out-Null
         Write-Log "Created dev directory: $DevDir" -Level "success"
     } else {
@@ -91,7 +96,8 @@ function Initialize-DevDir {
 
     foreach ($sub in $Subdirectories) {
         $subPath = Join-Path $DevDir $sub
-        if (-not (Test-Path $subPath)) {
+        $isSubMissing = -not (Test-Path $subPath)
+        if ($isSubMissing) {
             New-Item -Path $subPath -ItemType Directory -Force -Confirm:$false | Out-Null
             Write-Log "Created subdirectory: $sub" -Level "success"
         }

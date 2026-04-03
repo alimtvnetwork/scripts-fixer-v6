@@ -25,7 +25,8 @@ function Clear-ResolvedData {
     $repoRoot    = Split-Path -Parent (Split-Path -Parent $ScriptDir)
     $resolvedDir = Join-Path $repoRoot ".resolved"
 
-    if (-not (Test-Path $resolvedDir)) {
+    $isDirMissing = -not (Test-Path $resolvedDir)
+    if ($isDirMissing) {
         Write-Log "Nothing to clear -- .resolved/ does not exist" -Level "info"
         return
     }
@@ -35,7 +36,8 @@ function Clear-ResolvedData {
         $scriptName   = Split-Path -Leaf $ScriptDir
         $resolvedFile = Join-Path $resolvedDir $scriptName "resolved.json"
 
-        if (-not (Test-Path $resolvedFile)) {
+        $hasNoResolvedFile = -not (Test-Path $resolvedFile)
+        if ($hasNoResolvedFile) {
             Write-Log "No resolved.json for $scriptName -- nothing to clear" -Level "info"
             return
         }
