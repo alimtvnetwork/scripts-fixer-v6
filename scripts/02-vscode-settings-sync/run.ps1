@@ -439,7 +439,8 @@ function Main {
                 -EditionName  $editionName `
                 -Sources      $sources `
                 -BackupSuffix $Config.backupSuffix `
-                -MergeMode    $Merge.IsPresent
+                -MergeMode    $Merge.IsPresent `
+                -ScriptDir    $ScriptDir
 
             if (-not $result) { $totalSuccess = $false }
         }
