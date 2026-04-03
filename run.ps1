@@ -26,9 +26,10 @@
 
 .EXAMPLE
     .\run.ps1                  # git pull, show help
+    .\run.ps1 -d               # shortcut for -I 12 (interactive dev tools menu)
     .\run.ps1 -I 1            # git pull, then run scripts/01-*/run.ps1
     .\run.ps1 -I 2 -Merge     # git pull, then run scripts/02-*/run.ps1 with merge
-    .\run.ps1 -I 4            # run install-all-dev-tools (interactive menu)
+    .\run.ps1 -I 12           # same as -d
     .\run.ps1 -I 1 -Clean     # wipe .resolved/, then run scripts/01-*/run.ps1
     .\run.ps1 -CleanOnly       # wipe .resolved/ and exit
     .\run.ps1 -Help            # show all available scripts
