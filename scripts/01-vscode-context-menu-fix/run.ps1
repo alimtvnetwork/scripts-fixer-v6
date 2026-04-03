@@ -105,7 +105,7 @@ function Mount-RegistryDrive {
     }
 
     Write-Log "Mapping HKCR PSDrive to HKEY_CLASSES_ROOT..."
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Confirm:$false | Out-Null
+    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global -Confirm:$false | Out-Null
     Write-Log "HKCR PSDrive mapped successfully" "ok"
 }
 
