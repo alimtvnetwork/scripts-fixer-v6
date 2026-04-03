@@ -38,9 +38,12 @@ A structured PowerShell script that:
 run.ps1                                # Root dispatcher (git pull + delegate)
 scripts/
 ├── shared/
-│   └── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
+│   ├── git-pull.ps1                   # Shared git-pull helper (dot-sourced)
+│   ├── logging.ps1                    # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+│   ├── json-utils.ps1                 # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+│   └── resolved.ps1                   # Save-ResolvedData, Get-ResolvedDir
 └── 02-vscode-settings-sync/
-    ├── config.json                    # Paths & edition settings
+    ├── config.json                    # Paths & edition settings (never mutated at runtime)
     ├── log-messages.json              # All display strings & banners
     ├── settings.json                  # Extracted/provided VS Code settings
     ├── keybindings.json               # Extracted/provided keybindings
@@ -49,6 +52,10 @@ scripts/
     ├── run.ps1                        # Main script
     └── logs/                          # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log        # Timestamped execution log
+
+.resolved/                             # Runtime-resolved data (gitignored)
+└── 02-vscode-settings-sync/
+    └── resolved.json                  # Resolved settings dirs, CLI commands, timestamps
 
 spec/
 ├── shared/
