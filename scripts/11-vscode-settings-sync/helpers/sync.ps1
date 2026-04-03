@@ -15,11 +15,11 @@ function Resolve-SourceFiles {
     $result = @{ Settings = $null; Keybindings = $null; Extensions = @() }
 
     # Check for .code-profile first
-    $profileFiles = Get-ChildItem -Path $ScriptDir -Filter "*.code-profile" -ErrorAction SilentlyContinue
+    $profileFiles = @(Get-ChildItem -Path $ScriptDir -Filter "*.code-profile" -ErrorAction SilentlyContinue)
     Write-Log ($LogMessages.messages.scanningProfiles -replace '\{dir\}', $ScriptDir) -Level "info"
-    Write-Log ($LogMessages.messages.profileFilesFound -replace '\{count\}', @($profileFiles).Count) -Level "info"
+    Write-Log ($LogMessages.messages.profileFilesFound -replace '\{count\}', $profileFiles.Count) -Level "info"
 
-    $hasProfileFiles = $profileFiles -and $profileFiles.Count -gt 0
+    $hasProfileFiles = $profileFiles.Count -gt 0
     if ($hasProfileFiles) {
         $profilePath = $profileFiles[0].FullName
         Write-Log ($LogMessages.messages.usingProfile -replace '\{name\}', $profileFiles[0].Name) -Level "success"
