@@ -41,22 +41,28 @@ A helper `ConvertTo-RegPath` translates the `Registry::HKEY_CLASSES_ROOT\...` pa
 The script detected VS Code at `C:\Program Files\Microsoft VS Code\Code.exe` (system install) after the preferred user-install path was not found, but this resolved path was never saved. On every run the detection logic repeated from scratch.
 
 **Root cause:**
-The `Invoke-Edition` function resolved the executable path but never wrote it back to `config.json`. There was no persistence mechanism at all -- the resolved path lived only in memory for the current run.
+The `Invoke-Edition` function resolved the executable path but never wrote it back anywhere. There was no persistence mechanism -- the resolved path lived only in memory for the current run.
 
-**Fix:**
-Added a `Save-ResolvedPath` function that writes a `"resolved"` key into the edition's `vscodePath` object in `config.json`:
+**Original fix (v3.0):**
+Added a `Save-ResolvedPath` function that wrote a `"resolved"` key back into `config.json`. This worked but violated separation of concerns -- the script was mutating its own declarative config with runtime state.
+
+**Improved fix (v3.1):**
+Moved runtime-resolved data out of `config.json` entirely into a repo-root `.resolved/` folder (gitignored). Each script writes to `.resolved/<script-folder>/resolved.json`:
 
 ```json
-"vscodePath": {
-  "user": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
-  "system": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
-  "resolved": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+// .resolved/01-vscode-context-menu-fix/resolved.json
+{
+  "stable": {
+    "resolvedExe": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+    "resolvedAt": "2026-04-03T18:10:02+08:00",
+    "resolvedBy": "alim"
+  }
 }
 ```
 
-On subsequent runs the script can check `resolved` first, skipping the detection fallback entirely.
+A shared helper `scripts/shared/resolved.ps1` provides `Save-ResolvedData` and `Get-ResolvedDir`, merging new keys into existing resolved data.
 
 **How to write better code:**
-- When a script performs expensive or environment-dependent detection, always cache the result. A config file is the natural place.
-- Use `Add-Member -Force` to upsert JSON properties without breaking existing keys.
-- Use `[System.IO.File]::WriteAllText()` instead of `Set-Content` to avoid BOM and encoding surprises on different PS versions.
+- Never mutate source config files with runtime-discovered state. Keep config declarative and gitignored runtime state separate.
+- Use a dedicated `.resolved/` (or `.cache/`, `.state/`) folder for any data the script discovers at runtime.
+- Shared helpers reduce duplication -- `Save-ResolvedData` is used by both script 01 and 02.
