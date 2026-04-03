@@ -31,6 +31,7 @@ When run with no parameters, it performs a git pull and shows help
 | `-a` | switch | No | Shortcut for `-I 13` -- runs the audit scanner |
 | `-v` | switch | No | Shortcut for `-I 1` -- installs VS Code |
 | `-w` | switch | No | Shortcut for `-I 14` -- installs Winget |
+| `-t` | switch | No | Shortcut for `-I 15` -- launches Windows tweaks utility |
 | `-I` | int | No | Script number to run (resolved via `scripts/registry.json`) |
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
