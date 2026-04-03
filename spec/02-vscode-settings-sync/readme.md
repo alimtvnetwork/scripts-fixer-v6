@@ -194,6 +194,10 @@ what was extracted from it, and which fallback JSON files were used.
 | Verbose logging at every step | Every path, value, and decision is logged for debugging    |
 | Profile-first parsing       | Users can drop a .code-profile export and it just works     |
 | Fallback to individual JSON | Flexibility -- users can also curate files manually          |
+| Config is read-only at runtime | Scripts never mutate config.json -- keeps it declarative  |
+| .resolved/ for runtime state | Resolved settings dirs and CLI info belong outside git     |
+| Shared helpers in scripts/shared/ | Backup-File, Merge-JsonDeep etc. are reused across scripts |
+| $LASTEXITCODE check on CLI  | Catches failed extension installs that don't throw exceptions |
 | Keybindings support         | Profiles include keybindings; a complete import requires them |
 | Separate extensions.json    | Easy to maintain extension list without editing script logic |
 | Timestamp backup            | Never lose existing settings, multiple backups coexist       |
