@@ -1,0 +1,97 @@
+# --------------------------------------------------------------------------
+#  Script 05 -- Install Node.js
+#  Installs Node.js (LTS) via Chocolatey and configures npm global prefix.
+# --------------------------------------------------------------------------
+param(
+    [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [switch]$Help
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
+
+# -- Dot-source shared helpers ------------------------------------------------
+. (Join-Path $sharedDir "logging.ps1")
+. (Join-Path $sharedDir "resolved.ps1")
+. (Join-Path $sharedDir "git-pull.ps1")
+. (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "choco-utils.ps1")
+. (Join-Path $sharedDir "path-utils.ps1")
+. (Join-Path $sharedDir "dev-dir.ps1")
+
+# -- Dot-source script helpers ------------------------------------------------
+. (Join-Path $scriptDir "helpers\nodejs.ps1")
+
+# -- Load config & log messages -----------------------------------------------
+$config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages  = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+
+# -- Help ---------------------------------------------------------------------
+if ($Help -or $Command -eq "--help") {
+    Show-ScriptHelp -LogMessages $logMessages
+    return
+}
+
+# -- Banner --------------------------------------------------------------------
+Write-Banner -Title $logMessages.scriptName -Version $logMessages.version
+
+# -- Git pull ------------------------------------------------------------------
+Invoke-GitPull
+
+# -- Disabled check ------------------------------------------------------------
+if (-not $config.enabled) {
+    Write-Log $logMessages.messages.scriptDisabled -Level "warn"
+    return
+}
+
+# -- Assert admin --------------------------------------------------------------
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Log "This script requires administrator privileges." -Level "error"
+    return
+}
+
+# -- Assert Chocolatey ---------------------------------------------------------
+Assert-Choco
+
+# -- Resolve dev directory -----------------------------------------------------
+$devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
+
+# -- Execute subcommand --------------------------------------------------------
+switch ($Command.ToLower()) {
+    "all" {
+        Install-NodeJs -Config $config -LogMessages $logMessages
+        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+    }
+    "install" {
+        Install-NodeJs -Config $config -LogMessages $logMessages
+    }
+    "configure" {
+        $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
+        Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
+    }
+    default {
+        Write-Log "Unknown command: $Command. Use -Help for usage." -Level "error"
+        return
+    }
+}
+
+# -- Save resolved state -------------------------------------------------------
+Write-Log $logMessages.messages.savingResolved -Level "info"
+$nodeVersion = & node --version 2>$null
+$npmVersion  = & npm --version 2>$null
+$npmPrefix   = & npm config get prefix 2>$null
+
+Save-ResolvedData -ScriptFolder "05-install-nodejs" -Data @{
+    nodeVersion = $nodeVersion
+    npmVersion  = $npmVersion
+    npmPrefix   = $npmPrefix
+    timestamp   = (Get-Date -Format "o")
+}
+
+Write-Log "Node.js setup complete." -Level "success"
