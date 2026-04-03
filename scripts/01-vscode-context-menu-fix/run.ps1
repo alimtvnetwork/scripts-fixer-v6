@@ -163,24 +163,24 @@ function Register-ContextMenu {
 
     try {
         Write-Log "  Creating registry key..." "info"
-        New-Item -Path $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        New-Item -LiteralPath $RegistryPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
         Write-Log "  Key created" "ok"
 
         Write-Log "  Setting (Default) = $Label" "info"
-        Set-Item -Path $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
+        Set-Item -LiteralPath $RegistryPath -Value $Label -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  (Default) set" "ok"
 
         Write-Log "  Setting Icon = $IconValue" "info"
-        Set-ItemProperty -Path $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
+        Set-ItemProperty -LiteralPath $RegistryPath -Name "Icon" -Value $IconValue -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Icon set" "ok"
 
         $cmdPath = "$RegistryPath\command"
         Write-Log "  Creating command subkey: $cmdPath" "info"
-        New-Item -Path $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
+        New-Item -LiteralPath $cmdPath -Force -Confirm:$false -ErrorAction Stop | Out-Null
         Write-Log "  Command subkey created" "ok"
 
         Write-Log "  Setting command (Default) = $CommandArg" "info"
-        Set-Item -Path $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
+        Set-Item -LiteralPath $cmdPath -Value $CommandArg -Force -Confirm:$false -ErrorAction Stop
         Write-Log "  Command value set" "ok"
 
         return $true
