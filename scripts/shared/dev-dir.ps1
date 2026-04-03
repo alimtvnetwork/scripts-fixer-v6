@@ -11,7 +11,7 @@ function Resolve-DevDir {
     <#
     .SYNOPSIS
         Resolves the dev directory path from (in priority order):
-        1. $env:DEV_DIR (set by orchestrator script 11)
+        1. $env:DEV_DIR (set by orchestrator script 04)
         2. Config override value
         3. User prompt (if mode allows)
         4. Config default value

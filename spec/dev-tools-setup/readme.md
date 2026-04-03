@@ -168,10 +168,10 @@ Install GitHub Desktop via Chocolatey.
 
 ---
 
-## Script 11: install-all-dev-tools
+## Script 04: install-all-dev-tools
 
 ### Purpose
-Orchestrator that runs scripts 03-10 in sequence. Resolves the dev directory
+Orchestrator that runs scripts 03, 05-10 in sequence. Resolves the dev directory
 once, passes it to all child scripts via `$env:DEV_DIR`.
 
 ### Sequence
