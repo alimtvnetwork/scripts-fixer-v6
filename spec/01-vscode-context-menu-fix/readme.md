@@ -33,13 +33,23 @@ A structured PowerShell script that:
 run.ps1                              # Root dispatcher (git pull + delegate)
 scripts/
 ├── shared/
-│   └── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
+│   ├── git-pull.ps1                 # Shared git-pull helper (dot-sourced)
+│   ├── logging.ps1                  # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+│   ├── json-utils.ps1               # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+│   └── resolved.ps1                 # Save-ResolvedData, Get-ResolvedDir
 └── 01-vscode-context-menu-fix/
-    ├── config.json                  # Paths & settings (user-editable)
+    ├── config.json                  # Paths & settings (user-editable, never mutated at runtime)
     ├── log-messages.json            # All display strings & banners
     ├── run.ps1                      # Main script
+    ├── helpers/
+    │   ├── logging.ps1              # Script-specific logging (dot-sources shared)
+    │   └── registry.ps1             # Registry & VS Code resolution helpers
     └── logs/                        # Auto-created runtime log folder (gitignored)
         └── run-<timestamp>.log      # Timestamped execution log
+
+.resolved/                           # Runtime-resolved data (gitignored)
+└── 01-vscode-context-menu-fix/
+    └── resolved.json                # Cached exe paths, timestamps, username
 
 spec/
 ├── shared/
