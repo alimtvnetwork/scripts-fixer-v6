@@ -68,7 +68,9 @@ param(
 
     [switch]$CleanOnly,
 
-    [switch]$Help
+    [switch]$Help,
+
+    [switch]$List
 )
 
 $ErrorActionPreference = "Stop"
