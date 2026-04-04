@@ -95,6 +95,7 @@ function Show-RootHelp {
     Write-Host "    .\run.ps1 -I <number> -Clean        " -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -CleanOnly                 " -NoNewline; Write-Host "Wipe all cached data" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -Help                      " -NoNewline; Write-Host "Show this help" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -List                      " -NoNewline; Write-Host "Show keyword table only" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Install by Keyword:" -ForegroundColor Yellow
     Write-Host ""
