@@ -1,0 +1,20 @@
+{
+  "devDir": {
+    "mode": "json-or-prompt",
+    "default": "E:\\dev",
+    "override": ""
+  },
+  "installMode": {
+    "_comment": "Where to install. Options: devDir, custom, system.",
+    "default": "devDir"
+  },
+  "database": {
+    "enabled": true,
+    "verifyCommand": "redis-server",
+    "versionFlag": "--version",
+    "name": "Redis",
+    "desc": "In-memory key-value store and cache",
+    "type": "nosql-keyvalue",
+    "chocoPackage": "redis-64"
+  }
+}

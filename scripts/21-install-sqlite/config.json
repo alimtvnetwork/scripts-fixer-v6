@@ -1,0 +1,20 @@
+{
+  "devDir": {
+    "mode": "json-or-prompt",
+    "default": "E:\\dev",
+    "override": ""
+  },
+  "installMode": {
+    "_comment": "Where to install. Options: devDir, custom, system.",
+    "default": "devDir"
+  },
+  "database": {
+    "enabled": true,
+    "verifyCommand": "sqlite3",
+    "versionFlag": "--version",
+    "name": "SQLite",
+    "desc": "File-based embedded SQL database",
+    "type": "file-based",
+    "chocoPackage": "sqlite"
+  }
+}

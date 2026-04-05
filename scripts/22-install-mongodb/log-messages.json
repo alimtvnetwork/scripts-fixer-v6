@@ -1,0 +1,33 @@
+{
+  "scriptName": "Install MongoDB",
+  "version": "1.0.0",
+  "description": "Install MongoDB -- Document-oriented NoSQL database",
+  "messages": {
+    "notAdmin": "This script must be run as Administrator.",
+    "checking": "Checking for MongoDB...",
+    "found": "MongoDB found: {version}",
+    "notFound": "MongoDB not found -- installing...",
+    "installing": "Installing MongoDB...",
+    "installSuccess": "MongoDB installed successfully: {version}",
+    "installFailed": "Failed to install MongoDB: {error}",
+    "notInPath": "MongoDB installed but not found in PATH -- restart your terminal.",
+    "disabled": "MongoDB is disabled in config -- skipping.",
+    "setupComplete": "MongoDB setup complete.",
+    "installPathTitle": "Installation Path Options",
+    "installPathDevDir": "Install to dev directory: {path}\\mongodb",
+    "installPathCustom": "Enter custom path:",
+    "installPathSystem": "Install to default system location",
+    "installPathPrompt": "Choose install location [1] Dev dir  [2] Custom path  [3] System default:",
+    "installPathChosen": "Install location: {path}"
+  },
+  "help": {
+    "commands": {
+      ".\\run.ps1": "Install MongoDB",
+      ".\\run.ps1 -Help": "Show this help"
+    },
+    "examples": [
+      ".\\run.ps1",
+      ".\\run.ps1 -Help"
+    ]
+  }
+}

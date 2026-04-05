@@ -1,0 +1,100 @@
+# --------------------------------------------------------------------------
+#  Helper -- CouchDB installer
+# --------------------------------------------------------------------------
+
+# -- Bootstrap shared helpers --------------------------------------------------
+$_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
+$_loggingPath = Join-Path $_sharedDir "logging.ps1"
+if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $_loggingPath
+}
+$_chocoUtilsPath = Join-Path $_sharedDir "choco-utils.ps1"
+if ((Test-Path $_chocoUtilsPath) -and -not (Get-Command Install-ChocoPackage -ErrorAction SilentlyContinue)) {
+    . $_chocoUtilsPath
+}
+
+function Install-Couchdb {
+    <#
+    .SYNOPSIS
+        Installs CouchDB and verifies the installation.
+        Returns $true on success, $false on failure.
+    #>
+    param(
+        [PSCustomObject]$DbConfig,
+        $LogMessages,
+        [string]$InstallPath = ""
+    )
+
+    $name = $DbConfig.name
+
+    $isDisabled = -not $DbConfig.enabled
+    if ($isDisabled) {
+        Write-Log $LogMessages.messages.disabled -Level "info"
+        return $true
+    }
+
+    Write-Log $LogMessages.messages.checking -Level "info"
+
+    $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
+    if ($cmd) {
+        $version = ""
+        try {
+            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
+        } catch { $version = "(version check failed)" }
+
+        Write-Log ($LogMessages.messages.found -replace '\{version\}', $version) -Level "success"
+
+        Save-ResolvedData -ScriptFolder "23-install-couchdb" -Data @{
+            version    = "$version".Trim()
+            resolvedAt = (Get-Date -Format "o")
+            resolvedBy = $env:USERNAME
+        }
+
+        return $true
+    }
+
+    Write-Log $LogMessages.messages.notFound -Level "warn"
+    Write-Log $LogMessages.messages.installing -Level "info"
+
+    # Build install args for custom path
+    $chocoArgs = @()
+    $hasCustomPath = -not [string]::IsNullOrWhiteSpace($InstallPath)
+    if ($hasCustomPath) {
+        $dbInstallDir = Join-Path $InstallPath "couchdb"
+        $chocoArgs += "--install-directory=`"$dbInstallDir`""
+    }
+
+    # Install
+    $isInstalled = $false
+    $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs $chocoArgs
+
+    $hasInstallFailed = -not $isInstalled
+    if ($hasInstallFailed) {
+        Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', "Install returned failure") -Level "error"
+        return $false
+    }
+
+    # Refresh PATH
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+
+    $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
+    if ($cmd) {
+        $version = ""
+        try {
+            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
+        } catch { $version = "(version check failed)" }
+
+        Write-Log ($LogMessages.messages.installSuccess -replace '\{version\}', $version) -Level "success"
+
+        Save-ResolvedData -ScriptFolder "23-install-couchdb" -Data @{
+            version    = "$version".Trim()
+            resolvedAt = (Get-Date -Format "o")
+            resolvedBy = $env:USERNAME
+        }
+
+        return $true
+    } else {
+        Write-Log $LogMessages.messages.notInPath -Level "warn"
+        return $false
+    }
+}
