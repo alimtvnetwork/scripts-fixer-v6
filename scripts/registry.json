@@ -30,6 +30,7 @@
     "27": "27-install-elasticsearch",
     "28": "28-install-duckdb",
     "29": "29-install-litedb",
-    "30": "databases"
+    "30": "databases",
+    "31": "31-pwsh-context-menu"
   }
 }
