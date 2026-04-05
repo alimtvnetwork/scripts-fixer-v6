@@ -174,15 +174,15 @@ status, and group membership, then exits without running anything.
 
   ID  Name                      Enabled  Groups
   --  ----                      -------  ------
-  01  VS Code                   Yes      Core, Everything
-  02  Chocolatey                Yes      Core, Everything
-  03  Node.js + Yarn + Bun      Yes      Core, Dev Runtimes, JS Stack, Web Dev, Backend Stack, Full Stack, Everything
-  04  pnpm                      Yes      Core, Dev Runtimes, JS Stack, Web Dev, Backend Stack, Full Stack, Everything
-  05  Python                    Yes      Core, Dev Runtimes, Languages, Data Engineering, Everything
-  06  Go                        Yes      Core, Dev Runtimes, Languages, Web Dev, Backend Stack, Full Stack, Everything
-  07  Git + LFS + gh            Yes      Core, Dev Runtimes, Git Tools, Full Stack, Everything
-  08  GitHub Desktop            Yes      Core, Dev Runtimes, Git Tools, Web Dev, Everything
-  09  C++ (MinGW-w64)           Yes      Core, Everything
+  01  VS Code                   Yes      Core, All + Extras, Everything
+  02  Chocolatey                Yes      Core, All + Extras, Everything
+  03  Node.js + Yarn + Bun      Yes      Core, Dev Runtimes, JS Stack, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
+  04  pnpm                      Yes      Core, Dev Runtimes, JS Stack, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
+  05  Python                    Yes      Core, Dev Runtimes, Languages, All + Extras, Data Engineering, Everything
+  06  Go                        Yes      Core, Dev Runtimes, Languages, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
+  07  Git + LFS + gh            Yes      Core, Dev Runtimes, Git Tools, All + Extras, Full Stack, Everything
+  08  GitHub Desktop            Yes      Core, Dev Runtimes, Git Tools, Web Dev, All + Extras, Everything
+  09  C++ (MinGW-w64)           Yes      Core, All + Extras, Everything
   10  VSCode Context Menu       Yes      All + Extras, Everything
   11  VSCode Settings Sync      Yes      All + Extras, Everything
   16  PHP                       Yes      Languages, Web Dev, All + Extras, Full Stack, Everything
@@ -200,7 +200,7 @@ status, and group membership, then exits without running anything.
   28  DuckDB                    Yes      All Databases, Data Engineering, Everything
   29  LiteDB                    Yes      All Databases, Everything
 
-  Total: 27 scripts (27 enabled, 0 disabled)
+  Total: 25 scripts (25 enabled, 0 disabled)
 ```
 
 ### Behavior
