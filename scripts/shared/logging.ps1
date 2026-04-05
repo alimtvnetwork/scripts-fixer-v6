@@ -1,7 +1,15 @@
 <#
 .SYNOPSIS
     Shared logging helpers used by all scripts in this repo.
+    Logs are written to scripts/logs/ as structured JSON files.
 #>
+
+# ── Module-scoped log state ──────────────────────────────────────────────────
+$script:_LogEvents   = [System.Collections.ArrayList]::new()
+$script:_LogErrors   = [System.Collections.ArrayList]::new()
+$script:_LogName     = $null
+$script:_LogStart    = $null
+$script:_LogsDir     = $null
 
 function Write-Log {
     param(
@@ -35,7 +43,6 @@ function Write-Log {
     }
     $isBadgeMissing = -not $badge
     if ($isBadgeMissing) {
-        # Fallback badges when log-messages.json doesn't have a status block
         $fallbackBadges = @{ ok = "[  OK  ]"; fail = "[ FAIL ]"; info = "[ INFO ]"; warn = "[ WARN ]"; skip = "[ SKIP ]" }
         $badge = $fallbackBadges[$Status]
     }
@@ -50,6 +57,20 @@ function Write-Log {
 
     Write-Host "  $badge " -ForegroundColor $colors[$Status] -NoNewline
     Write-Host $Message
+
+    # ── Record structured event ──────────────────────────────────────────
+    $event = @{
+        timestamp = (Get-Date -Format "o")
+        level     = $Status
+        message   = $Message
+    }
+    $script:_LogEvents.Add($event) | Out-Null
+
+    # Also track errors separately
+    $isError = $Status -eq "fail"
+    if ($isError) {
+        $script:_LogErrors.Add($event) | Out-Null
+    }
 }
 
 function Write-Banner {
@@ -77,25 +98,92 @@ function Write-Banner {
 }
 
 function Initialize-Logging {
-    param([string]$ScriptDir)
+    param(
+        [Parameter(Position = 0)]
+        [string]$ScriptName
+    )
 
-    $logsDir = Join-Path $ScriptDir "logs"
-    Write-Host "  [ INFO ] Log directory: $logsDir" -ForegroundColor Cyan
-
-    # Clean and recreate
-    if (Test-Path $logsDir) {
-        Write-Host "  [ INFO ] Removing old logs folder..." -ForegroundColor Cyan
-        Remove-Item -Path $logsDir -Recurse -Force -Confirm:$false
+    # Resolve scripts/logs/ directory (always at scripts root)
+    $scriptsRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    # If PSScriptRoot is already scripts/shared, go up one level
+    $isSharedDir = (Split-Path -Leaf $PSScriptRoot) -eq "shared"
+    if ($isSharedDir) {
+        $scriptsRoot = Split-Path -Parent $PSScriptRoot
     }
-    New-Item -Path $logsDir -ItemType Directory -Force -Confirm:$false | Out-Null
-    Write-Host "  [  OK  ] Logs folder created" -ForegroundColor Green
 
-    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $logFile   = Join-Path $logsDir "run-$timestamp.log"
-    Write-Host "  [ INFO ] Transcript file: $logFile" -ForegroundColor Cyan
+    $logsDir = Join-Path $scriptsRoot "logs"
 
-    Start-Transcript -Path $logFile -Force | Out-Null
-    return $logFile
+    # Create logs dir if missing
+    $isLogsDirMissing = -not (Test-Path $logsDir)
+    if ($isLogsDirMissing) {
+        New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
+    }
+
+    # Sanitise script name for filename (e.g. "Install Golang" -> "golang")
+    $safeName = $ScriptName.ToLower() -replace '[^a-z0-9]+', '-'
+    $safeName = $safeName.Trim('-')
+
+    # Store state
+    $script:_LogsDir   = $logsDir
+    $script:_LogName   = $safeName
+    $script:_LogStart  = Get-Date
+    $script:_LogEvents = [System.Collections.ArrayList]::new()
+    $script:_LogErrors = [System.Collections.ArrayList]::new()
+
+    Write-Log "Logging initialised -- events will be saved to: $logsDir\$safeName.json" -Level "info"
+}
+
+function Save-LogFile {
+    <#
+    .SYNOPSIS
+        Flush collected log events to scripts/logs/<name>.json
+        and scripts/logs/<name>-error.json (if errors exist).
+    #>
+    param(
+        [string]$Status = "ok"
+    )
+
+    $isNotInitialised = -not $script:_LogsDir
+    if ($isNotInitialised) { return }
+
+    $endTime  = Get-Date
+    $duration = ($endTime - $script:_LogStart).TotalSeconds
+
+    # Main log file
+    $logData = @{
+        scriptName = $script:_LogName
+        status     = $Status
+        startTime  = $script:_LogStart.ToString("o")
+        endTime    = $endTime.ToString("o")
+        duration   = [math]::Round($duration, 2)
+        eventCount = $script:_LogEvents.Count
+        errorCount = $script:_LogErrors.Count
+        events     = @($script:_LogEvents)
+    }
+
+    $logPath = Join-Path $script:_LogsDir "$($script:_LogName).json"
+    $logData | ConvertTo-Json -Depth 5 | Set-Content -Path $logPath -Encoding UTF8
+    Write-Host "  [  OK  ] Log saved: $logPath" -ForegroundColor Green
+
+    # Error log file -- written when there are individual errors OR overall failure
+    $hasErrors = $script:_LogErrors.Count -gt 0
+    $isOverallFailure = $Status -eq "fail"
+    $shouldWriteErrorLog = $hasErrors -or $isOverallFailure
+    if ($shouldWriteErrorLog) {
+        $errorData = @{
+            scriptName    = $script:_LogName
+            overallStatus = $Status
+            startTime     = $script:_LogStart.ToString("o")
+            endTime       = $endTime.ToString("o")
+            duration      = [math]::Round($duration, 2)
+            errorCount    = $script:_LogErrors.Count
+            errors        = @($script:_LogErrors)
+        }
+
+        $errorPath = Join-Path $script:_LogsDir "$($script:_LogName)-error.json"
+        $errorData | ConvertTo-Json -Depth 5 | Set-Content -Path $errorPath -Encoding UTF8
+        Write-Host "  [ WARN ] Error log saved: $errorPath" -ForegroundColor Yellow
+    }
 }
 
 function Import-JsonConfig {
