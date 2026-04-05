@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 #  Orchestrator helper loader
-#  Dot-sources the individual helper files: resolve, menu, execution, summary.
+#  Dot-sources the individual helper files.
 # --------------------------------------------------------------------------
 
 $_helpersDir = $PSScriptRoot
@@ -9,3 +9,4 @@ $_helpersDir = $PSScriptRoot
 . (Join-Path $_helpersDir "menu.ps1")
 . (Join-Path $_helpersDir "execution.ps1")
 . (Join-Path $_helpersDir "summary.ps1")
+. (Join-Path $_helpersDir "questionnaire.ps1")

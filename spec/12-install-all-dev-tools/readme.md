@@ -2,21 +2,81 @@
 
 ## Purpose
 
-Orchestrator that resolves the dev directory once, sets `$env:DEV_DIR`,
-then runs scripts 01-11 in sequence. Supports an interactive grouped menu
-with lettered group shortcuts, CSV number input, and loop-back behavior,
-plus `-All`, `-Skip`, and `-Only` flag-based modes.
+Orchestrator that front-loads all configuration questions, then runs
+selected scripts unattended. Supports three interactive modes plus
+flag-based CLI modes.
 
 ## Usage
 
 ```powershell
-.\run.ps1                    # Interactive menu: pick what to install
+.\run.ps1                    # Interactive: quick menu + questionnaire
 .\run.ps1 -All               # Run all enabled scripts without prompting
 .\run.ps1 -Skip "06,08"     # Skip specific scripts
 .\run.ps1 -Only "03,05"     # Run only specific scripts
 .\run.ps1 -DryRun            # Preview what would run
 .\run.ps1 -Help             # Show usage
 ```
+
+## Interactive Flow
+
+### Step 1: Quick Menu
+
+```
+  What would you like to install?
+  ================================
+
+    [1] All Dev Tools (VS Code, Node.js, Python, Go, Git, C++, PHP, PowerShell)
+    [2] All Dev Tools + All Databases (everything above + MySQL, PostgreSQL, MongoDB, etc.)
+    [3] Custom (pick individual tools from the full list)
+    [Q] Quit
+
+  Choose [1/2/3/Q] (default: 1):
+```
+
+| Choice | Mode | Scripts |
+|--------|------|---------|
+| 1 | `alldev` | 01-11, 16-17, 31 (all dev tools, no databases) |
+| 2 | `alldev+db` | 01-11, 16-17, 18-29, 31 (everything) |
+| 3 | `custom` | Full interactive checkbox menu (same as before) |
+| Q | `quit` | Exit |
+
+### Step 2: Questionnaire (front-loaded)
+
+All configuration questions are asked **before any scripts run**. Answers
+are stored in environment variables so child scripts skip their own prompts.
+
+| Question | Env Var | Options |
+|----------|---------|---------|
+| Dev directory path | `$env:DEV_DIR` | Custom path or default (E:\dev) |
+| VS Code editions | `$env:VSCODE_EDITIONS` | stable / insiders / stable,insiders |
+| VS Code settings sync | `$env:VSCODE_SYNC_MODE` | overwrite / merge / skip |
+
+### Step 3: Unattended Execution
+
+Scripts run in sequence with no interactive prompts. Each reads its
+configuration from the environment variables set in Step 2.
+
+### Step 4: Summary + Loop Back
+
+After all scripts complete, the summary is displayed and the quick menu
+re-appears so the user can install more or quit.
+
+## Custom Menu (Option 3)
+
+When "Custom" is selected, the full interactive checkbox menu appears:
+
+- Type **numbers** (CSV or space-separated): `1,2,5` or `1 2 5` to toggle
+- Type a **group letter** (`a`-`n`) to select a predefined group
+- Type `A` to select all, `N` to deselect all
+- Press **Enter** to run selected items
+- Type `Q` to quit
+
+## Database Installation
+
+Database scripts (18-29) install via Chocolatey to the **system default
+location** (not custom directories, which requires Chocolatey Business).
+Environment variables and symlinks are used to link databases to the dev
+directory post-install.
 
 ## config.json
 
@@ -26,9 +86,8 @@ plus `-All`, `-Skip`, and `-Only` flag-based modes.
 | `devDir.default` | string | Default dev directory path |
 | `devDir.override` | string | Hard override (skips prompt) |
 | `groups[].label` | string | Display name for the group |
-| `groups[].letter` | string | Shortcut letter (a, b, c...) |
+| `groups[].letter` | string | Shortcut letter (a-n) |
 | `groups[].ids` | array | Script IDs in this group |
-| `groups[].checkedByDefault` | bool | Selection state on menu open |
 | `scripts.<id>.enabled` | bool | Toggle per script |
 | `scripts.<id>.folder` | string | Script folder name |
 | `scripts.<id>.name` | string | Display name |
@@ -64,87 +123,7 @@ plus `-All`, `-Skip`, and `-Only` flag-based modes.
 | 27 | Elasticsearch | Full-text search and analytics engine |
 | 28 | DuckDB | Analytical file-based columnar database |
 | 29 | LiteDB | .NET embedded NoSQL file-based database |
-
-## Interactive Menu
-
-When run with no flags, the script displays a numbered list with **all
-items unchecked by default**. The user can:
-
-- Type **numbers** (CSV or space-separated): `1,2,5` or `1 2 5` to toggle
-- Type a **group letter** (`a`, `b`, `c`...) to select a predefined group
-- Type `A` to select all, `N` to deselect all
-- Press **Enter** to install selected items
-- Type `Q` to quit without installing
-
-After installation completes and the summary is displayed, the menu
-**loops back** so the user can install more tools without restarting.
-
-### Example Menu
-
-```
-  Install All Dev Tools -- Interactive Menu
-  ==========================================
-
-  [ ] 1.  VS Code                      Install Visual Studio Code
-  [ ] 2.  Chocolatey                   Install Chocolatey package manager
-  [ ] 3.  Node.js + Yarn + Bun          Install Node.js LTS, Yarn, Bun
-  [ ] 4.  pnpm                          Install pnpm, configure store
-  [ ] 5.  Python                        Install Python, configure pip
-  [ ] 6.  Go                            Install Go, configure GOPATH
-  [ ] 7.  Git + LFS + gh                Install Git, Git LFS, GitHub CLI
-  [ ] 8.  GitHub Desktop                Install GitHub Desktop
-  [ ] 9.  C++ (MinGW-w64)               Install MinGW-w64 C++ compiler
-  [ ] 10. VSCode Context Menu           Add/repair right-click entries
-  [ ] 11. VSCode Settings Sync          Sync settings, keybindings
-  [ ] 12. PHP                           Install PHP via Chocolatey
-  [ ] 13. PowerShell (latest)           Install latest PowerShell
-  [ ] 14. MySQL                         Open-source relational database
-  [ ] 15. MariaDB                       MySQL-compatible fork
-  [ ] 16. PostgreSQL                    Advanced relational database
-  [ ] 17. SQLite                        File-based embedded SQL database
-  [ ] 18. MongoDB                       Document-oriented NoSQL database
-  [ ] 19. CouchDB                       Apache document database
-  [ ] 20. Redis                         In-memory key-value store
-  [ ] 21. Apache Cassandra              Wide-column NoSQL database
-  [ ] 22. Neo4j                         Graph database
-  [ ] 23. Elasticsearch                 Search and analytics engine
-  [ ] 24. DuckDB                        Analytical columnar database
-  [ ] 25. LiteDB                        .NET embedded NoSQL database
-
-  Quick groups:
-    a. All Core (01-09)               b. Dev Runtimes (03-08)
-    c. JS Stack (03-04)               d. Languages (05-06,16)
-    e. Git Tools (07-08)              f. Web Dev (03,04,06,08,16)
-    g. All + Extras (01-11,16-17)     h. SQL DBs (18-21)
-    i. NoSQL DBs (22-26)              j. All Databases (18-29)
-    k. Backend Stack (03-04,06,18-20,24)
-    l. Full Stack (03,04,06,07,16,18,20,22,24)
-    m. Data Engineering (05,20,27,28)
-    n. Everything (01-29)
-
-  Enter numbers (1,2,5), group letter (a-n), A=all, N=none, Q=quit, Enter=run:
-```
-
-### Loop-Back Flow
-
-1. User selects items and presses Enter
-2. Selected scripts run in sequence
-3. Summary is displayed
-4. Menu re-appears with all items unchecked
-5. User can select more or press Q to exit
-
-## Flow
-
-1. Assert admin privileges
-2. Resolve dev directory (env > config override > prompt > default)
-3. Create dev directory structure
-4. Set `$env:DEV_DIR` for child scripts
-5. Show interactive menu (loop)
-   a. Display numbered list + group shortcuts
-   b. Accept input: numbers, group letters, A/N/Q
-   c. On Enter: run selected, show summary, loop back
-   d. On Q: exit
-6. Save resolved state
+| 31 | PowerShell Context Menu | Add PowerShell right-click context menu |
 
 ## Summary Output
 
@@ -157,56 +136,13 @@ After installation completes and the summary is displayed, the menu
   [OK]   07 - Git + LFS + gh
 ```
 
-## -List Parameter
+## Helpers
 
-The `-List` flag prints all available scripts with their ID, name, enabled
-status, and group membership, then exits without running anything.
-
-```powershell
-.\run.ps1 -List
-```
-
-### Example Output
-
-```
-  Available Scripts
-  =================
-
-  ID  Name                      Enabled  Groups
-  --  ----                      -------  ------
-  01  VS Code                   Yes      Core, All + Extras, Everything
-  02  Chocolatey                Yes      Core, All + Extras, Everything
-  03  Node.js + Yarn + Bun      Yes      Core, Dev Runtimes, JS Stack, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
-  04  pnpm                      Yes      Core, Dev Runtimes, JS Stack, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
-  05  Python                    Yes      Core, Dev Runtimes, Languages, All + Extras, Data Engineering, Everything
-  06  Go                        Yes      Core, Dev Runtimes, Languages, Web Dev, All + Extras, Backend Stack, Full Stack, Everything
-  07  Git + LFS + gh            Yes      Core, Dev Runtimes, Git Tools, All + Extras, Full Stack, Everything
-  08  GitHub Desktop            Yes      Core, Dev Runtimes, Git Tools, Web Dev, All + Extras, Everything
-  09  C++ (MinGW-w64)           Yes      Core, All + Extras, Everything
-  10  VSCode Context Menu       Yes      All + Extras, Everything
-  11  VSCode Settings Sync      Yes      All + Extras, Everything
-  16  PHP                       Yes      Languages, Web Dev, All + Extras, Full Stack, Everything
-  17  PowerShell (latest)       Yes      All + Extras, Everything
-  18  MySQL                     Yes      SQL DBs, All Databases, Backend Stack, Everything
-  19  MariaDB                   Yes      SQL DBs, All Databases, Backend Stack, Everything
-  20  PostgreSQL                Yes      SQL DBs, All Databases, Backend Stack, Full Stack, Data Engineering, Everything
-  21  SQLite                    Yes      SQL DBs, All Databases, Everything
-  22  MongoDB                   Yes      NoSQL DBs, All Databases, Full Stack, Everything
-  23  CouchDB                   Yes      NoSQL DBs, All Databases, Everything
-  24  Redis                     Yes      NoSQL DBs, All Databases, Backend Stack, Full Stack, Everything
-  25  Apache Cassandra          Yes      NoSQL DBs, All Databases, Everything
-  26  Neo4j                     Yes      NoSQL DBs, All Databases, Everything
-  27  Elasticsearch             Yes      All Databases, Data Engineering, Everything
-  28  DuckDB                    Yes      All Databases, Data Engineering, Everything
-  29  LiteDB                    Yes      All Databases, Everything
-
-  Total: 25 scripts (25 enabled, 0 disabled)
-```
-
-### Behavior
-
-- Reads `config.json` to resolve script metadata and group membership
-- Disabled scripts show `No` in the Enabled column
-- Groups column lists every group that includes the script
-- Exits with code 0 after printing (no scripts are executed)
-- Combines with no other flags; `-List` takes priority if mixed with `-All`, `-Skip`, etc.
+| File | Functions | Purpose |
+|------|-----------|---------|
+| `orchestrator.ps1` | (loader) | Dot-sources all helper files |
+| `resolve.ps1` | `Resolve-ScriptList` | Builds script list from config with skip/only filters |
+| `menu.ps1` | `Show-InteractiveMenu`, `Show-DryRun` | Full checkbox menu for custom mode |
+| `execution.ps1` | `Invoke-ScriptSequence` | Runs scripts in sequence, captures results |
+| `summary.ps1` | `Show-Summary` | Displays formatted summary table |
+| `questionnaire.ps1` | `Show-QuickMenu`, `Invoke-Questionnaire`, `Get-ScriptListForMode` | Quick 3-option menu and front-loaded questions |
