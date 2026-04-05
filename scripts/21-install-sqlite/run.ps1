@@ -54,44 +54,8 @@ $devDir = Resolve-DevDir -Config $config.devDir
 Initialize-DevDir -Path $devDir
 $env:DEV_DIR = $devDir
 
-# -- Resolve install path ------------------------------------------------------
-Write-Host ""
-Write-Host "  $($logMessages.messages.installPathTitle)" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "    [1] " -NoNewline -ForegroundColor Cyan
-Write-Host ($logMessages.messages.installPathDevDir -replace '\{path\}', $devDir)
-Write-Host "    [2] " -NoNewline -ForegroundColor Cyan
-Write-Host "Custom path (you choose)"
-Write-Host "    [3] " -NoNewline -ForegroundColor Cyan
-Write-Host $logMessages.messages.installPathSystem
-Write-Host ""
-
-$choice = Read-Host "  Choose [1/2/3] (default: 1)"
-$installPath = ""
-
-$isCustom = $choice -eq "2"
-if ($isCustom) {
-    $customPath = Read-Host "  $($logMessages.messages.installPathCustom)"
-    $hasCustom = -not [string]::IsNullOrWhiteSpace($customPath)
-    if ($hasCustom) { $installPath = $customPath }
-}
-
-$isSystem = $choice -eq "3"
-if ($isSystem) {
-    $installPath = ""
-} elseif (-not $isCustom) {
-    $installPath = Join-Path $devDir "sqlite"
-}
-
-$hasPath = -not [string]::IsNullOrWhiteSpace($installPath)
-if ($hasPath) {
-    Write-Log ($logMessages.messages.installPathChosen -replace '\{path\}', $installPath) -Level "info"
-} else {
-    Write-Log ($logMessages.messages.installPathChosen -replace '\{path\}', "(system default)") -Level "info"
-}
-
 # -- Install -------------------------------------------------------------------
-$ok = Install-Sqlite -DbConfig $config.database -LogMessages $logMessages -InstallPath $installPath
+$ok = Install-Sqlite -DbConfig $config.database -LogMessages $logMessages 
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {
