@@ -45,7 +45,8 @@
     "26": { "enabled": true, "folder": "26-install-neo4j",            "name": "Neo4j",                 "desc": "Graph database for connected data" },
     "27": { "enabled": true, "folder": "27-install-elasticsearch",    "name": "Elasticsearch",         "desc": "Full-text search and analytics engine" },
     "28": { "enabled": true, "folder": "28-install-duckdb",           "name": "DuckDB",                "desc": "Analytical file-based columnar database" },
-    "29": { "enabled": true, "folder": "29-install-litedb",           "name": "LiteDB",                "desc": ".NET embedded NoSQL file-based database" }
+    "29": { "enabled": true, "folder": "29-install-litedb",           "name": "LiteDB",                "desc": ".NET embedded NoSQL file-based database" },
+    "31": { "enabled": true, "folder": "31-pwsh-context-menu",       "name": "PowerShell Context Menu", "desc": "Add PowerShell right-click context menu (normal + admin)" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31"]
 }
