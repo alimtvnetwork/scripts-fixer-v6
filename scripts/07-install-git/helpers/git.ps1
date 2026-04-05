@@ -149,7 +149,13 @@ function Configure-GitGlobal {
     else {
         $name = $nameConfig.value
         $hasNoName = -not $name
-        if ($hasNoName -and $nameConfig.promptOnFirstRun) {
+        # Check env var from orchestrator questionnaire
+        $hasGitNameEnv = -not [string]::IsNullOrWhiteSpace($env:GIT_USER_NAME)
+        if ($hasNoName -and $hasGitNameEnv) {
+            $name = $env:GIT_USER_NAME
+        }
+        $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
+        if ($hasNoName -and -not $hasGitNameEnv -and $nameConfig.promptOnFirstRun -and -not $hasOrchestratorEnv) {
             $name = Read-Host $LogMessages.messages.promptUserName
         }
         if ($name) {
@@ -168,7 +174,13 @@ function Configure-GitGlobal {
     else {
         $email = $emailConfig.value
         $hasNoEmail = -not $email
-        if ($hasNoEmail -and $emailConfig.promptOnFirstRun) {
+        # Check env var from orchestrator questionnaire
+        $hasGitEmailEnv = -not [string]::IsNullOrWhiteSpace($env:GIT_USER_EMAIL)
+        if ($hasNoEmail -and $hasGitEmailEnv) {
+            $email = $env:GIT_USER_EMAIL
+        }
+        $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
+        if ($hasNoEmail -and -not $hasGitEmailEnv -and $emailConfig.promptOnFirstRun -and -not $hasOrchestratorEnv) {
             $email = Read-Host $LogMessages.messages.promptUserEmail
         }
         if ($email) {
