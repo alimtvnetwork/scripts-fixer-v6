@@ -125,6 +125,46 @@ function Invoke-Questionnaire {
         Write-Log "VS Code sync: $($env:VSCODE_SYNC_MODE)" -Level "success"
     }
 
+    # ── Q4: Git user.name ────────────────────────────────────────────────────
+    if ($isInstallingDev) {
+        $currentGitName = ""
+        try { $currentGitName = & git config --global user.name 2>$null } catch {}
+        $hasGitName = -not [string]::IsNullOrWhiteSpace($currentGitName)
+
+        if ($hasGitName) {
+            Write-Host ""
+            Write-Host "  Git user.name already set: $currentGitName" -ForegroundColor DarkGray
+            $env:GIT_USER_NAME = $currentGitName
+        } else {
+            Write-Host ""
+            $gitName = Read-Host "  Git user.name (your full name, or press Enter to skip)"
+            $hasInput = -not [string]::IsNullOrWhiteSpace($gitName)
+            if ($hasInput) {
+                $env:GIT_USER_NAME = $gitName
+                Write-Log "Git user.name: $gitName" -Level "success"
+            }
+        }
+    }
+
+    # ── Q5: Git user.email ───────────────────────────────────────────────────
+    if ($isInstallingDev) {
+        $currentGitEmail = ""
+        try { $currentGitEmail = & git config --global user.email 2>$null } catch {}
+        $hasGitEmail = -not [string]::IsNullOrWhiteSpace($currentGitEmail)
+
+        if ($hasGitEmail) {
+            Write-Host "  Git user.email already set: $currentGitEmail" -ForegroundColor DarkGray
+            $env:GIT_USER_EMAIL = $currentGitEmail
+        } else {
+            $gitEmail = Read-Host "  Git user.email (or press Enter to skip)"
+            $hasInput = -not [string]::IsNullOrWhiteSpace($gitEmail)
+            if ($hasInput) {
+                $env:GIT_USER_EMAIL = $gitEmail
+                Write-Log "Git user.email: $gitEmail" -Level "success"
+            }
+        }
+    }
+
     Write-Host ""
     Write-Log "All questions answered -- starting installation..." -Level "success"
     Write-Host ""
