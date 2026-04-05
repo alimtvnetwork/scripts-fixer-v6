@@ -58,6 +58,28 @@ if ($hasNoSettings) {
 }
 
 $enabledEditions = $config.enabledEditions
+
+# Override editions from orchestrator env var if available
+$hasEditionsEnv = -not [string]::IsNullOrWhiteSpace($env:VSCODE_EDITIONS)
+if ($hasEditionsEnv) {
+    $enabledEditions = @($env:VSCODE_EDITIONS -split ',')
+    Write-Log "Using VS Code editions from questionnaire: $($enabledEditions -join ', ')" -Level "info"
+}
+
+# Override merge mode from orchestrator env var
+$hasSyncModeEnv = -not [string]::IsNullOrWhiteSpace($env:VSCODE_SYNC_MODE)
+if ($hasSyncModeEnv) {
+    $isSyncSkip = $env:VSCODE_SYNC_MODE -eq "skip"
+    if ($isSyncSkip) {
+        Write-Log "VS Code settings sync skipped (questionnaire choice)" -Level "skip"
+        Save-LogFile -Status "ok"
+        return
+    }
+    $isMergeMode = $env:VSCODE_SYNC_MODE -eq "merge"
+    if ($isMergeMode) { $Merge = [switch]::new($true) }
+    Write-Log "Sync mode from questionnaire: $($env:VSCODE_SYNC_MODE)" -Level "info"
+}
+
 $isAllSuccessful = $true
 
 Write-Log ($logMessages.messages.enabledEditions -replace '\{editions\}', ($enabledEditions -join ', ')) -Level "info"
