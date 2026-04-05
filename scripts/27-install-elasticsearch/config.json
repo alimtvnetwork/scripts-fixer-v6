@@ -1,0 +1,20 @@
+{
+  "devDir": {
+    "mode": "json-or-prompt",
+    "default": "E:\\dev",
+    "override": ""
+  },
+  "installMode": {
+    "_comment": "Where to install. Options: devDir, custom, system.",
+    "default": "devDir"
+  },
+  "database": {
+    "enabled": true,
+    "verifyCommand": "elasticsearch",
+    "versionFlag": "--version",
+    "name": "Elasticsearch",
+    "desc": "Full-text search and analytics engine",
+    "type": "search",
+    "chocoPackage": "elasticsearch"
+  }
+}
