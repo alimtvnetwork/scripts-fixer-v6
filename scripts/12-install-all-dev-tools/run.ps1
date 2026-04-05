@@ -88,6 +88,9 @@ if ($hasFilter -or $All -or $DryRun) {
         results   = $results
         timestamp = (Get-Date -Format "o")
     }
+
+    # -- Save log --------------------------------------------------------------
+    Save-LogFile -Status "ok"
 } else {
     # Interactive menu mode with loop-back
     $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
@@ -129,4 +132,7 @@ if ($hasFilter -or $All -or $DryRun) {
         Write-Host ""
         Write-Log $logMessages.messages.menuLoopBack -Level "info"
     }
+
+    # -- Save log --------------------------------------------------------------
+    Save-LogFile -Status "ok"
 }
