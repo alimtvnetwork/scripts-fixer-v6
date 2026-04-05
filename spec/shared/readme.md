@@ -11,8 +11,12 @@ by individual scripts. This avoids duplicating common logic across scripts.
 
 ```
 scripts/
+├── logs/                  # Centralised JSON logs (gitignored, never committed)
+│   ├── golang.json        # Structured event log for script 06
+│   ├── golang-error.json  # Error-only log (created when errors occur)
+│   └── ...
 └── shared/
-    ├── logging.ps1       # Write-Log, Write-Banner, Initialize-Logging, Import-JsonConfig
+    ├── logging.ps1       # Write-Log, Write-Banner, Initialize-Logging, Save-LogFile, Import-JsonConfig
     ├── log-messages.json  # Shared log message strings (choco, cleanup, path, etc.)
     ├── git-pull.ps1      # Invoke-GitPull
     ├── resolved.ps1      # Save-ResolvedData, Get-ResolvedDir
@@ -111,9 +115,10 @@ if (-not (Test-Path $dir)) { ... }
 
 | Function | Purpose |
 |----------|---------|
-| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) |
+| `Write-Log` | Prints a status-badged message (`[  OK  ]`, `[ FAIL ]`, etc.) and records a structured event |
 | `Write-Banner` | Displays a titled banner block with border lines |
-| `Initialize-Logging` | Cleans and recreates `logs/`, starts `Start-Transcript` |
+| `Initialize-Logging` | Initialises the JSON log collector for a script (sets script name, creates `scripts/logs/` if needed) |
+| `Save-LogFile` | Flushes collected events to `scripts/logs/<name>.json` and `<name>-error.json` if errors exist |
 | `Import-JsonConfig` | Loads and returns a JSON file with verbose logging |
 
 ### Write-Log
