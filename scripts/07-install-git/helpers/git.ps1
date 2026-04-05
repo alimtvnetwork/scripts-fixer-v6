@@ -149,8 +149,13 @@ function Configure-GitGlobal {
     else {
         $name = $nameConfig.value
         $hasNoName = -not $name
+        # Check env var from orchestrator questionnaire
+        $hasGitNameEnv = -not [string]::IsNullOrWhiteSpace($env:GIT_USER_NAME)
+        if ($hasNoName -and $hasGitNameEnv) {
+            $name = $env:GIT_USER_NAME
+        }
         $hasOrchestratorEnv = -not [string]::IsNullOrWhiteSpace($env:SCRIPTS_ROOT_RUN)
-        if ($hasNoName -and $nameConfig.promptOnFirstRun -and -not $hasOrchestratorEnv) {
+        if ($hasNoName -and -not $hasGitNameEnv -and $nameConfig.promptOnFirstRun -and -not $hasOrchestratorEnv) {
             $name = Read-Host $LogMessages.messages.promptUserName
         }
         if ($name) {
