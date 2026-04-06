@@ -173,6 +173,7 @@ Keys are grouped by helper:
 | `gitPull*` | `git-pull.ps1` |
 | `help*` | `help.ps1` |
 | `adminTip` | `run.ps1` files (admin privilege error) |
+| `timeout*` | `invoke-with-timeout.ps1` |
 
 ---
 
