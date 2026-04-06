@@ -174,9 +174,9 @@ visibility.
 | Level | Badge | Colour | Description |
 |-------|-------|--------|-------------|
 | `ok` | `[  OK  ]` | Green | Success |
-| `fail` | `[ FAIL ]` | Red | Error (also recorded in error log) |
+| `fail` | `[ FAIL ]` | Red | Error (recorded in error log) |
 | `info` | `[ INFO ]` | Cyan | Informational |
-| `warn` | `[ WARN ]` | Yellow | Warning |
+| `warn` | `[ WARN ]` | Yellow | Warning (recorded in error log) |
 | `skip` | `[ SKIP ]` | DarkGray | Skipped step |
 
 The `-Level` parameter accepts aliases: `success` maps to `ok`, `error` maps
