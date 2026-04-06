@@ -142,27 +142,29 @@ function Register-ContextMenu {
     $regPath = ConvertTo-RegPath $RegistryPath
 
     try {
+        # Extract HKCR subkey path from the full registry path
+        $subKeyPath = $RegistryPath -replace '^Registry::HKEY_CLASSES_ROOT\\', ''
+        $hkcr = [Microsoft.Win32.Registry]::ClassesRoot
+
         # Set (Default) value = label
         Write-Log ("  " + ($LogMsgs.messages.settingRegistryDefault -replace '\{label\}', $Label)) -Level "info"
-        $out = reg.exe add $regPath /ve /d $Label /f 2>&1
-        $hasRegFailed = $LASTEXITCODE -ne 0
-        if ($hasRegFailed) { throw "reg add (Default) failed: $out" }
+        $key = $hkcr.CreateSubKey($subKeyPath)
+        $key.SetValue("", $Label)
+        $key.Close()
         Write-Log ("  " + $LogMsgs.messages.registryDefaultSet) -Level "success"
 
         # Set Icon
         Write-Log ("  " + ($LogMsgs.messages.settingIcon -replace '\{icon\}', $IconValue)) -Level "info"
-        $out = reg.exe add $regPath /v "Icon" /d $IconValue /f 2>&1
-        $hasRegFailed = $LASTEXITCODE -ne 0
-        if ($hasRegFailed) { throw "reg add Icon failed: $out" }
+        $key = $hkcr.OpenSubKey($subKeyPath, $true)
+        $key.SetValue("Icon", $IconValue)
+        $key.Close()
         Write-Log ("  " + $LogMsgs.messages.iconSet) -Level "success"
 
         # Create command subkey with (Default) = command
-        $cmdRegPath = "$regPath\command"
         Write-Log ("  " + ($LogMsgs.messages.settingCommand -replace '\{command\}', $CommandArg)) -Level "info"
-        $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
-        $out = cmd.exe /c $cmdLine 2>&1
-        $hasRegFailed = $LASTEXITCODE -ne 0
-        if ($hasRegFailed) { throw "reg add command failed: $out" }
+        $cmdKey = $hkcr.CreateSubKey("$subKeyPath\command")
+        $cmdKey.SetValue("", $CommandArg)
+        $cmdKey.Close()
         Write-Log ("  " + $LogMsgs.messages.commandSet) -Level "success"
 
         return $true
