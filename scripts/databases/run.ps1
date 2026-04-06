@@ -90,11 +90,33 @@ if ($hasSkip) {
     $sequence = $sequence | Where-Object { $_ -notin $skipList }
 }
 
+# -- Helper: verify symlink after install --------------------------------------
+function Test-PostInstallSymlink {
+    param([string]$Key, [string]$Name)
+
+    $dbDir = Join-Path $devDir "databases" $Key
+    $hasLink = Test-Path $dbDir
+    if (-not $hasLink) {
+        Write-Log ($logMessages.messages.symlinkVerifyMissing -replace '\{name\}', $Name) -Level "warn"
+        return
+    }
+
+    $item = Get-Item $dbDir -Force
+    $isJunction = $item.Attributes -band [IO.FileAttributes]::ReparsePoint
+    if ($isJunction) {
+        $target = $item.Target
+        Write-Log ($logMessages.messages.symlinkVerifyOk -replace '\{name\}', $Name -replace '\{path\}', $dbDir -replace '\{target\}', $target) -Level "success"
+    } else {
+        Write-Log ($logMessages.messages.symlinkVerifyNotJunction -replace '\{name\}', $Name -replace '\{path\}', $dbDir) -Level "warn"
+    }
+}
+
 # -- Helper: invoke an individual DB script ------------------------------------
 function Invoke-DbScript {
     param(
         [string]$Folder,
         [string]$Name,
+        [string]$Key,
         [switch]$DryRun
     )
 
@@ -113,6 +135,7 @@ function Invoke-DbScript {
     Write-Log "Running $Name ($Folder)..." -Level "info"
     try {
         & $scriptPath
+        Test-PostInstallSymlink -Key $Key -Name $Name
         return "ok"
     } catch {
         Write-Log "Failed: $($_.Exception.Message)" -Level "error"
@@ -164,7 +187,7 @@ if ($All) {
             $hasNoConfig = -not $dbConfig
             if ($hasNoConfig) { continue }
 
-            $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -DryRun:$DryRun
+            $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -Key $key -DryRun:$DryRun
         }
 
         Show-DbSummary -SelectedKeys $selectedKeys -Results $results -Dbs $dbs
@@ -187,7 +210,7 @@ if ($selectedKeys.Count -gt 0 -and ($All -or $hasOnly)) {
         $hasNoConfig = -not $dbConfig
         if ($hasNoConfig) { continue }
 
-        $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -DryRun:$DryRun
+        $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -Key $key -DryRun:$DryRun
     }
 
     Show-DbSummary -SelectedKeys $selectedKeys -Results $results -Dbs $dbs
