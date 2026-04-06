@@ -167,6 +167,28 @@ the script to attempt installation again even if the version matches.
 
 All functions live in `scripts/shared/installed.ps1`, auto-loaded by `logging.ps1`.
 
+### Get-InstalledDir
+
+Returns the resolved path to `scripts/shared/` regardless of dot-sourcing
+context. Replaces the former `$script:_InstalledDir` variable which failed
+when `installed.ps1` was loaded indirectly through `logging.ps1`.
+
+```powershell
+function Get-InstalledDir {
+    $sharedDir = Split-Path -Parent $PSCommandPath
+    return $sharedDir
+}
+```
+
+This function is used internally by `Save-InstalledRecord` and
+`Save-InstalledError` to locate the `.installed/` directory.
+
+### Save-InstalledRecord -- Empty Version Handling
+
+`Save-InstalledRecord` accepts empty or null version strings gracefully.
+When `choco list` returns no match, the version falls back to `'unknown'`
+instead of throwing a parameter-binding error.
+
 | Function | Purpose |
 |----------|---------|
 | `Get-InstalledRecord` | Reads `.installed/<name>.json`, returns parsed object or `$null` |
