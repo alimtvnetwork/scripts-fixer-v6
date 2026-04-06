@@ -474,7 +474,7 @@ if ($a) { $I = 13 }
 if ($v) { $I = 1 }
 if ($w) { $I = 14 }
 if ($t) { $I = 15 }
-if ($h) { $I = 13; $scriptArgs["Report"] = $true }
+if ($h) { $I = 13; $scriptArgs = @{ "Report" = $true } }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
