@@ -210,6 +210,7 @@ function Get-ScriptListForMode {
     $selectedIds = switch ($Mode) {
         "alldev"    { $allDevIds }
         "alldev+db" { $allDevIds + $allDbIds }
+        "alldb"     { $allDbIds }
         default     { @() }
     }
 
