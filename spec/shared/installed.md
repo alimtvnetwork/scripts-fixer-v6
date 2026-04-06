@@ -91,8 +91,9 @@ All functions live in `scripts/shared/installed.ps1`, auto-loaded by `logging.ps
 | Function | Purpose |
 |----------|---------|
 | `Get-InstalledRecord` | Reads `.installed/<name>.json`, returns parsed object or `$null` |
-| `Test-AlreadyInstalled` | Compares name + version against tracking file, returns `$true`/`$false` |
-| `Save-InstalledRecord` | Writes/overwrites `.installed/<name>.json` after successful install |
+| `Test-AlreadyInstalled` | Compares name + version; if previous run had error, shows friendly retry message and returns `$false` |
+| `Save-InstalledRecord` | Writes/overwrites `.installed/<name>.json` after successful install (clears `lastError`) |
+| `Save-InstalledError` | Records an error in `.installed/<name>.json` so the next run knows what went wrong |
 
 ---
 
