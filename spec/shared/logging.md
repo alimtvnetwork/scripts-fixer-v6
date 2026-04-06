@@ -121,11 +121,24 @@ The `-ScriptName` parameter is sanitised to produce the filename:
   "endTime": "2026-04-05T15:31:12.0000000+08:00",
   "duration": 72.34,
   "errorCount": 1,
+  "warnCount": 2,
   "errors": [
     {
       "timestamp": "2026-04-05T15:30:45.6789012+08:00",
       "level": "fail",
       "message": "Failed to install 'golang': exit code 1"
+    }
+  ],
+  "warnings": [
+    {
+      "timestamp": "2026-04-05T15:30:30.1234567+08:00",
+      "level": "warn",
+      "message": "Chocolatey shim not found: C:\\ProgramData\\chocolatey\\bin\\go.exe"
+    },
+    {
+      "timestamp": "2026-04-05T15:30:31.2345678+08:00",
+      "level": "warn",
+      "message": "Get-Command could not find 'go' in PATH"
     }
   ]
 }
