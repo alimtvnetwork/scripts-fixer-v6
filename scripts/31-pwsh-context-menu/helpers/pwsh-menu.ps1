@@ -141,17 +141,13 @@ function Register-PwshContextMenu {
         Write-Log ("  " + ($LogMessages.messages.settingCommand -replace '\{command\}', $CommandArg)) -Level "info"
 
         if ($Runas) {
-            # For admin: use runas verb -- the command subkey launches via ShellExecute runas
-            $cmdValue = $CommandArg
-            $out = reg.exe add $cmdRegPath /ve /d $cmdValue /f 2>&1
+            $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
+            $out = cmd.exe /c $cmdLine 2>&1
             $hasRegFailed = $LASTEXITCODE -ne 0
             if ($hasRegFailed) { throw "reg add command failed: $out" }
-
-            # Also set the runas command subkey for proper elevation
-            $runasRegPath = "$regPath\command"
-            # Use Extended verb approach: set command normally, elevation handled by HasLUAShield
         } else {
-            $out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
+            $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
+            $out = cmd.exe /c $cmdLine 2>&1
             $hasRegFailed = $LASTEXITCODE -ne 0
             if ($hasRegFailed) { throw "reg add command failed: $out" }
         }
