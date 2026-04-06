@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.4] -- 2026-04-06
+
+**Audit --DryRun flag and Invoke-WithTimeout shared helper**
+
+### Added
+
+- `--DryRun` flag for audit symlink verification (`Test-VerifySymlinks`) -- previews which symlinks would be removed, created, or skipped without modifying the filesystem
+- `Invoke-WithTimeout` shared helper (`scripts/shared/invoke-with-timeout.ps1`) -- wraps any script block in a background job with a configurable timeout guard, polling progress logs, and forceful termination on timeout
+- 6 new `timeout*` log message keys in `scripts/shared/log-messages.json`
+- Usage examples for `--DryRun` in `spec/audit/readme.md`
+- Full `invoke-with-timeout.ps1` section in `spec/shared/readme.md`
+
+---
+
 ## [v0.5.3] -- 2026-04-06
 
 **DBeaver Community installer, combo group presets, and database menu integration**
