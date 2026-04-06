@@ -27,6 +27,9 @@ cd scripts-fixture
 # Interactive menu -- pick what to install
 .\run.ps1 -d
 
+# Install everything with default answers (no prompts)
+.\run.ps1 -d -D
+
 # Install by keyword
 .\run.ps1 install nodejs,pnpm
 .\run.ps1 install python,git
