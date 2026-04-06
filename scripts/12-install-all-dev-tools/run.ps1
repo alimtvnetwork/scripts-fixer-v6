@@ -8,6 +8,7 @@ param(
     [string]$Only,
     [switch]$All,
     [switch]$DryRun,
+    [Alias("D")][switch]$Defaults,
     [switch]$Help
 )
 
