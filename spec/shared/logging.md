@@ -215,7 +215,9 @@ These are reset on each `Initialize-Logging` call.
 | Root-level `.logs/` directory | Single location outside `scripts/`; easy to find, browse, and clean |
 | JSON format (not transcript) | Structured, parseable, can be consumed by other tools |
 | Separate error files | Quick scan for failures without parsing full event logs |
-| Dual error-file trigger | Catches both individual error events and overall script failure |
+| Dual error-file trigger | Catches both individual error/warn events and overall script failure |
 | No logging for early exits | Help, disabled-check, and admin-check exits happen before `Initialize-Logging` |
 | Overwrite on re-run | Each run overwrites the previous log; logs are ephemeral diagnostics |
 | `$script:` scope | Avoids global pollution; each dot-sourced script gets its own event buffer |
+| Crash-safe finally block | `Save-LogFile` in `finally` guarantees log output even on unhandled exceptions |
+| Warn events in error log | Warnings often indicate detection fallback paths that are diagnostic for failures |

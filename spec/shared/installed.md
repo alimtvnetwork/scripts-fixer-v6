@@ -269,3 +269,5 @@ script already loads). No manual dot-sourcing needed in `run.ps1` files.
 | Auto-load via logging.ps1 | Zero changes to existing run.ps1 files |
 | Overwrite on re-install | Each successful install updates the tracking file |
 | Delete to force re-install | User can delete a single JSON to force that tool's reinstall |
+| Get-InstalledDir function | Replaces `$script:_InstalledDir` variable; works regardless of dot-sourcing depth |
+| Empty version fallback | `Save-InstalledRecord` falls back to `'unknown'` instead of crashing on empty version |
