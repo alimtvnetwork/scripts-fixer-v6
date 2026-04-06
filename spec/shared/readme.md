@@ -25,8 +25,9 @@ scripts/
     ├── choco-utils.ps1   # Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
     ├── path-utils.ps1    # Test-InPath, Add-ToUserPath, Add-ToMachinePath
     ├── dev-dir.ps1       # Resolve-DevDir, Resolve-SmartDevDir, Find-BestDevDrive, Test-DriveQualified, Initialize-DevDir
-    ├── symlink-utils.ps1 # Resolve-DbInstallDir, New-DbSymlink
-    └── json-utils.ps1    # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+    ├── symlink-utils.ps1        # Resolve-DbInstallDir, New-DbSymlink
+    ├── json-utils.ps1           # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+    └── invoke-with-timeout.ps1  # Invoke-WithTimeout
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
