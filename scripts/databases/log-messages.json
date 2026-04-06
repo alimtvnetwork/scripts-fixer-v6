@@ -36,7 +36,10 @@
     "completedWithWarnings": "Completed with some warnings -- check output above.",
     "setupComplete": "Database setup complete.",
     "loopBack": "Returning to menu -- select more databases or press Q to exit.",
-    "driveOverride": "Using drive override: {drive}"
+    "driveOverride": "Using drive override: {drive}",
+    "symlinkVerifyOk": "[OK] {name} junction verified: {path} -> {target}",
+    "symlinkVerifyMissing": "{name} junction not found after install -- expected in databases folder.",
+    "symlinkVerifyNotJunction": "{name} path exists at {path} but is not a directory junction."
   },
   "help": {
     "commands": {
