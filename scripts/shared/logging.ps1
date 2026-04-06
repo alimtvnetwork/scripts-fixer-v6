@@ -79,9 +79,9 @@ function Write-Log {
     }
     $script:_LogEvents.Add($event) | Out-Null
 
-    # Also track errors separately
-    $isError = $Status -eq "fail"
-    if ($isError) {
+    # Track errors AND warnings separately for the error log file
+    $isErrorOrWarn = ($Status -eq "fail") -or ($Status -eq "warn")
+    if ($isErrorOrWarn) {
         $script:_LogErrors.Add($event) | Out-Null
     }
 }

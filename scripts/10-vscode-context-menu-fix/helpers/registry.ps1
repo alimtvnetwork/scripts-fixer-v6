@@ -82,7 +82,7 @@ function Resolve-VsCodePath {
     Write-Log ($logMsgs.messages.expandedPath -replace '\{path\}', $fallbackExe) -Level "info"
 
     $isFallbackFound = Test-Path $fallbackExe
-    Write-Log (($logMsgs.messages.fileExistsAtPath -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "warn" })
+    Write-Log ((($logMsgs.messages.fileExistsAtPath -replace '\{path\}', $fallbackExe) -replace '\{result\}', $isFallbackFound)) -Level $(if ($isFallbackFound) { "success" } else { "error" })
 
     if ($isFallbackFound) { return $fallbackExe }
 
