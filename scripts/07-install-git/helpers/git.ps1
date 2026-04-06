@@ -21,12 +21,21 @@ function Install-Git {
     $existing = Get-Command git -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & git --version 2>$null
+
+        # Check .installed/ tracking -- skip if version matches
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "git" -CurrentVersion $currentVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+            return
+        }
+
         Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName
             $newVersion = & git --version 2>$null
             Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+            Save-InstalledRecord -Name "git" -Version $newVersion
         }
     }
     else {
@@ -38,6 +47,7 @@ function Install-Git {
 
         $installedVersion = & git --version 2>$null
         Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+        Save-InstalledRecord -Name "git" -Version $installedVersion
     }
 }
 
@@ -56,12 +66,21 @@ function Install-GitLfs {
     $existing = Get-Command git-lfs -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & git lfs version 2>$null
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "git-lfs" -CurrentVersion $currentVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+            return
+        }
+
         Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($lfsConfig.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName
             $newVersion = & git lfs version 2>$null
             Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+            Save-InstalledRecord -Name "git-lfs" -Version $newVersion
         }
     }
     else {
@@ -73,6 +92,7 @@ function Install-GitLfs {
 
         $installedVersion = & git lfs version 2>$null
         Write-Log ($LogMessages.messages.lfsInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+        Save-InstalledRecord -Name "git-lfs" -Version $installedVersion
     }
 
     # Initialize LFS in the global git config
@@ -95,6 +115,14 @@ function Install-GitHubCli {
     $existing = Get-Command gh -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & gh --version 2>$null | Select-Object -First 1
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "github-cli" -CurrentVersion $currentVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+            return
+        }
+
         Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($ghConfig.alwaysUpgradeToLatest) {
@@ -102,6 +130,7 @@ function Install-GitHubCli {
             Upgrade-ChocoPackage -PackageName $packageName
             $newVersion = & gh --version 2>$null | Select-Object -First 1
             Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+            Save-InstalledRecord -Name "github-cli" -Version $newVersion
         }
     }
     else {
@@ -113,6 +142,7 @@ function Install-GitHubCli {
 
         $installedVersion = & gh --version 2>$null | Select-Object -First 1
         Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+        Save-InstalledRecord -Name "github-cli" -Version $installedVersion
     }
 
     # Prompt for login if configured
@@ -149,7 +179,6 @@ function Configure-GitGlobal {
     else {
         $name = $nameConfig.value
         $hasNoName = -not $name
-        # Check env var from orchestrator questionnaire
         $hasGitNameEnv = -not [string]::IsNullOrWhiteSpace($env:GIT_USER_NAME)
         if ($hasNoName -and $hasGitNameEnv) {
             $name = $env:GIT_USER_NAME
@@ -174,7 +203,6 @@ function Configure-GitGlobal {
     else {
         $email = $emailConfig.value
         $hasNoEmail = -not $email
-        # Check env var from orchestrator questionnaire
         $hasGitEmailEnv = -not [string]::IsNullOrWhiteSpace($env:GIT_USER_EMAIL)
         if ($hasNoEmail -and $hasGitEmailEnv) {
             $email = $env:GIT_USER_EMAIL

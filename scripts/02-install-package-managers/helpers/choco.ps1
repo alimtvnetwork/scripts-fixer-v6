@@ -27,7 +27,15 @@ function Install-Chocolatey {
     $isChocoNotReady = -not $isChocoReady
     if ($isChocoNotReady) { return $false }
 
-    if ($Config.upgradeOnRun) {
+    $version = & choco.exe --version 2>&1
+    $versionStr = "$version".Trim()
+
+    # Check .installed/ tracking -- skip upgrade if version matches
+    $isAlreadyTracked = Test-AlreadyInstalled -Name "chocolatey" -CurrentVersion $versionStr
+    if ($isAlreadyTracked) {
+        Write-Log "Chocolatey $versionStr already tracked -- skipping upgrade" -Level "info"
+    }
+    elseif ($Config.upgradeOnRun) {
         Write-Log $LogMessages.messages.chocoUpgrading -Level "info"
         try {
             $output = & choco.exe upgrade chocolatey -y 2>&1
@@ -39,13 +47,17 @@ function Install-Chocolatey {
         } catch {
             Write-Log ($LogMessages.messages.chocoUpgradeFailed -replace '\{error\}', $_) -Level "warn"
         }
+
+        $version = & choco.exe --version 2>&1
+        $versionStr = "$version".Trim()
     }
 
+    Save-InstalledRecord -Name "chocolatey" -Version $versionStr -Method "self"
+
     # Save resolved info
-    $version = & choco.exe --version 2>&1
     Save-ResolvedData -ScriptFolder "02-install-package-managers" -Data @{
         chocolatey = @{
-            version    = "$version".Trim()
+            version    = $versionStr
             resolvedAt = (Get-Date -Format "o")
             resolvedBy = $env:USERNAME
         }

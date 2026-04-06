@@ -7,6 +7,7 @@ Script 12 uses front-loaded questionnaire: ask all questions first, then run una
 DB installs use system default path (no --install-directory, Chocolatey Business only).
 All scripts read version from single `scripts/version.json` — Write-Banner auto-loads it.
 Logs stored in `.logs/` at project root, not scripts/logs/.
+`.installed/` tracks tool versions; skip install if version matches.
 
 ## Memories
 - [Script structure](mem://preferences/script-structure) — How the user wants scripts organized with configs, specs, and suggestions
@@ -18,3 +19,4 @@ Logs stored in `.logs/` at project root, not scripts/logs/.
 - [Resolved folder](mem://features/resolved-folder) — .resolved/ runtime state persistence
 - [Database scripts](mem://features/database-scripts) — DB install scripts 18-29 and script 30 orchestrator
 - [Logging](mem://features/logging) — .logs/ at root, version highlighting in Yellow
+- [Installed tracking](mem://features/installed-tracking) — .installed/ per-tool JSON, skip if version matches

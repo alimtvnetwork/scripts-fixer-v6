@@ -27,6 +27,14 @@ function Install-Pnpm {
     $existing = Get-Command pnpm -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & pnpm --version 2>$null
+
+        # Check .installed/ tracking -- skip if version matches
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "pnpm" -CurrentVersion $currentVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+            return
+        }
+
         Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         # Upgrade to latest
@@ -34,6 +42,7 @@ function Install-Pnpm {
         & npm install -g pnpm@latest 2>$null
         $newVersion = & pnpm --version 2>$null
         Write-Log ($LogMessages.messages.pnpmUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+        Save-InstalledRecord -Name "pnpm" -Version $newVersion -Method "npm"
     }
     else {
         Write-Log $LogMessages.messages.pnpmNotFound -Level "warn"
@@ -46,6 +55,7 @@ function Install-Pnpm {
 
         $installedVersion = & pnpm --version 2>$null
         Write-Log ($LogMessages.messages.pnpmInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+        Save-InstalledRecord -Name "pnpm" -Version $installedVersion -Method "npm"
     }
 }
 

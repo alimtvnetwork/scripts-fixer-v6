@@ -19,13 +19,29 @@ function Install-VsCodeEdition {
 
     Write-Log ($LogMessages.messages.installingEdition -replace '\{label\}', $Label) -Level "info"
 
+    # Derive tracking name from label (e.g. "VS Code Stable" -> "vscode-stable")
+    $trackingName = "vscode-" + ($Label.ToLower() -replace '[^a-z0-9]+', '-').Trim('-')
+
     # Check if already installed
     $existing = choco list --local-only --exact $ChocoPackageName 2>&1
     $isInstalled = $LASTEXITCODE -eq 0 -and $existing -match $ChocoPackageName
     if ($isInstalled) {
+        # Extract version from choco list output
+        $chocoVersion = ($existing | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+
+        # Check .installed/ tracking
+        $isAlreadyTracked = Test-AlreadyInstalled -Name $trackingName -CurrentVersion $chocoVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.editionAlreadyInstalled -replace '\{label\}', $Label) -Level "info"
+            return $true
+        }
+
         Write-Log ($LogMessages.messages.editionAlreadyInstalled -replace '\{label\}', $Label) -Level "info"
         Upgrade-ChocoPackage -PackageName $ChocoPackageName
         Write-Log ($LogMessages.messages.editionUpgradeSuccess -replace '\{label\}', $Label) -Level "success"
+
+        $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+        Save-InstalledRecord -Name $trackingName -Version $newVersion
         return $true
     }
 
@@ -33,6 +49,8 @@ function Install-VsCodeEdition {
     $installResult = Install-ChocoPackage -PackageName $ChocoPackageName
     if ($installResult) {
         Write-Log ($LogMessages.messages.editionInstallSuccess -replace '\{label\}', $Label) -Level "success"
+        $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+        Save-InstalledRecord -Name $trackingName -Version $newVersion
     }
     return $installResult
 }
