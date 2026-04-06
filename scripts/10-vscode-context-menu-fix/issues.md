@@ -77,20 +77,25 @@ A shared helper `scripts/shared/resolved.ps1` provides `Save-ResolvedData` and `
 ```
 
 **Root cause:**
-The command value `"C:\...\Code.exe" "%1"` contains embedded double quotes and `%` characters. When PowerShell passes this to `reg.exe` directly, it splits the value into multiple arguments, causing `reg.exe` to report "Invalid syntax."
+The command value (e.g. `"C:\...\Code.exe" "%1"` or `"C:\...\pwsh.exe" -NoExit -Command "Set-Location '%V'"`) contains embedded double quotes and `%` characters. Both `reg.exe` direct calls and `cmd.exe /c` wrappers fail because PowerShell's argument splitting and cmd.exe's own quote parsing break on nested quotes.
 
-**Fix:**
-Wrapped the `reg.exe` call in `cmd.exe /c` with the entire command as a single string, which preserves the embedded quotes and `%` placeholders:
+**Fix (final):**
+Replaced all `reg.exe` calls with .NET `[Microsoft.Win32.Registry]` API, which takes string values directly with zero quoting issues:
 
 ```powershell
-# Before (broken -- PowerShell splits the /d value)
+# Before (broken -- reg.exe cannot handle nested quotes)
 $out = reg.exe add $cmdRegPath /ve /d $CommandArg /f 2>&1
 
-# After (works -- cmd.exe preserves the quoted string)
-$cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
-$out = cmd.exe /c $cmdLine 2>&1
+# After (works -- .NET API, no shell parsing at all)
+$subKeyPath = $RegistryPath -replace '^Registry::HKEY_CLASSES_ROOT\\', ''
+$hkcr = [Microsoft.Win32.Registry]::ClassesRoot
+$cmdKey = $hkcr.CreateSubKey("$subKeyPath\command")
+$cmdKey.SetValue("", $CommandArg)
+$cmdKey.Close()
 ```
 
+Applied to both script 10 (VS Code context menu) and script 31 (PowerShell context menu).
+
 **How to write better code:**
-- When passing values with embedded quotes to native executables, use `cmd.exe /c` to avoid PowerShell's argument splitting.
-- Always test registry writes with paths containing spaces and `%` variables.
+- For registry writes with complex string values, prefer .NET `[Microsoft.Win32.Registry]` over `reg.exe` -- it avoids all quoting/escaping issues.
+- Reserve `reg.exe` only for simple values without embedded quotes or `%` variables.
