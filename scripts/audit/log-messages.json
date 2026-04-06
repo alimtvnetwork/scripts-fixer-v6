@@ -18,11 +18,13 @@
     "commands": {
       "audit": "Run all consistency checks (default)",
       "audit -Fix": "Run checks and auto-fix broken/missing symlinks",
+      "audit -DryRun": "Preview which symlinks -Fix would repair (no changes made)",
       "audit -Report": "Run checks and save a JSON health report to logs/"
     },
     "examples": [
       ".\\run.ps1 -I 13",
       ".\\run.ps1 -I 13 -- -Help",
+      ".\\run.ps1 -I 13 -- -DryRun",
       ".\\run.ps1 -I 13 -- -Fix",
       ".\\run.ps1 -I 13 -- -Report",
       ".\\run.ps1 health"
