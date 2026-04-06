@@ -111,7 +111,12 @@ function Install-Mingw {
 
         Write-Log $LogMessages.messages.mingwAlreadyInstalled -Level "success"
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+            } catch {
+                Write-Log "MinGW upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "mingw" -ErrorMessage "$_"
+            }
         }
 
         $version = & g++.exe --version 2>&1 | Select-Object -First 1

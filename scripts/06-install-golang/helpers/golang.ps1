@@ -68,7 +68,12 @@ function Install-Go {
 
         Write-Log $LogMessages.messages.goAlreadyInstalled -Level "success"
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+            } catch {
+                Write-Log "Go upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "golang" -ErrorMessage "$_"
+            }
         }
 
         $version = & go.exe version 2>&1
