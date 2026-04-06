@@ -24,7 +24,8 @@ scripts/
     ├── help.ps1          # Show-ScriptHelp
     ├── choco-utils.ps1   # Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
     ├── path-utils.ps1    # Test-InPath, Add-ToUserPath, Add-ToMachinePath
-    ├── dev-dir.ps1       # Resolve-DevDir, Initialize-DevDir
+    ├── dev-dir.ps1       # Resolve-DevDir, Resolve-SmartDevDir, Find-BestDevDrive, Test-DriveQualified, Initialize-DevDir
+    ├── symlink-utils.ps1 # Resolve-DbInstallDir, New-DbSymlink
     └── json-utils.ps1    # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
