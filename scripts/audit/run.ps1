@@ -18,6 +18,7 @@ $repoRoot   = Split-Path -Parent (Split-Path -Parent $scriptDir)
 . (Join-Path $sharedDir "logging.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
+. (Join-Path $sharedDir "symlink-utils.ps1")
 
 # -- Dot-source audit helpers -------------------------------------------------
 . (Join-Path $scriptDir "helpers\checks.ps1")

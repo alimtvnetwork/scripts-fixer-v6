@@ -399,16 +399,17 @@ function Test-VerifySymlinks {
     Write-Host "  Scanning: $dbDir" -ForegroundColor Cyan
     Write-Host ""
 
-    # Get expected databases from config
+    # Get expected databases from config (with verifyCommand for --fix)
     $expectedDbs = @()
     foreach ($prop in $dbConfig.databases.PSObject.Properties) {
         $db = $prop.Value
         $isEnabled = $db.enabled -eq $true
         if ($isEnabled) {
             $expectedDbs += [PSCustomObject]@{
-                Key     = $prop.Name
-                Name    = $db.name
-                Package = if ($db.chocoPackage) { $db.chocoPackage } elseif ($db.dotnetPackage) { $db.dotnetPackage } else { $prop.Name }
+                Key           = $prop.Name
+                Name          = $db.name
+                Package       = if ($db.chocoPackage) { $db.chocoPackage } elseif ($db.dotnetPackage) { $db.dotnetPackage } else { $prop.Name }
+                VerifyCommand = if ($db.verifyCommand) { $db.verifyCommand } else { $null }
             }
         }
     }
@@ -429,7 +430,7 @@ function Test-VerifySymlinks {
                 Write-Host "    [LINK]   $($item.Name)" -ForegroundColor Green -NoNewline
                 Write-Host " -> $target" -ForegroundColor DarkGray
             } else {
-                $brokenJunctions += [PSCustomObject]@{ Name = $item.Name; Target = $target }
+                $brokenJunctions += [PSCustomObject]@{ Name = $item.Name; Target = $target; Path = $item.FullName }
                 Write-Host "    [BROKEN] $($item.Name)" -ForegroundColor Red -NoNewline
                 Write-Host " -> $target (target missing)" -ForegroundColor DarkGray
                 $issues += "Broken junction: $($item.Name) -> $target"
@@ -454,14 +455,63 @@ function Test-VerifySymlinks {
         }
     }
 
+    # -- Fix mode: repair broken junctions and create missing ones -------------
+    $fixedCount = 0
+    if ($Fix) {
+        Write-Host ""
+
+        # Fix broken junctions: remove and recreate
+        foreach ($broken in $brokenJunctions) {
+            $db = $expectedDbs | Where-Object { $_.Package -eq $broken.Name } | Select-Object -First 1
+            $hasVerifyCmd = $null -ne $db -and -not [string]::IsNullOrWhiteSpace($db.VerifyCommand)
+            if ($hasVerifyCmd) {
+                Write-Host "    [FIX]    Removing broken junction: $($broken.Name)..." -ForegroundColor Cyan
+                Remove-Item $broken.Path -Force -ErrorAction SilentlyContinue
+                $isFixed = New-DbSymlink -Name $broken.Name -VerifyCommand $db.VerifyCommand -DevDir $devDir
+                if ($isFixed) {
+                    $fixedCount++
+                    # Remove from issues since it's now fixed
+                    $issues = @($issues | Where-Object { $_ -notmatch [regex]::Escape($broken.Name) })
+                }
+            } else {
+                Write-Host "    [SKIP]   Cannot fix $($broken.Name) -- no verify command found in config" -ForegroundColor DarkGray
+            }
+        }
+
+        # Fix missing symlinks: create them
+        foreach ($db in $missingLinks) {
+            $hasVerifyCmd = -not [string]::IsNullOrWhiteSpace($db.VerifyCommand)
+            if ($hasVerifyCmd) {
+                $cmd = Get-Command $db.VerifyCommand -ErrorAction SilentlyContinue
+                $isInstalled = $null -ne $cmd
+                if ($isInstalled) {
+                    Write-Host "    [FIX]    Creating missing symlink: $($db.Package)..." -ForegroundColor Cyan
+                    $isCreated = New-DbSymlink -Name $db.Package -VerifyCommand $db.VerifyCommand -DevDir $devDir
+                    if ($isCreated) { $fixedCount++ }
+                } else {
+                    Write-Host "    [SKIP]   $($db.Name) not installed -- cannot create symlink" -ForegroundColor DarkGray
+                }
+            }
+        }
+
+        $hasFixed = $fixedCount -gt 0
+        if ($hasFixed) {
+            Write-Host ""
+            Write-Host "    Fixed:   $fixedCount symlink(s)" -ForegroundColor Green
+        }
+    }
+
     Write-Host ""
 
     # Summary stats
     $totalExpected = $expectedDbs.Count
-    $linkedCount   = $foundJunctions.Count
-    $brokenCount   = $brokenJunctions.Count
+    $linkedCount   = $foundJunctions.Count + $fixedCount
+    $brokenCount   = ($issues | Where-Object { $_ -match "^Broken junction" }).Count
     $realCount     = $realDirs.Count
-    $missingCount  = $missingLinks.Count
+    $missingCount  = ($missingLinks | Where-Object {
+        $pkg = $_.Package
+        -not ($Fix -and ($fixedCount -gt 0))
+    }).Count
 
     Write-Host "    Linked:  $linkedCount / $totalExpected" -ForegroundColor $(if ($linkedCount -eq $totalExpected) { "Green" } else { "Yellow" })
 
@@ -476,7 +526,8 @@ function Test-VerifySymlinks {
     }
 
     $hasMissing = $missingCount -gt 0
-    if ($hasMissing) {
+    $isNotFixMode = -not $Fix
+    if ($hasMissing -and $isNotFixMode) {
         Write-Host "    Missing: $missingCount" -ForegroundColor DarkGray
         foreach ($db in $missingLinks) {
             Write-Host "             - $($db.Name) ($($db.Package))" -ForegroundColor DarkGray
