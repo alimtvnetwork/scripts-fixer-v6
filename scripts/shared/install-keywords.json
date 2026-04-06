@@ -73,6 +73,9 @@
     "pwsh-menu":         [31],
     "pwsh-context-menu": [31],
     "ps-context-menu":   [31],
+    "dbeaver":           [32],
+    "db-viewer":         [32],
+    "dbviewer":          [32],
     "health":            [13],
     "health-check":      [13],
     "healthcheck":       [13]

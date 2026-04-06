@@ -1,0 +1,26 @@
+{
+  "scriptName": "Install DBeaver Community",
+  "description": "Installs DBeaver Community Edition -- universal database visualization and management tool.",
+  "messages": {
+    "notAdmin": "This script requires admin privileges. Please run as Administrator.",
+    "checking": "Checking for DBeaver...",
+    "found": "DBeaver already installed",
+    "notFound": "DBeaver not found -- installing...",
+    "installing": "Installing DBeaver Community via Chocolatey...",
+    "installSuccess": "DBeaver Community installed successfully",
+    "installFailed": "DBeaver install failed: {error}",
+    "notInPath": "DBeaver installed but dbeaver-cli not found in PATH (may need shell restart)",
+    "setupComplete": "DBeaver Community setup complete",
+    "disabled": "DBeaver install is disabled in config"
+  },
+  "help": {
+    "commands": {
+      "install": "Install DBeaver Community Edition (default)"
+    },
+    "examples": [
+      ".\\run.ps1 -I 32",
+      ".\\run.ps1 install dbeaver",
+      ".\\run.ps1 -I 32 -- -Help"
+    ]
+  }
+}
