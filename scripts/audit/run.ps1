@@ -5,6 +5,7 @@
 # --------------------------------------------------------------------------
 param(
     [switch]$Fix,
+    [switch]$DryRun,
     [switch]$Report,
     [switch]$Help
 )
