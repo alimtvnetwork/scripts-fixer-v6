@@ -7,6 +7,7 @@ param(
     [switch]$All,
     [string]$Skip,
     [string]$Only,
+    [string]$Drive,
     [switch]$DryRun,
     [switch]$Help
 )
