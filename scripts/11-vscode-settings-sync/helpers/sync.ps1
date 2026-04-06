@@ -50,7 +50,11 @@ function Resolve-SourceFiles {
             if ($profileData.extensions) {
                 Write-Log $LogMessages.messages.extractingExtensions -Level "info"
                 $profileExtensions = $profileData.extensions | ConvertFrom-Json
-                $result.Extensions = @($profileExtensions | Where-Object { $_.disabled -ne $true } | ForEach-Object { $_.identifier.id })
+                $result.Extensions = @($profileExtensions | Where-Object {
+                    $hasDisabledProp = $null -ne $_.PSObject.Properties['disabled']
+                    $isDisabled = $hasDisabledProp -and ($_.disabled -eq $true)
+                    -not $isDisabled
+                } | ForEach-Object { $_.identifier.id })
                 Write-Log ($LogMessages.messages.extensionsExtracted -replace '\{count\}', $result.Extensions.Count) -Level "success"
             }
         } catch {
