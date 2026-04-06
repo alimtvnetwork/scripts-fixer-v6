@@ -32,22 +32,32 @@ function Install-Git {
         Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & git --version 2>$null
-            Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "git" -Version $newVersion
+            try {
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & git --version 2>$null
+                Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "git" -Version $newVersion
+            } catch {
+                Write-Log "Git upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "git" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.gitNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & git --version 2>$null
-        Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "git" -Version $installedVersion
+            $installedVersion = & git --version 2>$null
+            Write-Log ($LogMessages.messages.gitInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "git" -Version $installedVersion
+        } catch {
+            Write-Log "Git install failed: $_" -Level "error"
+            Save-InstalledError -Name "git" -ErrorMessage "$_"
+        }
     }
 }
 
