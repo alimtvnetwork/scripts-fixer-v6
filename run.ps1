@@ -60,6 +60,8 @@ param(
 
     [switch]$a,
 
+    [switch]$h,
+
     [switch]$v,
 
     [switch]$w,
