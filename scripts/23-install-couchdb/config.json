@@ -1,7 +1,7 @@
 {
   "devDir": {
-    "mode": "json-or-prompt",
-    "default": "E:\\dev",
+    "mode": "smart",
+    "default": "auto",
     "override": ""
   },
   "installMode": {
