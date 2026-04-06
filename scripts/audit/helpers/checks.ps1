@@ -330,7 +330,8 @@ function Test-VerifySymlinks {
     param(
         [string]$RepoRoot,
         $LogMessages,
-        [switch]$Fix
+        [switch]$Fix,
+        [switch]$DryRun
     )
 
     $issues = @()
