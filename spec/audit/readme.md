@@ -23,8 +23,9 @@ inconsistencies. Designed to run after any renumbering or restructuring.
 
 ```powershell
 .\run.ps1 -I 13                   # Run full audit
-.\run.ps1 -I 13 -- -Report        # Run audit and save JSON health report
+.\run.ps1 -I 13 -- -DryRun        # Preview symlink repairs without changes
 .\run.ps1 -I 13 -- -Fix           # Run audit and auto-fix broken symlinks
+.\run.ps1 -I 13 -- -Report        # Run audit and save JSON health report
 .\run.ps1 -I 13 -- -Help          # Show help
 .\run.ps1 -h                      # Shortcut: audit + report
 .\run.ps1 health                  # Keyword shortcut: audit (ID 13)
