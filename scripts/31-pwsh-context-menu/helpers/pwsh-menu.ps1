@@ -113,44 +113,38 @@ function Register-PwshContextMenu {
     $regPath = ConvertTo-PwshRegPath $RegistryPath
 
     try {
-        # Set (Default) = label
+        # Extract HKCR subkey path from the full registry path
+        $subKeyPath = $RegistryPath -replace '^Registry::HKEY_CLASSES_ROOT\\', ''
+        $hkcr = [Microsoft.Win32.Registry]::ClassesRoot
+
+        # Create key and set (Default) = label
         Write-Log ("  " + ($LogMessages.messages.settingRegistryDefault -replace '\{label\}', $Label)) -Level "info"
-        $out = reg.exe add $regPath /ve /d $Label /f 2>&1
-        $hasRegFailed = $LASTEXITCODE -ne 0
-        if ($hasRegFailed) { throw "reg add (Default) failed: $out" }
+        $key = $hkcr.CreateSubKey($subKeyPath)
+        $key.SetValue("", $Label)
+        $key.Close()
         Write-Log ("  " + $LogMessages.messages.registryDefaultSet) -Level "success"
 
         # Set Icon
         Write-Log ("  " + ($LogMessages.messages.settingIcon -replace '\{icon\}', $IconValue)) -Level "info"
-        $out = reg.exe add $regPath /v "Icon" /d $IconValue /f 2>&1
-        $hasRegFailed = $LASTEXITCODE -ne 0
-        if ($hasRegFailed) { throw "reg add Icon failed: $out" }
+        $key = $hkcr.OpenSubKey($subKeyPath, $true)
+        $key.SetValue("Icon", $IconValue)
+        $key.Close()
         Write-Log ("  " + $LogMessages.messages.iconSet) -Level "success"
 
         # Admin mode: set HasLUAShield for UAC elevation
         if ($Runas) {
             Write-Log ("  " + $LogMessages.messages.settingRunas) -Level "info"
-            $out = reg.exe add $regPath /v "HasLUAShield" /t REG_SZ /d "" /f 2>&1
-            $hasRegFailed = $LASTEXITCODE -ne 0
-            if ($hasRegFailed) { throw "reg add HasLUAShield failed: $out" }
+            $key = $hkcr.OpenSubKey($subKeyPath, $true)
+            $key.SetValue("HasLUAShield", "")
+            $key.Close()
             Write-Log ("  " + $LogMessages.messages.runasSet) -Level "success"
         }
 
-        # Create command subkey
-        $cmdRegPath = "$regPath\command"
+        # Create command subkey with (Default) = command
         Write-Log ("  " + ($LogMessages.messages.settingCommand -replace '\{command\}', $CommandArg)) -Level "info"
-
-        if ($Runas) {
-            $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
-            $out = cmd.exe /c $cmdLine 2>&1
-            $hasRegFailed = $LASTEXITCODE -ne 0
-            if ($hasRegFailed) { throw "reg add command failed: $out" }
-        } else {
-            $cmdLine = "reg.exe add `"$cmdRegPath`" /ve /d `"$CommandArg`" /f"
-            $out = cmd.exe /c $cmdLine 2>&1
-            $hasRegFailed = $LASTEXITCODE -ne 0
-            if ($hasRegFailed) { throw "reg add command failed: $out" }
-        }
+        $cmdKey = $hkcr.CreateSubKey("$subKeyPath\command")
+        $cmdKey.SetValue("", $CommandArg)
+        $cmdKey.Close()
 
         Write-Log ("  " + $LogMessages.messages.commandSet) -Level "success"
         return $true
