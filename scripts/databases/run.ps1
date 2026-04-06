@@ -187,7 +187,7 @@ if ($All) {
             $hasNoConfig = -not $dbConfig
             if ($hasNoConfig) { continue }
 
-            $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -DryRun:$DryRun
+            $results[$key] = Invoke-DbScript -Folder $dbConfig.folder -Name $dbConfig.name -Key $key -DryRun:$DryRun
         }
 
         Show-DbSummary -SelectedKeys $selectedKeys -Results $results -Dbs $dbs
