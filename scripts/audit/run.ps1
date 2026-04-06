@@ -4,6 +4,7 @@
 #  or renumbering inconsistencies.
 # --------------------------------------------------------------------------
 param(
+    [switch]$Fix,
     [switch]$Help
 )
 
