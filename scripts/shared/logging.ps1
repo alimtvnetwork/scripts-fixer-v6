@@ -249,3 +249,9 @@ function Import-JsonConfig {
     }
     return $parsed
 }
+
+# -- Auto-load installation tracking helper ------------------------------------
+$_installedPath = Join-Path $PSScriptRoot "installed.ps1"
+if ((Test-Path $_installedPath) -and -not (Get-Command Test-AlreadyInstalled -ErrorAction SilentlyContinue)) {
+    . $_installedPath
+}

@@ -21,12 +21,21 @@ function Install-Python {
     $existing = Get-Command python -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & python --version 2>$null
+
+        # Check .installed/ tracking -- skip if version matches
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
+        if ($isAlreadyTracked) {
+            Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+            return
+        }
+
         Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($Config.alwaysUpgradeToLatest) {
             Upgrade-ChocoPackage -PackageName $packageName
             $newVersion = & python --version 2>$null
             Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+            Save-InstalledRecord -Name "python" -Version $newVersion
         }
     }
     else {
@@ -38,6 +47,7 @@ function Install-Python {
 
         $installedVersion = & python --version 2>$null
         Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+        Save-InstalledRecord -Name "python" -Version $installedVersion
     }
 }
 
