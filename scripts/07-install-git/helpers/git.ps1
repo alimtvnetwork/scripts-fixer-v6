@@ -146,23 +146,33 @@ function Install-GitHubCli {
         Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
         if ($ghConfig.alwaysUpgradeToLatest) {
-            Write-Log $LogMessages.messages.ghUpgrading -Level "info"
-            Upgrade-ChocoPackage -PackageName $packageName
-            $newVersion = & gh --version 2>$null | Select-Object -First 1
-            Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-            Save-InstalledRecord -Name "github-cli" -Version $newVersion
+            try {
+                Write-Log $LogMessages.messages.ghUpgrading -Level "info"
+                Upgrade-ChocoPackage -PackageName $packageName
+                $newVersion = & gh --version 2>$null | Select-Object -First 1
+                Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                Save-InstalledRecord -Name "github-cli" -Version $newVersion
+            } catch {
+                Write-Log "GitHub CLI upgrade failed: $_" -Level "error"
+                Save-InstalledError -Name "github-cli" -ErrorMessage "$_"
+            }
         }
     }
     else {
         Write-Log $LogMessages.messages.ghNotFound -Level "warn"
-        Install-ChocoPackage -PackageName $packageName
+        try {
+            Install-ChocoPackage -PackageName $packageName
 
-        # Refresh PATH
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-        $installedVersion = & gh --version 2>$null | Select-Object -First 1
-        Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-        Save-InstalledRecord -Name "github-cli" -Version $installedVersion
+            $installedVersion = & gh --version 2>$null | Select-Object -First 1
+            Write-Log ($LogMessages.messages.ghInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
+            Save-InstalledRecord -Name "github-cli" -Version $installedVersion
+        } catch {
+            Write-Log "GitHub CLI install failed: $_" -Level "error"
+            Save-InstalledError -Name "github-cli" -ErrorMessage "$_"
+        }
     }
 
     # Prompt for login if configured
