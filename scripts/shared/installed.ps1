@@ -4,8 +4,23 @@
 #  Auto-loaded by logging.ps1 -- no manual sourcing needed.
 # --------------------------------------------------------------------------
 
-# Resolve .installed/ directory at project root
-$script:_InstalledDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) ".installed"
+function Get-InstalledDir {
+    <#
+    .SYNOPSIS
+        Returns the path to the .installed/ directory at the project root.
+        Creates it if it does not exist. Works regardless of sourcing context.
+    #>
+    # $PSScriptRoot inside this file is always scripts/shared/
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $dir = Join-Path $projectRoot ".installed"
+
+    $isDirMissing = -not (Test-Path $dir)
+    if ($isDirMissing) {
+        New-Item -Path $dir -ItemType Directory -Force | Out-Null
+    }
+
+    return $dir
+}
 
 function Get-InstalledRecord {
     <#
@@ -18,7 +33,8 @@ function Get-InstalledRecord {
         [string]$Name
     )
 
-    $filePath = Join-Path $script:_InstalledDir "$Name.json"
+    $installedDir = Get-InstalledDir
+    $filePath = Join-Path $installedDir "$Name.json"
     $isFileMissing = -not (Test-Path $filePath)
     if ($isFileMissing) { return $null }
 
@@ -66,15 +82,20 @@ function Save-InstalledRecord {
         [string]$Name,
 
         [Parameter(Mandatory)]
+        [AllowEmptyString()]
         [string]$Version,
 
         [string]$Method = "chocolatey"
     )
 
-    $isDirMissing = -not (Test-Path $script:_InstalledDir)
-    if ($isDirMissing) {
-        New-Item -Path $script:_InstalledDir -ItemType Directory -Force | Out-Null
+    # Guard against empty version
+    $isVersionEmpty = [string]::IsNullOrWhiteSpace($Version)
+    if ($isVersionEmpty) {
+        Write-Log "Warning: empty version for '$Name' -- recording as 'unknown'" -Level "warn"
+        $Version = "unknown"
     }
+
+    $installedDir = Get-InstalledDir
 
     $data = @{
         name        = $Name
@@ -83,9 +104,10 @@ function Save-InstalledRecord {
         installedAt = (Get-Date -Format "o")
         installedBy = $env:USERNAME
         lastError   = ""
+        errorAt     = ""
     }
 
-    $filePath = Join-Path $script:_InstalledDir "$Name.json"
+    $filePath = Join-Path $installedDir "$Name.json"
     $data | ConvertTo-Json -Depth 3 | Set-Content -Path $filePath -Encoding UTF8
 
     Write-Log "Saved install record: .installed/$Name.json ($Version)" -Level "info"
@@ -109,10 +131,7 @@ function Save-InstalledError {
         [string]$Method = "chocolatey"
     )
 
-    $isDirMissing = -not (Test-Path $script:_InstalledDir)
-    if ($isDirMissing) {
-        New-Item -Path $script:_InstalledDir -ItemType Directory -Force | Out-Null
-    }
+    $installedDir = Get-InstalledDir
 
     # Merge with existing record if present
     $existing = Get-InstalledRecord -Name $Name
@@ -128,7 +147,7 @@ function Save-InstalledError {
         errorAt     = (Get-Date -Format "o")
     }
 
-    $filePath = Join-Path $script:_InstalledDir "$Name.json"
+    $filePath = Join-Path $installedDir "$Name.json"
     $data | ConvertTo-Json -Depth 3 | Set-Content -Path $filePath -Encoding UTF8
 
     Write-Log "Recorded error for '$Name': $ErrorMessage" -Level "warn"
