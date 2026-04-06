@@ -60,6 +60,8 @@ param(
 
     [switch]$a,
 
+    [switch]$h,
+
     [switch]$v,
 
     [switch]$w,
@@ -92,6 +94,7 @@ function Show-RootHelp {
     Write-Host "    $(".\run.ps1 -I <number>".PadRight($col))" -NoNewline; Write-Host "Run a specific script by ID" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -d".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 12 (interactive menu)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -a".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 13 (audit mode)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -h".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 13 -Report (health check)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -v".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -w".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -t".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
@@ -149,6 +152,7 @@ function Show-RootHelp {
     Write-Host "    settings-sync        VSCode settings sync            11"
     Write-Host "    all-dev, all         Interactive dev tools menu      12"
     Write-Host "    audit                Audit mode                      13"
+    Write-Host "    health, healthcheck  Health check (audit + report)   13"
     Write-Host "    winget               Winget package manager          14"
     Write-Host "    tweaks               Windows tweaks                  15"
     Write-Host "    php                  PHP                             16"
@@ -366,7 +370,7 @@ if ($hasCommand) {
 
 # ── No params = git pull + help ──────────────────────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
@@ -470,6 +474,7 @@ if ($a) { $I = 13 }
 if ($v) { $I = 1 }
 if ($w) { $I = 14 }
 if ($t) { $I = 15 }
+if ($h) { $I = 13; $scriptArgs = @{ "Report" = $true } }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
@@ -482,7 +487,8 @@ if ($isMissingParam) {
 }
 
 # ── Delegate to single script ────────────────────────────────────────
-$scriptArgs = @{}
+$isScriptArgsUndefined = -not (Test-Path variable:scriptArgs) -or $null -eq $scriptArgs
+if ($isScriptArgsUndefined) { $scriptArgs = @{} }
 if ($Merge) { $scriptArgs["Merge"] = $true }
 
 $result = Invoke-ScriptById -ScriptId $I -ExtraArgs $scriptArgs

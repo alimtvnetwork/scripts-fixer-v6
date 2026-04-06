@@ -72,6 +72,9 @@
     "db":                [30],
     "pwsh-menu":         [31],
     "pwsh-context-menu": [31],
-    "ps-context-menu":   [31]
+    "ps-context-menu":   [31],
+    "health":            [13],
+    "health-check":      [13],
+    "healthcheck":       [13]
   }
 }
