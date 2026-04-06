@@ -456,6 +456,44 @@ function Test-VerifySymlinks {
         }
     }
 
+    # -- DryRun mode: preview what --Fix would do --------------------------------
+    $isDryRunMode = $DryRun -and -not $Fix
+    if ($isDryRunMode) {
+        Write-Host ""
+        Write-Host "    --- Dry Run Preview ---" -ForegroundColor Magenta
+
+        $hasNothingToFix = $brokenJunctions.Count -eq 0 -and $missingLinks.Count -eq 0
+        if ($hasNothingToFix) {
+            Write-Host "    Nothing to fix -- all symlinks are healthy" -ForegroundColor Green
+        }
+
+        foreach ($broken in $brokenJunctions) {
+            $db = $expectedDbs | Where-Object { $_.Package -eq $broken.Name } | Select-Object -First 1
+            $hasVerifyCmd = $null -ne $db -and -not [string]::IsNullOrWhiteSpace($db.VerifyCommand)
+            if ($hasVerifyCmd) {
+                Write-Host "    [WOULD REMOVE]  $($broken.Name) (broken -> $($broken.Target))" -ForegroundColor Yellow
+                Write-Host "    [WOULD CREATE]  $($broken.Name) -> (resolved via $($db.VerifyCommand))" -ForegroundColor Cyan
+            } else {
+                Write-Host "    [WOULD SKIP]    $($broken.Name) -- no verify command in config" -ForegroundColor DarkGray
+            }
+        }
+
+        foreach ($db in $missingLinks) {
+            $hasVerifyCmd = -not [string]::IsNullOrWhiteSpace($db.VerifyCommand)
+            if ($hasVerifyCmd) {
+                $cmd = Get-Command $db.VerifyCommand -ErrorAction SilentlyContinue
+                $isInstalled = $null -ne $cmd
+                if ($isInstalled) {
+                    Write-Host "    [WOULD CREATE]  $($db.Package) -> (resolved via $($db.VerifyCommand))" -ForegroundColor Cyan
+                } else {
+                    Write-Host "    [WOULD SKIP]    $($db.Name) -- not installed" -ForegroundColor DarkGray
+                }
+            }
+        }
+
+        Write-Host ""
+    }
+
     # -- Fix mode: repair broken junctions and create missing ones -------------
     $fixedCount = 0
     if ($Fix) {
