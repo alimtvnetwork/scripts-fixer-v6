@@ -25,8 +25,9 @@ scripts/
     ├── choco-utils.ps1   # Assert-Choco, Install-ChocoPackage, Upgrade-ChocoPackage
     ├── path-utils.ps1    # Test-InPath, Add-ToUserPath, Add-ToMachinePath
     ├── dev-dir.ps1       # Resolve-DevDir, Resolve-SmartDevDir, Find-BestDevDrive, Test-DriveQualified, Initialize-DevDir
-    ├── symlink-utils.ps1 # Resolve-DbInstallDir, New-DbSymlink
-    └── json-utils.ps1    # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+    ├── symlink-utils.ps1        # Resolve-DbInstallDir, New-DbSymlink
+    ├── json-utils.ps1           # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
+    └── invoke-with-timeout.ps1  # Invoke-WithTimeout
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
@@ -172,6 +173,7 @@ Keys are grouped by helper:
 | `gitPull*` | `git-pull.ps1` |
 | `help*` | `help.ps1` |
 | `adminTip` | `run.ps1` files (admin privilege error) |
+| `timeout*` | `invoke-with-timeout.ps1` |
 
 ---
 
@@ -393,3 +395,71 @@ Common JSON and file utilities.
 | Bootstrap block in every file | Helpers work correctly whether dot-sourced from `run.ps1` or in isolation |
 | `Get-Variable` for strict-mode checks | `$null -eq $script:Var` throws under `Set-StrictMode -Version Latest` |
 | All log strings externalized to JSON | Enables future localization and keeps PS code free of display text |
+
+---
+
+## invoke-with-timeout.ps1
+
+### Purpose
+
+Wraps any operation in a background job with a configurable timeout guard.
+If the operation exceeds the allowed time it is forcefully terminated and a
+detailed log entry explains what was running and how long it was stuck.
+
+### Function Signature
+
+```powershell
+Invoke-WithTimeout
+    -Label        <string>       # Human-readable name for the operation (used in logs)
+    -ScriptBlock  <scriptblock>  # The code to execute
+    -TimeoutSecs  <int>          # Maximum allowed seconds (default: 120)
+    -PollSecs     <int>          # How often to check status (default: 5)
+```
+
+### Return Value
+
+```powershell
+@{
+    Success  = $true / $false
+    Output   = <job output or $null>
+    Elapsed  = <total seconds>
+    TimedOut = $true / $false
+}
+```
+
+### Logging Behaviour
+
+| Phase | Example output |
+|-------|----------------|
+| Polling | `[ INFO ] [Register-ContextMenu] Running... 5s / 120s` |
+| Success | `[  OK  ] [Register-ContextMenu] Completed in 2.3s` |
+| Timeout | `[ FAIL ] [Register-ContextMenu] TIMED OUT after 120s (limit: 120s)` |
+| Hint | `[ INFO ] [Register-ContextMenu] Possible causes: interactive prompt, locked resource, network hang` |
+
+### Recommended Timeout Values
+
+| Operation Type | Timeout | Rationale |
+|----------------|---------|-----------|
+| Registry key creation | 30s | Should be instant; 30s is generous |
+| File copy / backup | 30s | Local disk I/O |
+| Single choco package install | 120s | Network download + install |
+| Full settings sync | 300s | Many extensions to install |
+| Git pull | 60s | Network operation |
+
+### Usage
+
+```powershell
+. (Join-Path $sharedDir "invoke-with-timeout.ps1")
+
+$result = Invoke-WithTimeout `
+    -Label "Install MinGW" `
+    -TimeoutSecs 120 `
+    -ScriptBlock {
+        choco install mingw -y 2>&1
+    }
+
+$isTimedOut = $result.TimedOut
+if ($isTimedOut) {
+    Write-Log "MinGW install timed out" -Level "error"
+}
+```

@@ -85,6 +85,12 @@
     "symlinkRemovedStale": "Removed stale symlink for {name}",
     "symlinkRealDirExists": "Real directory already exists at {path} for {name} -- symlink skipped",
     "symlinkCreated": "Symlink created: {link} -> {target} ({name})",
-    "symlinkFailed": "Failed to create symlink for {name}: {error}"
+    "symlinkFailed": "Failed to create symlink for {name}: {error}",
+    "timeoutWaiting": "[{label}] Running... {elapsed}s / {limit}s",
+    "timeoutExceeded": "[{label}] TIMED OUT after {elapsed}s (limit: {limit}s)",
+    "timeoutTerminated": "[{label}] The operation was forcefully terminated",
+    "timeoutHint": "[{label}] Possible causes: interactive prompt, locked resource, network hang",
+    "timeoutJobFailed": "[{label}] Failed after {elapsed}s: {error}",
+    "timeoutSuccess": "[{label}] Completed in {elapsed}s"
   }
 }
