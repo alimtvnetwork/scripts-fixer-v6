@@ -189,7 +189,7 @@ to `fail`.
 | Variable | Type | Purpose |
 |----------|------|---------|
 | `$script:_LogEvents` | `ArrayList` | All recorded events |
-| `$script:_LogErrors` | `ArrayList` | Error-level events only |
+| `$script:_LogErrors` | `ArrayList` | Error and warning-level events (written to error log) |
 | `$script:_LogName` | `string` | Sanitised script name (used as filename) |
 | `$script:_LogStart` | `DateTime` | Timestamp when `Initialize-Logging` was called |
 | `$script:_LogsDir` | `string` | Resolved path to `.logs/` at project root |
