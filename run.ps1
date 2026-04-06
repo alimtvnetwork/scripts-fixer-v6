@@ -170,6 +170,7 @@ function Show-RootHelp {
     Write-Host "    duckdb               DuckDB                          28"
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
+    Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
