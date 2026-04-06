@@ -63,7 +63,7 @@ function Write-Log {
     foreach ($part in $parts) {
         $isVersion = [regex]::IsMatch($part, "^$versionPattern$")
         if ($isVersion) {
-            Write-Host $part -ForegroundColor White -NoNewline
+            Write-Host $part -ForegroundColor Magenta -NoNewline
         }
         else {
             Write-Host $part -NoNewline
