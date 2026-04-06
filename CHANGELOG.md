@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.3] -- 2026-04-06
+
+**DBeaver Community installer, combo group presets, and database menu integration**
+
+### Added
+
+- Script 32 (`32-install-dbeaver`) -- installs DBeaver Community Edition via Chocolatey with `config.json`, `helpers/dbeaver.ps1`, `log-messages.json`, and `run.ps1`
+- `spec/32-install-dbeaver/readme.md` -- spec doc for the DBeaver installer
+- `dbeaver`, `db-viewer`, `dbviewer` install keywords mapping to script ID 32
+- DBeaver entry in `databases/config.json` as type `"tool"` so it appears in the interactive database installer menu (script 30)
+- New all-dev menu combo group presets in `12-install-all-dev-tools/config.json`:
+  - `o` -- All Dev + MySQL
+  - `p` -- All Dev + PostgreSQL
+  - `r` -- All Dev + PostgreSQL + Redis
+  - `s` -- SQLite + DBeaver
+  - `t` -- All DBs + DBeaver (18-29, 32)
+- New database menu groups in `databases/config.json`:
+  - `f` -- Popular + DBeaver
+  - `g` -- All + DBeaver
+- Registry entry for script 32 in `scripts/registry.json`
+- DBeaver added to orchestrator config sequence and `"Everything"` group
+
+---
+
 ## [v0.5.2] -- 2026-04-06
 
 **Post-install symlink verification for database scripts**
