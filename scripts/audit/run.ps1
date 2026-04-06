@@ -116,6 +116,54 @@ if ($hasFailures) {
     Write-Log $logMessages.messages.allPassed -Level "success"
 }
 
+# -- Generate report (if -Report) ----------------------------------------------
+if ($Report) {
+    $reportDir = Join-Path $repoRoot "logs"
+    $isReportDirMissing = -not (Test-Path $reportDir)
+    if ($isReportDirMissing) {
+        New-Item -Path $reportDir -ItemType Directory -Force | Out-Null
+    }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+    $reportPath = Join-Path $reportDir "health-check_$timestamp.json"
+
+    $reportData = @{
+        timestamp  = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssK")
+        version    = $null
+        totalChecks = $allResults.Count
+        passed     = $passCount
+        failed     = $failCount
+        status     = if ($hasFailures) { "unhealthy" } else { "healthy" }
+        checks     = @()
+    }
+
+    # Read version if available
+    $versionPath = Join-Path $repoRoot "scripts\version.json"
+    $isVersionAvailable = Test-Path $versionPath
+    if ($isVersionAvailable) {
+        $versionData = Get-Content $versionPath -Raw | ConvertFrom-Json
+        $reportData.version = $versionData.version
+    }
+
+    # Build per-check detail
+    foreach ($result in $allResults) {
+        $checkEntry = @{
+            passed = $result.Passed
+            issues = @()
+        }
+        $hasIssues = $null -ne $result.Issues -and $result.Issues.Count -gt 0
+        if ($hasIssues) {
+            $checkEntry.issues = @($result.Issues)
+        }
+        $reportData.checks += $checkEntry
+    }
+
+    $reportJson = $reportData | ConvertTo-Json -Depth 4
+    Set-Content -Path $reportPath -Value $reportJson -Encoding UTF8
+    Write-Host ""
+    Write-Log "Health report saved: $reportPath" -Level "success"
+}
+
 # -- Save log ------------------------------------------------------------------
 
 } catch {

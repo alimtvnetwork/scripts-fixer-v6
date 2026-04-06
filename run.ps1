@@ -368,7 +368,7 @@ if ($hasCommand) {
 
 # ── No params = git pull + help ──────────────────────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
