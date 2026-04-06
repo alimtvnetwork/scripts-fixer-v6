@@ -297,6 +297,27 @@ Reusable utilities in `scripts/shared/`:
 
 ---
 
+## Recent Changes
+
+### v0.4.1 -- Crash-Safe Error Logging
+
+- **try/catch/finally wrapper** in all 31 `run.ps1` files -- `Save-LogFile` now always runs, even on unhandled exceptions
+- **Warnings captured in error logs** alongside errors, with separate `errors` and `warnings` arrays in the JSON schema
+- **4-tier VS Code exe fallback**: config paths → Chocolatey shim/lib → `Get-Command` → `where.exe` (script 10)
+- **Chocolatey shim fallback** for `pwsh.exe` detection (script 31)
+- **Full-path diagnostics** in `fileExistsAtPath` log messages (shows the path being checked, not just True/False)
+- **Get-InstalledDir function** replaces `$script:_InstalledDir` variable -- fixes "variable not set" crash in all scripts
+- **Save-InstalledRecord** handles empty version strings gracefully (falls back to `'unknown'`)
+
+### v0.4.0 -- Error Tracking and Registry API Migration
+
+- **Save-InstalledError** catch blocks added to all 13 install helper scripts for per-tool error tracking
+- **All Databases Only** option added as quick menu choice in script 12
+- **Scripts 10 and 31** migrated from `reg.exe` to .NET `Microsoft.Win32.Registry` API -- fixes nested-quote parsing failures
+- **Error Tracking** section added to `spec/shared/installed.md` with field docs, JSON examples, and retry behaviour
+
+---
+
 ## Prerequisites
 
 - **Windows 10/11**
