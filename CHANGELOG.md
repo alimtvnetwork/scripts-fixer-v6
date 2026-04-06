@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.2] -- 2026-04-06
+
+**Post-install symlink verification for database scripts**
+
+### Added
+
+- `Test-PostInstallSymlink` helper in `databases/run.ps1` -- verifies junction exists and is a valid reparse point after each database install
+- `symlinkVerifyOk`, `symlinkVerifyMissing`, `symlinkVerifyNotJunction` log messages in `databases/log-messages.json`
+- `Invoke-DbScript` now accepts `$Key` parameter and triggers symlink verification automatically after script completion
+
+---
+
 ## [v0.5.1] -- 2026-04-06
 
 **Drive override flag, audit --Fix for broken symlinks, and new spec docs**
