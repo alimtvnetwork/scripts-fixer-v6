@@ -18,6 +18,10 @@
 ## Quick Start
 
 ```powershell
+# Clone the repo
+git clone https://github.com/AliMaherAli/dev-tools-setup.git scripts-fixture
+cd scripts-fixture
+
 # Interactive menu -- pick what to install
 .\run.ps1 -d
 
