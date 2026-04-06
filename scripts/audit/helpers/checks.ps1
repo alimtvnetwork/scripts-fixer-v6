@@ -322,3 +322,168 @@ function Test-StaleRefsInPowerShell {
     Write-CheckResult -CheckName "Stale refs in PowerShell" -Passed $isPassed -Details $issues -LogMessages $LogMessages
     return @{ Passed = $isPassed; Issues = $issues }
 }
+
+# --------------------------------------------------------------------------
+#  Check 9: Verify database symlinks
+# --------------------------------------------------------------------------
+function Test-VerifySymlinks {
+    param(
+        [string]$RepoRoot,
+        $LogMessages
+    )
+
+    $issues = @()
+    $details = @()
+
+    # Resolve dev dir from databases config
+    $dbConfigPath = Join-Path $RepoRoot "scripts\databases\config.json"
+    $isDbConfigMissing = -not (Test-Path $dbConfigPath)
+    if ($isDbConfigMissing) {
+        $issues += "databases/config.json not found -- cannot determine dev directory"
+        Write-CheckResult -CheckName "Verify database symlinks" -Passed $false -Details $issues -LogMessages $LogMessages
+        return @{ Passed = $false; Issues = $issues }
+    }
+
+    $dbConfig = Get-Content $dbConfigPath -Raw | ConvertFrom-Json
+
+    # Find the databases directory using smart drive detection or env
+    $devDir = $null
+    $hasDevDirEnv = -not [string]::IsNullOrWhiteSpace($env:DEV_DIR)
+    if ($hasDevDirEnv) {
+        $devDir = $env:DEV_DIR
+    } else {
+        # Check preferred drives in order: E, D, then scan others
+        foreach ($letter in @("E", "D")) {
+            $testPath = "${letter}:\dev\databases"
+            $isPresent = Test-Path $testPath
+            if ($isPresent) {
+                $devDir = "${letter}:\dev"
+                break
+            }
+        }
+        # If not found on E/D, scan other fixed drives
+        $hasNoDevDir = $null -eq $devDir
+        if ($hasNoDevDir) {
+            $fixedDisks = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3" -ErrorAction SilentlyContinue
+            foreach ($disk in $fixedDisks) {
+                $letter = $disk.DeviceID.Substring(0, 1)
+                $isAlreadyChecked = $letter -eq "E" -or $letter -eq "D"
+                if ($isAlreadyChecked) { continue }
+                $testPath = "${letter}:\dev\databases"
+                $isPresent = Test-Path $testPath
+                if ($isPresent) {
+                    $devDir = "${letter}:\dev"
+                    break
+                }
+            }
+        }
+    }
+
+    $hasNoDevDir = $null -eq $devDir
+    if ($hasNoDevDir) {
+        $details += "No dev\databases\ directory found on any drive -- no symlinks to verify"
+        Write-CheckResult -CheckName "Verify database symlinks" -Passed $true -Details $details -LogMessages $LogMessages
+        return @{ Passed = $true; Issues = @() }
+    }
+
+    $dbDir = Join-Path $devDir "databases"
+    $isDbDirMissing = -not (Test-Path $dbDir)
+    if ($isDbDirMissing) {
+        $details += "databases directory not found at $dbDir -- no symlinks to verify"
+        Write-CheckResult -CheckName "Verify database symlinks" -Passed $true -Details $details -LogMessages $LogMessages
+        return @{ Passed = $true; Issues = @() }
+    }
+
+    Write-Host ""
+    Write-Host "  Scanning: $dbDir" -ForegroundColor Cyan
+    Write-Host ""
+
+    # Get expected databases from config
+    $expectedDbs = @()
+    foreach ($prop in $dbConfig.databases.PSObject.Properties) {
+        $db = $prop.Value
+        $isEnabled = $db.enabled -eq $true
+        if ($isEnabled) {
+            $expectedDbs += [PSCustomObject]@{
+                Key     = $prop.Name
+                Name    = $db.name
+                Package = if ($db.chocoPackage) { $db.chocoPackage } elseif ($db.dotnetPackage) { $db.dotnetPackage } else { $prop.Name }
+            }
+        }
+    }
+
+    # Scan existing items in the databases directory
+    $items = Get-ChildItem -Path $dbDir -ErrorAction SilentlyContinue
+    $foundJunctions  = @()
+    $brokenJunctions = @()
+    $realDirs        = @()
+
+    foreach ($item in $items) {
+        $isJunction = $item.Attributes -band [System.IO.FileAttributes]::ReparsePoint
+        if ($isJunction) {
+            $target = $item.Target
+            $isTargetValid = $null -ne $target -and (Test-Path $target)
+            if ($isTargetValid) {
+                $foundJunctions += [PSCustomObject]@{ Name = $item.Name; Target = $target }
+                Write-Host "    [LINK]   $($item.Name)" -ForegroundColor Green -NoNewline
+                Write-Host " -> $target" -ForegroundColor DarkGray
+            } else {
+                $brokenJunctions += [PSCustomObject]@{ Name = $item.Name; Target = $target }
+                Write-Host "    [BROKEN] $($item.Name)" -ForegroundColor Red -NoNewline
+                Write-Host " -> $target (target missing)" -ForegroundColor DarkGray
+                $issues += "Broken junction: $($item.Name) -> $target"
+            }
+        } else {
+            $realDirs += $item.Name
+            Write-Host "    [DIR]    $($item.Name)" -ForegroundColor Yellow -NoNewline
+            Write-Host " (real directory, not a junction)" -ForegroundColor DarkGray
+        }
+    }
+
+    # Check for expected databases with no junction
+    $missingLinks = @()
+    foreach ($db in $expectedDbs) {
+        $packageName = $db.Package
+        $isFound = ($foundJunctions | Where-Object { $_.Name -eq $packageName }).Count -gt 0
+        $isRealDir = $packageName -in $realDirs
+        $isBroken = ($brokenJunctions | Where-Object { $_.Name -eq $packageName }).Count -gt 0
+        $hasNoEntry = -not $isFound -and -not $isRealDir -and -not $isBroken
+        if ($hasNoEntry) {
+            $missingLinks += $db
+        }
+    }
+
+    Write-Host ""
+
+    # Summary stats
+    $totalExpected = $expectedDbs.Count
+    $linkedCount   = $foundJunctions.Count
+    $brokenCount   = $brokenJunctions.Count
+    $realCount     = $realDirs.Count
+    $missingCount  = $missingLinks.Count
+
+    Write-Host "    Linked:  $linkedCount / $totalExpected" -ForegroundColor $(if ($linkedCount -eq $totalExpected) { "Green" } else { "Yellow" })
+
+    $hasBroken = $brokenCount -gt 0
+    if ($hasBroken) {
+        Write-Host "    Broken:  $brokenCount" -ForegroundColor Red
+    }
+
+    $hasReal = $realCount -gt 0
+    if ($hasReal) {
+        Write-Host "    Real:    $realCount (not junctions)" -ForegroundColor Yellow
+    }
+
+    $hasMissing = $missingCount -gt 0
+    if ($hasMissing) {
+        Write-Host "    Missing: $missingCount" -ForegroundColor DarkGray
+        foreach ($db in $missingLinks) {
+            Write-Host "             - $($db.Name) ($($db.Package))" -ForegroundColor DarkGray
+        }
+    }
+
+    # Broken junctions are failures; missing/real are warnings only
+    $isPassed = $brokenCount -eq 0
+    Write-CheckResult -CheckName "Verify database symlinks" -Passed $isPassed -Details $issues -LogMessages $LogMessages
+    return @{ Passed = $isPassed; Issues = $issues }
+}

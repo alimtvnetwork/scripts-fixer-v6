@@ -90,6 +90,10 @@ if ($checks.staleRefsPowerShell) {
     [void]$allResults.Add((Test-StaleRefsInPowerShell -RepoRoot $repoRoot -Registry $registry -LogMessages $logMessages))
 }
 
+if ($checks.verifySymlinks) {
+    [void]$allResults.Add((Test-VerifySymlinks -RepoRoot $repoRoot -LogMessages $logMessages))
+}
+
 # -- Summary ------------------------------------------------------------------
 Write-Host ""
 Write-Log $logMessages.messages.summaryHeader -Level "info"
