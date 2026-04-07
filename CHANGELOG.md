@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.0] -- 2026-04-07
+
+**GitMap installer, global -Defaults/-Y flags, and run.ps1 enhancements**
+
+### Added
+
+- Script 35 (`35-install-gitmap`) -- installs GitMap CLI via remote installer from GitHub (`alimtvnetwork/git-repo-navigator`)
+- `gitmap`, `git-map` install keywords mapping to script ID 35
+- GitMap entry in all-dev `config.json` and `registry.json`
+- Global `-Defaults` (`-D`) and `-Y` flags on `run.ps1` -- propagated to child scripts as `ExtraArgs`
+- `-Defaults` shows all default values and prompts for confirmation before proceeding
+- `-Defaults -Y` auto-confirms and proceeds without prompting
+- `-Defaults` without `-I` defaults to script 12 (all-dev)
+- Defaults Mode section in `run.ps1 -Help` showing default dev directory, VS Code edition, and sync mode
+- `spec/35-install-gitmap/readme.md` with full usage documentation
+
+---
+
 ## [v0.5.5] -- 2026-04-07
 
 **Release pipeline script for versioned ZIP packaging**
