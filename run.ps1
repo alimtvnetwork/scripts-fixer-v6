@@ -68,7 +68,7 @@ param(
 
     [switch]$t,
 
-    [Alias("D")][switch]$Defaults,
+    [switch]$Defaults,
 
     [switch]$Y,
 
@@ -104,7 +104,7 @@ function Show-RootHelp {
     Write-Host "    $(".\run.ps1 -v".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -w".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -t".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -Defaults (-D)".PadRight($col))" -NoNewline; Write-Host "Use all defaults, prompt to confirm" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Defaults".PadRight($col))" -NoNewline; Write-Host "Use all defaults, prompt to confirm" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -Defaults -Y".PadRight($col))" -NoNewline; Write-Host "Use all defaults, skip confirmation" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Merge".PadRight($col))" -NoNewline; Write-Host "Run with merge flag (script 02)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Clean".PadRight($col))" -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
@@ -225,7 +225,6 @@ function Show-RootHelp {
     Write-Host "  Defaults Mode:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -d -Defaults                  " -NoNewline; Write-Host "All-dev with defaults, prompt to confirm" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -d -Defaults -Y               " -NoNewline; Write-Host "All-dev with defaults, auto-confirm" -ForegroundColor DarkGray
-    Write-Host "    .\run.ps1 -d -D -Y                      " -NoNewline; Write-Host "Short form: -D is alias for -Defaults" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Default dev directory: " -NoNewline -ForegroundColor DarkGray; Write-Host "C:\DevTools" -ForegroundColor White
     Write-Host "    Default VS Code edition: " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
