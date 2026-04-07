@@ -88,7 +88,10 @@
     "health-check":      [13],
     "healthcheck":       [13],
     "gitmap":            [35],
-    "git-map":           [35]
+    "git-map":           [35],
+    "sticky-notes":      [34],
+    "stickynotes":       [34],
+    "sticky":            [34]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },
