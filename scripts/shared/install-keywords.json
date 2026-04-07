@@ -101,6 +101,11 @@
     "obs+settings":      [36],
     "obs-settings":      [36],
     "install-obs":       [36],
+    "windows-terminal":  [37],
+    "wt":                [37],
+    "wt+settings":       [37],
+    "wt-settings":       [37],
+    "install-wt":        [37],
     "vscode+settings":   [1, 11],
     "vscode+s":          [1, 11],
     "vscode+menu+settings": [1, 10, 11],
@@ -134,6 +139,11 @@
     "obs-studio":        { "36": "install+settings" },
     "obs+settings":      { "36": "install+settings" },
     "obs-settings":      { "36": "settings-only" },
-    "install-obs":       { "36": "install-only" }
+    "install-obs":       { "36": "install-only" },
+    "windows-terminal":  { "37": "install+settings" },
+    "wt":                { "37": "install+settings" },
+    "wt+settings":       { "37": "install+settings" },
+    "wt-settings":       { "37": "settings-only" },
+    "install-wt":        { "37": "install-only" }
   }
 }

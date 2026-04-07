@@ -1,0 +1,193 @@
+# --------------------------------------------------------------------------
+#  Helper: Install Windows Terminal via Chocolatey and sync settings
+#  Supports 3 modes: install+settings (default), settings-only, install-only
+# --------------------------------------------------------------------------
+
+function Install-WindowsTerminal {
+    param(
+        [Parameter(Mandatory)] $WtConfig,
+        [Parameter(Mandatory)] $LogMessages,
+        [ValidateSet("install+settings", "settings-only", "install-only")]
+        [string]$Mode = "install+settings"
+    )
+
+    $msgs = $LogMessages.messages
+
+    # -- Mode announcement ---------------------------------------------
+    $modeLabel = switch ($Mode) {
+        "install+settings" { "WT + Settings (install Windows Terminal and sync settings)" }
+        "settings-only"    { "WT Settings (sync settings only)" }
+        "install-only"     { "Install WT (install Windows Terminal only)" }
+    }
+    Write-Log "Mode: $modeLabel" -Level "info"
+    Write-Host ""
+
+    # -- Settings-only mode: skip install, go straight to sync ---------
+    if ($Mode -eq "settings-only") {
+        Write-Log "Skipping Windows Terminal installation (settings-only mode)" -Level "info"
+        $syncResult = Sync-WindowsTerminalSettings -LogMessages $LogMessages
+        return $syncResult
+    }
+
+    # -- Check if already installed ------------------------------------
+    $wtPath = $null
+
+    # Windows Terminal (Store/MSIX) stores wt.exe in WindowsApps
+    $wtCmd = Get-Command "wt" -ErrorAction SilentlyContinue
+    if ($wtCmd) {
+        $wtPath = Get-Item $wtCmd.Source
+    }
+
+    # Fallback: check common Chocolatey install paths
+    if (-not $wtPath) {
+        $commonPaths = @(
+            "$env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+        )
+        foreach ($p in $commonPaths) {
+            if (Test-Path $p) {
+                $wtPath = Get-Item $p
+                break
+            }
+        }
+    }
+
+    if ($wtPath) {
+        $version = "unknown"
+        try {
+            $versionOutput = & wt --version 2>&1 | Select-Object -First 1
+            $hasVersion = $versionOutput -match '[\d]+\.[\d]+\.[\d]+'
+            if ($hasVersion) {
+                $version = $Matches[0]
+            }
+        } catch { }
+
+        $isAlreadyInstalled = Test-AlreadyInstalled -Name "windows-terminal" -CurrentVersion $version
+        if ($isAlreadyInstalled) {
+            Write-Log ($msgs.alreadyInstalled -replace '\{version\}', $version) -Level "success"
+            # Settings always sync (user may want to restore/fix)
+            if ($Mode -eq "install+settings") {
+                Sync-WindowsTerminalSettings -LogMessages $LogMessages
+            }
+            return $true
+        }
+    }
+
+    # -- Install via Chocolatey ----------------------------------------
+    Write-Log $msgs.notFound -Level "info"
+    Write-Host ""
+    Write-Log $msgs.installing -Level "info"
+
+    try {
+        choco install $WtConfig.chocoPackage -y --no-progress | Out-Null
+    } catch {
+        Write-FileError -FilePath "wt.exe" -Operation "install" -Reason "$_" -Module "Install-WindowsTerminal"
+        Write-Log ($msgs.installFailed -replace '\{error\}', $_) -Level "error"
+        Save-InstalledError -Name "windows-terminal" -ErrorMessage "$_"
+        return $false
+    }
+
+    # -- Verify installation -------------------------------------------
+    $verifyCmd = Get-Command "wt" -ErrorAction SilentlyContinue
+    if (-not $verifyCmd) {
+        $checkedPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+        Write-FileError -FilePath $checkedPath -Operation "resolve" -Reason "wt.exe not found after Chocolatey install" -Module "Install-WindowsTerminal"
+        Write-Log ($msgs.installFailed -replace '\{error\}', "wt.exe not found after install") -Level "error"
+        return $false
+    }
+
+    $version = "unknown"
+    try {
+        $versionOutput = & wt --version 2>&1 | Select-Object -First 1
+        $hasVersion = $versionOutput -match '[\d]+\.[\d]+\.[\d]+'
+        if ($hasVersion) { $version = $Matches[0] }
+    } catch { }
+
+    Write-Log ($msgs.installSuccess) -Level "success"
+    Write-Log ("Install target: $($verifyCmd.Source)") -Level "success"
+    Write-Host ""
+    Save-InstalledRecord -Name "windows-terminal" -Version $version -Method "chocolatey"
+
+    # -- Sync settings (only in install+settings mode) -----------------
+    if ($Mode -eq "install+settings") {
+        Sync-WindowsTerminalSettings -LogMessages $LogMessages
+    } else {
+        Write-Log "Settings sync skipped (install-only mode)" -Level "info"
+    }
+
+    return $true
+}
+
+function Sync-WindowsTerminalSettings {
+    param(
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+    $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName))
+    $settingsSource = Join-Path $repoRoot "settings\03 - windows-terminal"
+
+    # -- Target: %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
+    $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminal_*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+
+    if (-not $wtPackageDir) {
+        # Fallback for Windows Terminal Preview or non-Store installs
+        $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminalPreview_*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
+
+    if (-not $wtPackageDir) {
+        Write-FileError -FilePath "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*" -Operation "resolve" -Reason "Windows Terminal package directory not found" -Module "Sync-WindowsTerminalSettings"
+        Write-Log $msgs.settingsSkipped -Level "info"
+        return $false
+    }
+
+    $targetDir = Join-Path $wtPackageDir.FullName "LocalState"
+    Write-Log "Settings target: $targetDir" -Level "info"
+
+    # -- Check settings source exists -----------------------------------
+    if (-not (Test-Path $settingsSource)) {
+        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "Windows Terminal settings source directory does not exist" -Module "Sync-WindowsTerminalSettings"
+        Write-Log $msgs.settingsSkipped -Level "info"
+        return $false
+    }
+
+    # -- Find settings.json in source ----------------------------------
+    $sourceSettings = Join-Path $settingsSource "settings.json"
+    $hasSettingsFile = Test-Path $sourceSettings
+    if (-not $hasSettingsFile) {
+        Write-FileError -FilePath $sourceSettings -Operation "read" -Reason "No settings.json found in Windows Terminal settings source" -Module "Sync-WindowsTerminalSettings"
+        Write-Log $msgs.settingsSkipped -Level "info"
+        return $false
+    }
+
+    Write-Log ($msgs.syncingSettings -replace '\{source\}', $settingsSource) -Level "info"
+
+    # -- Ensure target directory exists --------------------------------
+    if (-not (Test-Path $targetDir)) {
+        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+    }
+
+    # -- Copy settings.json to target ----------------------------------
+    try {
+        $dest = Join-Path $targetDir "settings.json"
+        Copy-Item -Path $sourceSettings -Destination $dest -Force
+        Write-Log ($msgs.settingsSynced -replace '\{path\}', $dest) -Level "success"
+    } catch {
+        Write-FileError -FilePath $sourceSettings -Operation "copy" -Reason "Failed to copy settings.json: $_" -Module "Sync-WindowsTerminalSettings"
+        Write-Log "Failed to copy settings: $_" -Level "error"
+        return $false
+    }
+
+    # -- Copy any additional files (themes, fragments, etc.) -----------
+    $extraFiles = Get-ChildItem -Path $settingsSource -File -Exclude "settings.json", "readme.txt" -ErrorAction SilentlyContinue
+    $extraCount = 0
+    foreach ($file in $extraFiles) {
+        $dest = Join-Path $targetDir $file.Name
+        Copy-Item -Path $file.FullName -Destination $dest -Force
+        $extraCount++
+    }
+    if ($extraCount -gt 0) {
+        Write-Log "Copied $extraCount additional file(s) to $targetDir" -Level "success"
+    }
+
+    return $true
+}
