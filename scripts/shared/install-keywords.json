@@ -78,6 +78,8 @@
     "dbviewer":          [32],
     "health":            [13],
     "health-check":      [13],
-    "healthcheck":       [13]
+    "healthcheck":       [13],
+    "gitmap":            [35],
+    "git-map":           [35]
   }
 }

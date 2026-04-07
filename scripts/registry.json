@@ -32,6 +32,7 @@
     "29": "29-install-litedb",
     "30": "databases",
     "31": "31-pwsh-context-menu",
-    "32": "32-install-dbeaver"
+    "32": "32-install-dbeaver",
+    "35": "35-install-gitmap"
   }
 }
