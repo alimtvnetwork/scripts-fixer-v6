@@ -241,6 +241,7 @@ function Show-RootHelp {
     Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
     Write-Host "    34  Simple Sticky Notes           " -NoNewline; Write-Host "Install Simple Sticky Notes via Chocolatey" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
+    Write-Host "    36  OBS Studio                     " -NoNewline; Write-Host "Install OBS, OBS Settings, or OBS + Settings" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
