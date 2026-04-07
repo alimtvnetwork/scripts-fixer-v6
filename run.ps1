@@ -319,8 +319,15 @@ function Resolve-InstallKeywords {
         }
     }
 
-    # Build list of {Id, Mode} entries -- same ID can appear multiple times with different modes
-    $entries = [System.Collections.Generic.List[hashtable]]::new()
+    # Mode priority: install+settings > install-only / settings-only > null
+    # When multiple keywords target the same script, merge to the highest mode.
+    $modePriority = @{
+        "install+settings" = 3
+        "install-only"     = 2
+        "settings-only"    = 1
+    }
+
+    $entries = [ordered]@{}   # key = script ID, value = best mode string (or $null)
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -345,18 +352,20 @@ function Resolve-InstallKeywords {
             if ($null -ne $tokenModes) {
                 $mode = $tokenModes."$id"
             }
-            # Deduplicate: skip if same Id+Mode combo already queued
-            $isDuplicate = $false
-            foreach ($existing in $entries) {
-                $isSameId   = $existing.Id -eq $id
-                $isSameMode = $existing.Mode -eq $mode
-                if ($isSameId -and $isSameMode) {
-                    $isDuplicate = $true
-                    break
+
+            $key = [int]$id
+            $isNewEntry = -not $entries.Contains($key)
+            if ($isNewEntry) {
+                $entries[$key] = $mode
+            } else {
+                # Merge: keep the higher-priority mode
+                $existingMode = $entries[$key]
+                $existingPri  = if ($null -ne $existingMode -and $modePriority.ContainsKey($existingMode)) { $modePriority[$existingMode] } else { 0 }
+                $newPri       = if ($null -ne $mode -and $modePriority.ContainsKey($mode)) { $modePriority[$mode] } else { 0 }
+                $isNewHigher  = $newPri -gt $existingPri
+                if ($isNewHigher) {
+                    $entries[$key] = $mode
                 }
-            }
-            if (-not $isDuplicate) {
-                $entries.Add(@{ Id = [int]$id; Mode = $mode })
             }
         }
     }
@@ -367,8 +376,10 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    # Sort by ID for logical execution order (stable -- preserves mode order within same ID)
-    $sorted = $entries | Sort-Object { $_.Id }
+    # Convert to list of {Id, Mode} sorted by ID
+    $sorted = $entries.GetEnumerator() | ForEach-Object {
+        @{ Id = [int]$_.Key; Mode = $_.Value }
+    } | Sort-Object { $_.Id }
     return $sorted
 }
 
