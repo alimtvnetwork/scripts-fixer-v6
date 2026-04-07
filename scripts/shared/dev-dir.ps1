@@ -49,12 +49,26 @@ function Test-DriveQualified {
     }
 
     # Get free space via WMI (more reliable than PSDrive.Free for fixed disks)
+    $freeGB = 0
     try {
         $vol = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='${DriveLetter}:'" -ErrorAction Stop
-        $freeGB = [math]::Round($vol.FreeSpace / 1GB, 1)
+        $hasVolume = $null -ne $vol -and $null -ne $vol.FreeSpace
+        if ($hasVolume) {
+            $freeGB = [math]::Round($vol.FreeSpace / 1GB, 1)
+        }
     } catch {
         # Fallback to PSDrive
-        $freeGB = [math]::Round($drive.Free / 1GB, 1)
+        $hasPsDriveFree = $null -ne $drive.Free
+        if ($hasPsDriveFree) {
+            $freeGB = [math]::Round($drive.Free / 1GB, 1)
+        }
+    }
+
+    # Drives with 0 GB are likely phantom drives (card readers, empty removable media)
+    $isPhantomDrive = $freeGB -eq 0
+    if ($isPhantomDrive) {
+        Write-Log "Drive ${DriveLetter}: reports 0 GB free (likely phantom/empty removable drive) -- skipping" -Level "info"
+        return $false
     }
 
     $hasEnoughSpace = $freeGB -ge $script:MinFreeSpaceGB

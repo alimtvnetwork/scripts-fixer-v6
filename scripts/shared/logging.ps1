@@ -7,6 +7,7 @@
 # ── Module-scoped log state ──────────────────────────────────────────────────
 $script:_LogEvents   = [System.Collections.ArrayList]::new()
 $script:_LogErrors   = [System.Collections.ArrayList]::new()
+$script:_LogWarnings = [System.Collections.ArrayList]::new()
 $script:_LogName     = $null
 $script:_LogStart    = $null
 $script:_LogsDir     = $null
@@ -79,10 +80,14 @@ function Write-Log {
     }
     $script:_LogEvents.Add($event) | Out-Null
 
-    # Track errors AND warnings separately for the error log file
-    $isErrorOrWarn = ($Status -eq "fail") -or ($Status -eq "warn")
-    if ($isErrorOrWarn) {
+    # Track errors and warnings separately
+    $isError = $Status -eq "fail"
+    if ($isError) {
         $script:_LogErrors.Add($event) | Out-Null
+    }
+    $isWarn = $Status -eq "warn"
+    if ($isWarn) {
+        $script:_LogWarnings.Add($event) | Out-Null
     }
 }
 
@@ -151,8 +156,9 @@ function Initialize-Logging {
     $script:_LogsDir   = $logsDir
     $script:_LogName   = $safeName
     $script:_LogStart  = Get-Date
-    $script:_LogEvents = [System.Collections.ArrayList]::new()
-    $script:_LogErrors = [System.Collections.ArrayList]::new()
+    $script:_LogEvents   = [System.Collections.ArrayList]::new()
+    $script:_LogErrors   = [System.Collections.ArrayList]::new()
+    $script:_LogWarnings = [System.Collections.ArrayList]::new()
 
     Write-Log "Logging initialised -- events will be saved to: $logsDir\$safeName.json" -Level "info"
 }
@@ -182,6 +188,7 @@ function Save-LogFile {
         duration   = [math]::Round($duration, 2)
         eventCount = $script:_LogEvents.Count
         errorCount = $script:_LogErrors.Count
+        warnCount  = $script:_LogWarnings.Count
         events     = @($script:_LogEvents)
     }
 
@@ -189,28 +196,43 @@ function Save-LogFile {
     $logData | ConvertTo-Json -Depth 5 | Set-Content -Path $logPath -Encoding UTF8
     Write-Host "  [  OK  ] Log saved: $logPath" -ForegroundColor Green
 
-    # Error log file -- written when there are individual errors OR overall failure
+    # Error/warning log file -- written when there are errors, warnings, or overall failure
     $hasErrors = $script:_LogErrors.Count -gt 0
+    $hasWarnings = $script:_LogWarnings.Count -gt 0
     $isOverallFailure = $Status -eq "fail"
-    $shouldWriteErrorLog = $hasErrors -or $isOverallFailure
+    $shouldWriteErrorLog = $hasErrors -or $hasWarnings -or $isOverallFailure
     if ($shouldWriteErrorLog) {
-        $errorOnly = @($script:_LogErrors | Where-Object { $_.level -eq "fail" })
-        $warnOnly  = @($script:_LogErrors | Where-Object { $_.level -eq "warn" })
         $errorData = @{
             scriptName    = $script:_LogName
             overallStatus = $Status
             startTime     = $script:_LogStart.ToString("o")
             endTime       = $endTime.ToString("o")
             duration      = [math]::Round($duration, 2)
-            errorCount    = $errorOnly.Count
-            warnCount     = $warnOnly.Count
-            errors        = $errorOnly
-            warnings      = $warnOnly
+            errorCount    = $script:_LogErrors.Count
+            warnCount     = $script:_LogWarnings.Count
+            errors        = @($script:_LogErrors)
+            warnings      = @($script:_LogWarnings)
         }
 
         $errorPath = Join-Path $script:_LogsDir "$($script:_LogName)-error.json"
         $errorData | ConvertTo-Json -Depth 5 | Set-Content -Path $errorPath -Encoding UTF8
         Write-Host "  [ WARN ] Error log saved: $errorPath" -ForegroundColor Yellow
+    }
+
+    # Print one-line summary for easy copy-paste
+    $summaryParts = @("[$($script:_LogName)] Status: $Status | Duration: $([math]::Round($duration, 1))s")
+    if ($hasErrors) { $summaryParts += "Errors: $($script:_LogErrors.Count)" }
+    if ($hasWarnings) { $summaryParts += "Warnings: $($script:_LogWarnings.Count)" }
+    $summaryLine = $summaryParts -join " | "
+    $summaryColor = if ($isOverallFailure) { "Red" } elseif ($hasWarnings) { "Yellow" } else { "Green" }
+    Write-Host ""
+    Write-Host "  $summaryLine" -ForegroundColor $summaryColor
+
+    # If there are errors, print each on its own line for quick scanning
+    if ($hasErrors) {
+        foreach ($err in $script:_LogErrors) {
+            Write-Host "    >> $($err.message)" -ForegroundColor Red
+        }
     }
 }
 
