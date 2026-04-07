@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.1] -- 2026-04-07
+
+**GitMap added to Everything group preset**
+
+### Changed
+
+- Added script 35 (GitMap) to the Everything group preset (letter `n`) in `scripts/12-install-all-dev-tools/config.json`
+- Updated group label from `Everything (01-32)` to `Everything (01-35)`
+
+---
+
 ## [v0.6.0] -- 2026-04-07
 
 **GitMap installer, global -Defaults/-Y flags, and run.ps1 enhancements**
