@@ -212,12 +212,22 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
+    Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -All                 " -NoNewline; Write-Host "Install everything without prompting" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -Skip 04,06          " -NoNewline; Write-Host "Skip pnpm and Go" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -Only 02,03          " -NoNewline; Write-Host "Run only Package Managers + Node.js" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Defaults Mode:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -d -Defaults                  " -NoNewline; Write-Host "All-dev with defaults, prompt to confirm" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -d -Defaults -Y               " -NoNewline; Write-Host "All-dev with defaults, auto-confirm" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -d -D -Y                      " -NoNewline; Write-Host "Short form: -D is alias for -Defaults" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Default dev directory: " -NoNewline -ForegroundColor DarkGray; Write-Host "C:\DevTools" -ForegroundColor White
+    Write-Host "    Default VS Code edition: " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
+    Write-Host "    Default sync mode: " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
     Write-Host ""
     Write-Host "  Per-script help:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I <number> -- -Help          " -NoNewline; Write-Host "Show help for a specific script" -ForegroundColor DarkGray
