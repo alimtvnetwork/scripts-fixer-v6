@@ -391,7 +391,7 @@ if ($hasCommand) {
 
 # ── No params = git pull + help ──────────────────────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean -and -not $Defaults
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
@@ -511,6 +511,25 @@ if ($isMissingParam) {
 $isScriptArgsUndefined = -not (Test-Path variable:scriptArgs) -or $null -eq $scriptArgs
 if ($isScriptArgsUndefined) { $scriptArgs = @{} }
 if ($Merge) { $scriptArgs["Merge"] = $true }
+if ($Defaults) { $scriptArgs["Defaults"] = $true }
+
+# ── -Defaults -Y confirmation logic ──────────────────────────────────
+if ($Defaults -and -not $Y) {
+    Write-Host ""
+    Write-Host "  Defaults Mode" -ForegroundColor Cyan
+    Write-Host "  =============" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Dev directory     : " -NoNewline -ForegroundColor DarkGray; Write-Host "auto (C:\DevTools)" -ForegroundColor White
+    Write-Host "    VS Code edition   : " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
+    Write-Host "    Settings sync     : " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
+    Write-Host ""
+    $confirm = Read-Host "  Proceed with these defaults? [Y/n]"
+    $isAborted = $confirm.Trim().ToUpper() -eq "N"
+    if ($isAborted) {
+        Write-Host "  [ SKIP ] Aborted by user." -ForegroundColor Yellow
+        exit 0
+    }
+}
 
 $result = Invoke-ScriptById -ScriptId $I -ExtraArgs $scriptArgs
 
