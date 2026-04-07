@@ -292,6 +292,79 @@ function Configure-GoEnv {
     return $isAllOk
 }
 
+function Install-GoTools {
+    <#
+    .SYNOPSIS
+        Installs Go linting/analysis tools: golangci-lint (via go install) and verifies go vet.
+    #>
+    param(
+        [PSCustomObject]$ToolsConfig,
+        $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+    $isAllOk = $true
+
+    # -- go vet (built-in) -- verify it works ----------------------------
+    Write-Log $msgs.goVetChecking -Level "info"
+    try {
+        $vetOutput = & go.exe vet 2>&1
+        Write-Log $msgs.goVetAvailable -Level "success"
+    } catch {
+        Write-Log ($msgs.goVetFailed -replace '\{error\}', $_) -Level "warn"
+        $isAllOk = $false
+    }
+
+    # -- golangci-lint ---------------------------------------------------
+    $hasLintConfig = $null -ne $ToolsConfig -and $ToolsConfig.golangciLint.enabled
+    if ($hasLintConfig) {
+        $lintCmd = Get-Command "golangci-lint" -ErrorAction SilentlyContinue
+        $isLintInstalled = $null -ne $lintCmd
+
+        if ($isLintInstalled) {
+            $lintVersion = & golangci-lint version --format short 2>&1
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "golangci-lint" -CurrentVersion "$lintVersion".Trim()
+            if ($isAlreadyTracked) {
+                Write-Log ($msgs.golangciLintAlready -replace '\{version\}', $lintVersion) -Level "success"
+                return $isAllOk
+            }
+        }
+
+        $installPkg = $ToolsConfig.golangciLint.installPackage
+        Write-Log ($msgs.golangciLintInstalling -replace '\{package\}', $installPkg) -Level "info"
+
+        try {
+            & go.exe install $installPkg 2>&1 | ForEach-Object {
+                if ($_ -and $_.ToString().Trim().Length -gt 0) { Write-Log $_ -Level "info" }
+            }
+
+            # Refresh PATH so golangci-lint is found
+            $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+
+            $lintCmd = Get-Command "golangci-lint" -ErrorAction SilentlyContinue
+            $isLintMissing = -not $lintCmd
+            if ($isLintMissing) {
+                Write-FileError -FilePath "golangci-lint" -Operation "resolve" -Reason "golangci-lint not found in PATH after go install" -Module "Install-GoTools"
+                Write-Log $msgs.golangciLintNotInPath -Level "warn"
+                $isAllOk = $false
+            } else {
+                $lintVersion = & golangci-lint version --format short 2>&1
+                Write-Log ($msgs.golangciLintSuccess -replace '\{version\}', $lintVersion) -Level "success"
+                Save-InstalledRecord -Name "golangci-lint" -Version "$lintVersion".Trim() -Method "go-install"
+            }
+        } catch {
+            Write-FileError -FilePath $installPkg -Operation "install" -Reason "$_" -Module "Install-GoTools"
+            Write-Log ($msgs.golangciLintFailed -replace '\{error\}', $_) -Level "error"
+            Save-InstalledError -Name "golangci-lint" -ErrorMessage "$_"
+            $isAllOk = $false
+        }
+    } else {
+        Write-Log $msgs.golangciLintDisabled -Level "info"
+    }
+
+    return $isAllOk
+}
+
 function Invoke-GoSetup {
     param(
         [PSCustomObject]$Config,
@@ -328,6 +401,11 @@ function Invoke-GoSetup {
         if ($hasFailed) { $isAllOk = $false }
 
         $ok = Configure-GoEnv -GoEnvConfig $Config.goEnv -GopathFull $gopathFull -LogMessages $LogMessages
+        $hasFailed = -not $ok
+        if ($hasFailed) { $isAllOk = $false }
+
+        # -- Install Go tools (golangci-lint, go vet check) ----------------
+        $ok = Install-GoTools -ToolsConfig $Config.tools -LogMessages $LogMessages
         $hasFailed = -not $ok
         if ($hasFailed) { $isAllOk = $false }
 
