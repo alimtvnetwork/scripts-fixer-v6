@@ -78,6 +78,8 @@ param(
 
     [switch]$CleanOnly,
 
+    [switch]$List,
+
     [switch]$Help
 )
 
@@ -234,7 +236,53 @@ function Show-RootHelp {
     Write-Host ""
 }
 
-# ── Resolve keywords to script IDs ──────────────────────────────────
+# ── Keyword table (compact view) ────────────────────────────────────
+function Show-KeywordTable {
+    Write-Host ""
+    Write-Host "  Available Keywords" -ForegroundColor Cyan
+    Write-Host "  ==================" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Keyword              Maps to                         Script ID" -ForegroundColor DarkGray
+    Write-Host "    -------------------  ------------------------------  ---------" -ForegroundColor DarkGray
+    Write-Host "    vscode, vs-code      VS Code                         01"
+    Write-Host "    choco, chocolatey    Chocolatey                      02"
+    Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
+    Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
+    Write-Host "    python, pip          Python + pip                    05"
+    Write-Host "    go, golang           Go                              06"
+    Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
+    Write-Host "    github-desktop       GitHub Desktop                  08"
+    Write-Host "    cpp, c++, gcc        C++ (MinGW-w64)                 09"
+    Write-Host "    context-menu         VSCode context menu fix         10"
+    Write-Host "    settings-sync        VSCode settings sync            11"
+    Write-Host "    all-dev, all         Interactive dev tools menu      12"
+    Write-Host "    audit                Audit mode                      13"
+    Write-Host "    health, healthcheck  Health check (audit + report)   13"
+    Write-Host "    winget               Winget package manager          14"
+    Write-Host "    tweaks               Windows tweaks                  15"
+    Write-Host "    php                  PHP                             16"
+    Write-Host "    powershell, pwsh     PowerShell (latest)             17"
+    Write-Host "    mysql                MySQL                           18"
+    Write-Host "    mariadb              MariaDB                         19"
+    Write-Host "    postgresql, postgres PostgreSQL                      20"
+    Write-Host "    sqlite               SQLite + DB Browser            21"
+    Write-Host "    mongodb, mongo       MongoDB                         22"
+    Write-Host "    couchdb              CouchDB                         23"
+    Write-Host "    redis                Redis                           24"
+    Write-Host "    cassandra            Apache Cassandra                25"
+    Write-Host "    neo4j                Neo4j                           26"
+    Write-Host "    elasticsearch        Elasticsearch                   27"
+    Write-Host "    duckdb               DuckDB                          28"
+    Write-Host "    litedb               LiteDB                          29"
+    Write-Host "    databases, db        Database installer menu         30"
+    Write-Host "    pwsh-menu            PowerShell context menu         31"
+    Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
+    Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host ""
+    Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"
+    Write-Host ""
+}
+
 function Resolve-InstallKeywords {
     param(
         [string[]]$Keywords
@@ -391,7 +439,7 @@ if ($hasCommand) {
 
 # ── No params = git pull + help ──────────────────────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean -and -not $Defaults
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $List -and -not $CleanOnly -and -not $Clean -and -not $Defaults
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
@@ -401,6 +449,12 @@ if ($hasNoParams) {
         Invoke-GitPull -RepoRoot $RootDir
     }
     Show-RootHelp
+    exit 0
+}
+
+# ── List (keyword table only) ────────────────────────────────────────
+if ($List) {
+    Show-KeywordTable
     exit 0
 }
 
