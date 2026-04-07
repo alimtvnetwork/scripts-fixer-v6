@@ -11,6 +11,7 @@
     "name": "Notepad++",
     "desc": "Lightweight source code editor with syntax highlighting",
     "settingsDir": "",
-    "syncSettings": true
+    "syncSettings": true,
+    "defaultMode": "install+settings"
   }
 }

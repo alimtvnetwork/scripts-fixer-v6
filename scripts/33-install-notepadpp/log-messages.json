@@ -1,7 +1,7 @@
 {
   "scriptName": "install-notepadpp",
   "scriptTitle": "Install Notepad++",
-  "scriptDesc": "Install Notepad++ text editor and sync user settings",
+  "scriptDesc": "Install Notepad++ text editor and sync user settings (3 modes: NPP + Settings, NPP Settings, Install NPP)",
   "messages": {
     "alreadyInstalled": "Notepad++ {version} is already installed",
     "notFound": "Notepad++ not found -- will install now",
@@ -9,7 +9,7 @@
     "installing": "Installing Notepad++ via Chocolatey...",
     "installSuccess": "Notepad++ installed successfully",
     "installFailed": "Notepad++ installation failed: {error}",
-    "syncingSettings": "Syncing Notepad++ settings to AppData...",
+    "syncingSettings": "Extracting Notepad++ settings to AppData...",
     "settingsSynced": "Settings synced to {path}",
     "settingsSkipped": "No settings files found in script folder -- skipping sync",
     "setupComplete": "Notepad++ setup complete"
