@@ -94,6 +94,10 @@ if ($checks.staleRefsPowerShell) {
     [void]$allResults.Add((Test-StaleRefsInPowerShell -RepoRoot $repoRoot -Registry $registry -LogMessages $logMessages))
 }
 
+if ($checks.keywordModes) {
+    [void]$allResults.Add((Test-KeywordModes -RepoRoot $repoRoot -Registry $registry -LogMessages $logMessages))
+}
+
 if ($checks.verifySymlinks) {
     [void]$allResults.Add((Test-VerifySymlinks -RepoRoot $repoRoot -LogMessages $logMessages -Fix:$Fix -DryRun:$DryRun))
 }
