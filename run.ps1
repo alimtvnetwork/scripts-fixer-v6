@@ -317,8 +317,8 @@ function Resolve-InstallKeywords {
         }
     }
 
-    $scriptIds = [System.Collections.Generic.List[int]]::new()
-    $script:_resolvedModes = @{}
+    # Build list of {Id, Mode} entries -- same ID can appear multiple times with different modes
+    $entries = [System.Collections.Generic.List[hashtable]]::new()
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -336,18 +336,25 @@ function Resolve-InstallKeywords {
             continue
         }
 
-        # Capture mode overrides from the modes map
+        # Determine mode override for this token (if any)
         $tokenModes = $modesMap.$token
-        if ($null -ne $tokenModes) {
-            $tokenModes.PSObject.Properties | ForEach-Object {
-                $script:_resolvedModes[[int]$_.Name] = $_.Value
-            }
-        }
-
         foreach ($id in $ids) {
-            $isAlreadyAdded = $scriptIds -contains $id
-            if (-not $isAlreadyAdded) {
-                $scriptIds.Add($id)
+            $mode = $null
+            if ($null -ne $tokenModes) {
+                $mode = $tokenModes."$id"
+            }
+            # Deduplicate: skip if same Id+Mode combo already queued
+            $isDuplicate = $false
+            foreach ($existing in $entries) {
+                $isSameId   = $existing.Id -eq $id
+                $isSameMode = $existing.Mode -eq $mode
+                if ($isSameId -and $isSameMode) {
+                    $isDuplicate = $true
+                    break
+                }
+            }
+            if (-not $isDuplicate) {
+                $entries.Add(@{ Id = [int]$id; Mode = $mode })
             }
         }
     }
@@ -358,8 +365,8 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    # Sort by ID for logical execution order
-    $sorted = $scriptIds | Sort-Object
+    # Sort by ID for logical execution order (stable -- preserves mode order within same ID)
+    $sorted = $entries | Sort-Object { $_.Id }
     return $sorted
 }
 
