@@ -27,6 +27,7 @@ When run with no parameters, it performs a git pull and shows help
 .\run.ps1 -I <number> -Merge          # Run with -Merge passed through
 .\run.ps1 -I <number> -Clean          # Wipe .resolved/ cache, then run
 .\run.ps1 -CleanOnly                  # Wipe .resolved/ cache and exit
+.\run.ps1 -List                       # Show keyword table only
 .\run.ps1 -Help                       # Show help (same as no params)
 ```
 
@@ -45,6 +46,7 @@ When run with no parameters, it performs a git pull and shows help
 | `-Merge` | switch | No | Passed through to child script (used by script 02 for deep-merge) |
 | `-Clean` | switch | No | Wipes all `.resolved/` data before running, forcing fresh detection |
 | `-CleanOnly` | switch | No | Wipes all `.resolved/` data and exits without running any script |
+| `-List` | switch | No | Prints the keyword-to-script-ID table and exits (compact reference) |
 | `-Help` | switch | No | Show help (also shown when no params given) |
 
 ## Keyword Install System
@@ -127,9 +129,10 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 
 ### Standard mode (-I)
 1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
-2. If `-Help`: show help and exit
-3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
-4. If `-Clean`: wipe `.resolved/` contents, then continue
+2. If `-List`: print keyword table and exit
+3. If `-Help`: show help and exit
+4. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
+5. If `-Clean`: wipe `.resolved/` contents, then continue
 5. Dot-source `scripts/shared/git-pull.ps1`
 6. Run `Invoke-GitPull` from repo root
 7. Set `$env:SCRIPTS_ROOT_RUN = "1"`
