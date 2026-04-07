@@ -8,8 +8,19 @@
 param(
     [switch]$Help,
     [ValidateSet("install+settings", "settings-only", "install-only")]
-    [string]$Mode = "install+settings"
+    [string]$Mode = ""
 )
+
+# -- Resolve mode: param > env var > default -----------------------------------
+if ([string]::IsNullOrWhiteSpace($Mode)) {
+    $envMode = $env:NPP_MODE
+    $hasEnvMode = -not [string]::IsNullOrWhiteSpace($envMode)
+    if ($hasEnvMode) {
+        $Mode = $envMode
+    } else {
+        $Mode = "install+settings"
+    }
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"

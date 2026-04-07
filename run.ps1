@@ -525,7 +525,16 @@ if ($hasInstallKeywords) {
     $failCount    = 0
 
     foreach ($id in $scriptIds) {
+        # Set per-script mode env vars if defined in keywords modes map
+        $modeKey = $resolvedModes[$id]
+        $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
+        if ($hasModeOverride) {
+            $env:NPP_MODE = $modeKey
+        }
         $result = Invoke-ScriptById -ScriptId $id
+        if ($hasModeOverride) {
+            Remove-Item Env:\NPP_MODE -ErrorAction SilentlyContinue
+        }
         if ($result) { $successCount++ } else { $failCount++ }
     }
 
