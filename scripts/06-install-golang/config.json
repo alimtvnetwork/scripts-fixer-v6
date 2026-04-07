@@ -37,5 +37,12 @@
         "promptOnFirstRun": true
       }
     }
+  },
+  "tools": {
+    "golangciLint": {
+      "enabled": true,
+      "installPackage": "github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+      "desc": "Fast Go linters aggregator"
+    }
   }
 }

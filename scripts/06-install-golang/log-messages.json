@@ -1,6 +1,6 @@
 {
   "scriptName": "Install Golang",
-  "description": "Installs Go via Chocolatey, configures GOPATH, PATH, and go env settings.",
+  "description": "Installs Go via Chocolatey, configures GOPATH, PATH, go env settings, and Go tools (golangci-lint, go vet).",
   "messages": {
     "done": "Go installation and configuration completed.",
     "notAdmin": "This script must be run as Administrator.",
@@ -38,13 +38,22 @@
     "goEnvUserProvided": "User provided value for {key} -- {value}",
     "goEnvNoValue": "No value resolved for go env {key} -- skipping",
     "goInstallFailed": "Go install failed -- cannot continue",
-    "gopathInitFailed": "Failed to initialize GOPATH"
+    "gopathInitFailed": "Failed to initialize GOPATH",
+    "goVetChecking": "Checking go vet availability...",
+    "goVetAvailable": "go vet is available (built-in to Go toolchain)",
+    "goVetFailed": "go vet check failed: {error}",
+    "golangciLintInstalling": "Installing golangci-lint via go install: {package}",
+    "golangciLintSuccess": "golangci-lint installed: {version}",
+    "golangciLintAlready": "golangci-lint already installed: {version}",
+    "golangciLintFailed": "golangci-lint install failed: {error}",
+    "golangciLintNotInPath": "golangci-lint installed but not found in PATH -- ensure GOPATH\\bin is in PATH",
+    "golangciLintDisabled": "golangci-lint install is disabled in config"
   },
   "help": {
     "commands": {
-      "all": "Install + configure (default)",
-      "install": "Install/upgrade Go only (skip env config)",
-      "configure": "Configure GOPATH/env only (skip install)"
+      "all": "Install + configure + tools (default)",
+      "install": "Install/upgrade Go only (skip env config and tools)",
+      "configure": "Configure GOPATH/env and install tools (skip Go install)"
     },
     "examples": [
       ".\\run.ps1",
