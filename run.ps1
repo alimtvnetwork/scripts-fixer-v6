@@ -359,7 +359,7 @@ function Resolve-InstallKeywords {
                 $mode = $tokenModes."$id"
             }
 
-            $key = [int]$id
+            $key = "$id"
             $isNewEntry = -not $entries.Contains($key)
             if ($isNewEntry) {
                 $entries[$key] = $mode
@@ -385,7 +385,7 @@ function Resolve-InstallKeywords {
     # Convert to list of {Id, Mode} sorted by ID
     $sorted = $entries.GetEnumerator() | ForEach-Object {
         @{ Id = [int]$_.Key; Mode = $_.Value }
-    } | Sort-Object { $_.Id }
+    } | Sort-Object { [int]$_.Id }
     return $sorted
 }
 
