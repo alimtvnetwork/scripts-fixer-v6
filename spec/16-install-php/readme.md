@@ -1,39 +1,76 @@
-# Spec: Install PHP
+# Spec: Script 16 -- Install PHP (+ phpMyAdmin)
 
-## Overview
+## Purpose
 
-A PowerShell script that installs **PHP** via Chocolatey on Windows
-and verifies the installation is available in PATH.
+Install PHP and/or phpMyAdmin via Chocolatey. Supports three modes.
 
----
+## Naming Convention
+
+| Shortcut Label | Meaning | Keyword |
+|----------------|---------|---------|
+| **PHP + phpMyAdmin** | Install PHP and phpMyAdmin | `php`, `php+phpmyadmin` |
+| **PHP only** | Install PHP without phpMyAdmin | `php-only` |
+| **phpMyAdmin only** | Install phpMyAdmin without PHP | `phpmyadmin`, `phpmyadmin-only` |
 
 ## File Structure
 
 ```
 scripts/16-install-php/
-├── config.json              # Package name, verify command
+├── config.json              # Package names, modes, verify command
 ├── log-messages.json        # Display strings
-├── run.ps1                  # Entry point
+├── run.ps1                  # Entry point (accepts -Mode param)
 ├── helpers/
-│   └── php.ps1              # Install-Php function
+│   └── php.ps1              # Install-Php + Install-PhpMyAdmin functions
 └── logs/                    # Auto-created (gitignored)
 ```
 
 ## Usage
 
 ```powershell
-.\run.ps1              # Install/verify PHP
-.\run.ps1 -Help        # Show usage
+.\run.ps1 install php                # PHP + phpMyAdmin (default)
+.\run.ps1 install php+phpmyadmin     # PHP + phpMyAdmin (explicit)
+.\run.ps1 install php-only           # PHP only
+.\run.ps1 install phpmyadmin         # phpMyAdmin only
+.\run.ps1 -I 16                      # PHP + phpMyAdmin (default mode)
+.\run.ps1 -I 16 -- -Mode php-only   # PHP only
+.\run.ps1 -I 16 -- -Mode phpmyadmin-only  # phpMyAdmin only
 ```
 
-## config.json Schema
+## Modes
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `enabled` | bool | Master enable/disable |
-| `php.enabled` | bool | Whether to install/check PHP |
-| `php.chocoPackage` | string | Chocolatey package name |
-| `php.verifyCommand` | string | Command to verify installation |
+### php+phpmyadmin (default)
+
+1. Install PHP via Chocolatey (if not already installed)
+2. Verify PHP installation
+3. Install phpMyAdmin via Chocolatey (if not already installed)
+
+### php-only
+
+1. Install PHP via Chocolatey (if not already installed)
+2. Verify PHP installation
+3. Skip phpMyAdmin
+
+### phpmyadmin-only
+
+1. Skip PHP installation
+2. Install phpMyAdmin via Chocolatey (if not already installed)
+
+## Mode Resolution Order
+
+1. `-Mode` parameter on `run.ps1` (highest priority)
+2. `$env:PHP_MODE` environment variable (set by keyword resolver)
+3. Default: `php+phpmyadmin`
+
+## Config (`config.json`)
+
+| Key | Type | Purpose |
+|-----|------|---------|
+| `php.enabled` | bool | Toggle PHP install |
+| `php.chocoPackage` | string | Chocolatey package name (`php`) |
+| `php.verifyCommand` | string | Command to verify PHP (`php`) |
+| `phpmyadmin.enabled` | bool | Toggle phpMyAdmin install |
+| `phpmyadmin.chocoPackage` | string | Chocolatey package name (`phpmyadmin`) |
+| `defaultMode` | string | Default mode when not specified |
 
 ## Execution Flow
 
@@ -41,6 +78,22 @@ scripts/16-install-php/
 2. Load shared + script helpers
 3. Git pull (unless `$env:SCRIPTS_ROOT_RUN`)
 4. Assert admin privileges
-5. Check if PHP is already installed
-6. If not: install via Chocolatey, refresh PATH, verify
-7. Save resolved version to `.resolved/`
+5. Announce mode
+6. Install PHP (unless phpmyadmin-only)
+7. Install phpMyAdmin (unless php-only)
+8. Save resolved data and install records
+
+## Log Messages
+
+Defined in `log-messages.json`. Key messages:
+- `pmaChecking` / `pmaFound` -- phpMyAdmin detection
+- `pmaInstalling` / `pmaInstallSuccess` -- install progress
+- `pmaInstallFailed` -- failure with CODE RED path logging
+- `pmaSkipped` -- shown in php-only mode
+
+## Helpers
+
+| File | Function | Purpose |
+|------|----------|---------|
+| `php.ps1` | `Install-Php` | Install PHP via Chocolatey, verify, track |
+| `php.ps1` | `Install-PhpMyAdmin` | Install phpMyAdmin via Chocolatey, track |
