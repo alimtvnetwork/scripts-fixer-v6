@@ -114,11 +114,13 @@ function Install-Gitmap {
         return $true
     }
 
-    Write-Log $LogMessages.messages.notFound -Level "warn"
+    Write-Log $LogMessages.messages.notFound -Level "info"
 
-    # Resolve install directory
+    # Resolve install directory FIRST -- log it prominently before anything else
     $installDir = Resolve-GitmapInstallDir -GitmapConfig $GitmapConfig -DevDirConfig $DevDirConfig
-    Write-Log ($LogMessages.messages.installDir -replace '\{path\}', $installDir) -Level "info"
+    Write-Host ""
+    Write-Log ($LogMessages.messages.installDir -replace '\{path\}', $installDir) -Level "success"
+    Write-Host ""
 
     Write-Log $LogMessages.messages.downloadingInstaller -Level "info"
 
