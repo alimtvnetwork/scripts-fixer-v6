@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.3] -- 2026-04-07
+
+**Added -List flag to run.ps1**
+
+### Added
+
+- `-List` flag on `run.ps1` that prints only the keyword-to-script-ID table for quick reference
+- `Show-KeywordTable` function for compact keyword listing
+
+---
+
 ## [v0.6.2] -- 2026-04-07
 
 **GitMap folder-specific install via devDir integration**
