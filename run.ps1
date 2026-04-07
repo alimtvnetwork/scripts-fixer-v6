@@ -452,6 +452,12 @@ if ($hasNoParams) {
     exit 0
 }
 
+# ── List (keyword table only) ────────────────────────────────────────
+if ($List) {
+    Show-KeywordTable
+    exit 0
+}
+
 # ── Help ─────────────────────────────────────────────────────────────
 if ($Help) {
     Show-RootHelp
