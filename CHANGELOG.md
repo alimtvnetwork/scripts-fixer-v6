@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.8] -- 2026-04-07
+
+**Notepad++ 3-variant installation modes with bundled settings zip**
+
+### Added
+
+- Three installation modes for script 33 (`NPP` = Notepad++):
+  - **NPP + Settings** (`install+settings`) -- install Notepad++ and extract settings (default)
+  - **NPP Settings** (`settings-only`) -- extract settings zip only, no install
+  - **Install NPP** (`install-only`) -- install only, no settings sync
+- Bundled `notepadpp-settings.zip` in `scripts/33-install-notepadpp/settings/` -- extracted to `%APPDATA%\Notepad++\` (full replace)
+- New keywords: `npp+settings`, `npp-settings`, `install-npp` with dedicated mode mappings
+- `modes` map in `install-keywords.json` -- keyword resolver sets `$env:NPP_MODE` per script invocation
+- Mode resolution chain: `-Mode` param > `$env:NPP_MODE` > default `install+settings`
+
+### Improved
+
+- `run.ps1` keyword resolver (`Resolve-InstallKeywords`) now reads `modes` map and injects env vars
+- Help tables and Available Scripts section updated with all NPP variant keywords
+- `spec/33-install-notepadpp/readme.md` rewritten with full 3-mode documentation
+
+---
+
 ## [v0.6.7] -- 2026-04-07
 
 **Notepad++ installer with settings sync**
