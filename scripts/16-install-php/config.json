@@ -12,5 +12,6 @@
     "name": "phpMyAdmin",
     "desc": "Web-based MySQL/MariaDB administration tool"
   },
-  "defaultMode": "php+phpmyadmin"
+  "defaultMode": "php+phpmyadmin",
+  "validModes": ["php+phpmyadmin", "php-only", "phpmyadmin-only"]
 }

@@ -324,6 +324,101 @@ function Test-StaleRefsInPowerShell {
 }
 
 # --------------------------------------------------------------------------
+#  Check 10: Keyword modes vs config.json validModes
+# --------------------------------------------------------------------------
+function Test-KeywordModes {
+    param(
+        [string]$RepoRoot,
+        $Registry,
+        $LogMessages
+    )
+
+    $issues = @()
+    $keywordsPath = Join-Path $RepoRoot "scripts\shared\install-keywords.json"
+    $isKeywordsMissing = -not (Test-Path $keywordsPath)
+    if ($isKeywordsMissing) {
+        $issues += "install-keywords.json not found"
+        Write-CheckResult -CheckName "Keyword modes vs config validModes" -Passed $false -Details $issues -LogMessages $LogMessages
+        return @{ Passed = $false; Issues = $issues }
+    }
+
+    $keywords = Get-Content $keywordsPath -Raw | ConvertFrom-Json
+    $hasModes = $null -ne $keywords.modes
+
+    if (-not $hasModes) {
+        Write-CheckResult -CheckName "Keyword modes vs config validModes" -Passed $true -Details @() -LogMessages $LogMessages
+        return @{ Passed = $true; Issues = @() }
+    }
+
+    # Build a map of scriptId -> validModes from each script's config.json
+    $validModesMap = @{}
+    $scriptsDir = Join-Path $RepoRoot "scripts"
+
+    foreach ($prop in $Registry.scripts.PSObject.Properties) {
+        $id = $prop.Name
+        $folder = $prop.Value
+        $configPath = Join-Path $scriptsDir "$folder\config.json"
+        $isConfigPresent = Test-Path $configPath
+        if ($isConfigPresent) {
+            $scriptConfig = Get-Content $configPath -Raw | ConvertFrom-Json
+            $hasValidModes = $null -ne $scriptConfig.validModes
+            if ($hasValidModes) {
+                $validModesMap[$id] = @($scriptConfig.validModes)
+            } else {
+                # Check nested config objects for validModes
+                foreach ($nested in $scriptConfig.PSObject.Properties) {
+                    $isObject = $nested.Value -is [PSCustomObject]
+                    if ($isObject) {
+                        $hasNestedModes = $null -ne $nested.Value.validModes
+                        if ($hasNestedModes) {
+                            $validModesMap[$id] = @($nested.Value.validModes)
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    # Validate each mode entry in keywords.modes
+    foreach ($prop in $keywords.modes.PSObject.Properties) {
+        $keyword = $prop.Name
+        $modeMap = $prop.Value
+
+        foreach ($modeProp in $modeMap.PSObject.Properties) {
+            $scriptId = $modeProp.Name
+            $modeValue = $modeProp.Value
+            $paddedId = $scriptId.PadLeft(2, '0')
+
+            # Check script exists in registry
+            $isInRegistry = $null -ne $Registry.scripts.$paddedId
+            if (-not $isInRegistry) {
+                $issues += "Keyword '$keyword': references script ID '$scriptId' not in registry"
+                continue
+            }
+
+            # Check mode value against validModes
+            $hasValidModes = $validModesMap.ContainsKey($paddedId)
+            if ($hasValidModes) {
+                $isValidMode = $modeValue -in $validModesMap[$paddedId]
+                if (-not $isValidMode) {
+                    $folder = $Registry.scripts.$paddedId
+                    $allowed = $validModesMap[$paddedId] -join ', '
+                    $issues += "Keyword '$keyword': mode '$modeValue' not in $folder/config.json validModes [$allowed]"
+                }
+            } else {
+                $folder = $Registry.scripts.$paddedId
+                $issues += "Keyword '$keyword': script '$folder' has no validModes in config.json"
+            }
+        }
+    }
+
+    $isPassed = $issues.Count -eq 0
+    Write-CheckResult -CheckName "Keyword modes vs config validModes" -Passed $isPassed -Details $issues -LogMessages $LogMessages
+    return @{ Passed = $isPassed; Issues = $issues }
+}
+
+# --------------------------------------------------------------------------
 #  Check 9: Verify database symlinks
 # --------------------------------------------------------------------------
 function Test-VerifySymlinks {

@@ -9,6 +9,7 @@
     "staleRefsSpecs": true,
     "staleRefsSuggestions": true,
     "staleRefsPowerShell": true,
+    "keywordModes": true,
     "verifySymlinks": true
   }
 }

@@ -11,6 +11,7 @@
     "name": "OBS Studio",
     "desc": "Free and open source software for video recording and live streaming",
     "syncSettings": true,
-    "defaultMode": "install+settings"
+    "defaultMode": "install+settings",
+    "validModes": ["install+settings", "settings-only", "install-only"]
   }
 }
