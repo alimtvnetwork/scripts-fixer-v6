@@ -1,6 +1,6 @@
 {
   "scriptName": "Install PHP",
-  "description": "Installs PHP via Chocolatey and verifies the installation.",
+  "description": "Installs PHP and/or phpMyAdmin via Chocolatey. Supports 3 modes.",
   "messages": {
     "notAdmin": "This script must be run as Administrator.",
     "scriptDisabled": "PHP installation is disabled in config.",
@@ -12,15 +12,29 @@
     "phpInstallSuccess": "PHP installed successfully: {version}",
     "phpInstallFailed": "Failed to install PHP: {error}",
     "phpNotInPath": "PHP installed but not found in PATH -- restart your terminal.",
-    "done": "PHP is installed and ready.",
+    "pmaChecking": "Checking for phpMyAdmin...",
+    "pmaFound": "phpMyAdmin already installed",
+    "pmaNotFound": "phpMyAdmin not found -- installing via Chocolatey...",
+    "pmaInstalling": "Installing phpMyAdmin via Chocolatey...",
+    "pmaInstallSuccess": "phpMyAdmin installed successfully",
+    "pmaInstallFailed": "Failed to install phpMyAdmin: {error}",
+    "pmaSkipped": "phpMyAdmin install skipped (php-only mode)",
+    "done": "PHP setup complete.",
     "completedWithWarnings": "Completed with some warnings -- check output above.",
-    "setupComplete": "PHP setup complete."
+    "setupComplete": "Setup complete."
   },
   "help": {
-    "commands": {},
+    "commands": {
+      "php+phpmyadmin": "Install PHP and phpMyAdmin (default)",
+      "php-only": "Install PHP only",
+      "phpmyadmin-only": "Install phpMyAdmin only"
+    },
     "examples": [
-      ".\\run.ps1",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 install php",
+      ".\\run.ps1 install php+phpmyadmin",
+      ".\\run.ps1 install phpmyadmin",
+      ".\\run.ps1 -I 16",
+      ".\\run.ps1 -I 16 -- -Mode php-only"
     ]
   }
 }

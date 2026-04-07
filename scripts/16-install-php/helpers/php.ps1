@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    PHP install helper for script 16.
+    PHP + phpMyAdmin install helpers for script 16.
 #>
 
 $_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
@@ -60,11 +60,13 @@ function Install-Php {
         $isInstalled = Install-ChocoPackage -PackageName $Config.chocoPackage
         $hasInstallFailed = -not $isInstalled
         if ($hasInstallFailed) {
+            Write-FileError -FilePath "php.exe" -Operation "resolve" -Reason "Chocolatey install returned failure for '$($Config.chocoPackage)'" -Module "Install-Php"
             Write-Log ($LogMessages.messages.phpInstallFailed -replace '\{error\}', "Chocolatey install returned failure") -Level "error"
             Save-InstalledError -Name "php" -ErrorMessage "Chocolatey install returned failure"
             return $false
         }
     } catch {
+        Write-FileError -FilePath "php.exe" -Operation "install" -Reason "$_" -Module "Install-Php"
         Write-Log ($LogMessages.messages.phpInstallFailed -replace '\{error\}', $_) -Level "error"
         Save-InstalledError -Name "php" -ErrorMessage "$_"
         return $false
@@ -92,4 +94,70 @@ function Install-Php {
         Write-Log $LogMessages.messages.phpNotInPath -Level "warn"
         return $false
     }
+}
+
+# --------------------------------------------------------------------------
+#  phpMyAdmin installer
+# --------------------------------------------------------------------------
+function Install-PhpMyAdmin {
+    param(
+        [Parameter(Mandatory)] $PmaConfig,
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+    $isDisabled = -not $PmaConfig.enabled
+    if ($isDisabled) {
+        Write-Log "phpMyAdmin is disabled in config -- skipping" -Level "info"
+        return $true
+    }
+
+    Write-Log $msgs.pmaChecking -Level "info"
+
+    # Check if already installed via Chocolatey
+    $chocoList = & choco.exe list --local-only 2>&1 | Select-String -Pattern "^phpmyadmin\s" -ErrorAction SilentlyContinue
+    $isAlreadyInstalled = $null -ne $chocoList
+    if ($isAlreadyInstalled) {
+        Write-Log $msgs.pmaFound -Level "success"
+        Save-InstalledRecord -Name "phpmyadmin" -Version "installed" -Method "chocolatey"
+        return $true
+    }
+
+    # Also check common paths
+    $pmaPaths = @(
+        "$env:ProgramData\chocolatey\lib\phpmyadmin",
+        "C:\tools\phpmyadmin"
+    )
+    foreach ($p in $pmaPaths) {
+        $isPresent = Test-Path $p
+        if ($isPresent) {
+            Write-Log $msgs.pmaFound -Level "success"
+            Save-InstalledRecord -Name "phpmyadmin" -Version "installed" -Method "chocolatey"
+            return $true
+        }
+    }
+
+    Write-Log $msgs.pmaNotFound -Level "info"
+    Write-Host ""
+    Write-Log $msgs.pmaInstalling -Level "info"
+
+    try {
+        $isInstalled = Install-ChocoPackage -PackageName $PmaConfig.chocoPackage
+        $hasInstallFailed = -not $isInstalled
+        if ($hasInstallFailed) {
+            Write-FileError -FilePath "phpmyadmin" -Operation "install" -Reason "Chocolatey install returned failure for '$($PmaConfig.chocoPackage)'" -Module "Install-PhpMyAdmin"
+            Write-Log ($msgs.pmaInstallFailed -replace '\{error\}', "Install returned failure") -Level "error"
+            Save-InstalledError -Name "phpmyadmin" -ErrorMessage "Chocolatey install returned failure"
+            return $false
+        }
+    } catch {
+        Write-FileError -FilePath "phpmyadmin" -Operation "install" -Reason "$_" -Module "Install-PhpMyAdmin"
+        Write-Log ($msgs.pmaInstallFailed -replace '\{error\}', $_) -Level "error"
+        Save-InstalledError -Name "phpmyadmin" -ErrorMessage "$_"
+        return $false
+    }
+
+    Write-Log $msgs.pmaInstallSuccess -Level "success"
+    Save-InstalledRecord -Name "phpmyadmin" -Version "latest" -Method "chocolatey"
+    return $true
 }

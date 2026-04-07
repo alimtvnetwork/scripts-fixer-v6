@@ -5,5 +5,12 @@
     "chocoPackage": "php",
     "verifyCommand": "php",
     "versionFlag": "--version"
-  }
+  },
+  "phpmyadmin": {
+    "enabled": true,
+    "chocoPackage": "phpmyadmin",
+    "name": "phpMyAdmin",
+    "desc": "Web-based MySQL/MariaDB administration tool"
+  },
+  "defaultMode": "php+phpmyadmin"
 }
