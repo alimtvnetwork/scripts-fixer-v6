@@ -189,6 +189,9 @@ function Show-RootHelp {
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
+    Write-Host "    obs-settings         OBS Settings (settings only)    36"
+    Write-Host "    install-obs          Install OBS (install only)      36"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
@@ -306,6 +309,9 @@ function Show-KeywordTable {
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
+    Write-Host "    obs-settings         OBS Settings (settings only)    36"
+    Write-Host "    install-obs          Install OBS (install only)      36"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
