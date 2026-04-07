@@ -185,6 +185,7 @@ function Show-RootHelp {
     Write-Host "    npp+settings         NPP + Settings (explicit)       33"
     Write-Host "    npp-settings         NPP Settings (settings only)    33"
     Write-Host "    install-npp          Install NPP (install only)      33"
+    Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
@@ -221,6 +222,7 @@ function Show-RootHelp {
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
     Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
+    Write-Host "    34  Simple Sticky Notes           " -NoNewline; Write-Host "Install Simple Sticky Notes via Chocolatey" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
