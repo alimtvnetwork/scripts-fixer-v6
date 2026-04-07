@@ -96,6 +96,11 @@
     "sticky-notes":      [34],
     "stickynotes":       [34],
     "sticky":            [34],
+    "obs":               [36],
+    "obs-studio":        [36],
+    "obs+settings":      [36],
+    "obs-settings":      [36],
+    "install-obs":       [36],
     "vscode+settings":   [1, 11],
     "vscode+s":          [1, 11],
     "vscode+menu+settings": [1, 10, 11],
@@ -124,6 +129,11 @@
     "php+phpmyadmin":    { "16": "php+phpmyadmin" },
     "phpmyadmin":        { "16": "phpmyadmin-only" },
     "php-only":          { "16": "php-only" },
-    "phpmyadmin-only":   { "16": "phpmyadmin-only" }
+    "phpmyadmin-only":   { "16": "phpmyadmin-only" },
+    "obs":               { "36": "install+settings" },
+    "obs-studio":        { "36": "install+settings" },
+    "obs+settings":      { "36": "install+settings" },
+    "obs-settings":      { "36": "settings-only" },
+    "install-obs":       { "36": "install-only" }
   }
 }

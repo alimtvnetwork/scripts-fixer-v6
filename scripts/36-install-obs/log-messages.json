@@ -1,0 +1,34 @@
+{
+  "scriptName": "install-obs",
+  "description": "Installs OBS Studio via Chocolatey and/or syncs bundled settings. Supports 3 modes.",
+  "messages": {
+    "notAdmin": "This script requires admin privileges. Please run as Administrator.",
+    "checking": "Checking for OBS Studio...",
+    "alreadyInstalled": "OBS Studio already installed: {version}",
+    "notFound": "OBS Studio not found -- will install now",
+    "installing": "Installing OBS Studio via Chocolatey...",
+    "installSuccess": "OBS Studio installed successfully",
+    "installFailed": "OBS Studio install failed: {error}",
+    "syncingSettings": "Syncing OBS settings to %APPDATA%\\obs-studio...",
+    "settingsSynced": "OBS settings synced to {path}",
+    "settingsSkipped": "No OBS settings bundle found in script folder -- skipping sync",
+    "setupComplete": "OBS Studio setup complete",
+    "disabled": "OBS Studio install is disabled in config"
+  },
+  "help": {
+    "commands": {
+      "install+settings": "Install OBS Studio and sync settings (default)",
+      "settings-only": "Sync settings only (no install)",
+      "install-only": "Install OBS Studio only (no settings sync)"
+    },
+    "examples": [
+      ".\\run.ps1 install obs",
+      ".\\run.ps1 install obs+settings",
+      ".\\run.ps1 install obs-settings",
+      ".\\run.ps1 install install-obs",
+      ".\\run.ps1 -I 36",
+      ".\\run.ps1 -I 36 -- -Mode settings-only",
+      ".\\run.ps1 -I 36 -- -Mode install-only"
+    ]
+  }
+}

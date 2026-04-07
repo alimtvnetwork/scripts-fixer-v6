@@ -189,6 +189,9 @@ function Show-RootHelp {
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
+    Write-Host "    obs-settings         OBS Settings (settings only)    36"
+    Write-Host "    install-obs          Install OBS (install only)      36"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
@@ -238,6 +241,7 @@ function Show-RootHelp {
     Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
     Write-Host "    34  Simple Sticky Notes           " -NoNewline; Write-Host "Install Simple Sticky Notes via Chocolatey" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
+    Write-Host "    36  OBS Studio                     " -NoNewline; Write-Host "Install OBS, OBS Settings, or OBS + Settings" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
@@ -306,6 +310,9 @@ function Show-KeywordTable {
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
+    Write-Host "    obs-settings         OBS Settings (settings only)    36"
+    Write-Host "    install-obs          Install OBS (install only)      36"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
@@ -694,6 +701,7 @@ if ($hasInstallKeywords) {
     $modeEnvVars = @{
         33 = "NPP_MODE"
         16 = "PHP_MODE"
+        36 = "OBS_MODE"
     }
 
     foreach ($entry in $resolvedEntries) {
