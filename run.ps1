@@ -526,6 +526,8 @@ if ($hasInstallKeywords) {
     $isResolveFailed = $null -eq $scriptIds
     if ($isResolveFailed) { exit 1 }
 
+    $resolvedModes = $script:_resolvedModes
+
     $totalScripts = $scriptIds.Count
     Write-Host ""
     Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
