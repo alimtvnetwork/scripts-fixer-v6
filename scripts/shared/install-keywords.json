@@ -139,6 +139,11 @@
     "obs-studio":        { "36": "install+settings" },
     "obs+settings":      { "36": "install+settings" },
     "obs-settings":      { "36": "settings-only" },
-    "install-obs":       { "36": "install-only" }
+    "install-obs":       { "36": "install-only" },
+    "windows-terminal":  { "37": "install+settings" },
+    "wt":                { "37": "install+settings" },
+    "wt+settings":       { "37": "install+settings" },
+    "wt-settings":       { "37": "settings-only" },
+    "install-wt":        { "37": "install-only" }
   }
 }
