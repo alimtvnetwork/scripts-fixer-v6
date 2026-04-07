@@ -2,7 +2,7 @@
 
 ## Overview
 
-Script 35 installs the **GitMap CLI** -- a Git repository navigator tool for Windows. It uses the remote installer from GitHub (`alimtvnetwork/git-repo-navigator`).
+Script 35 installs the **GitMap CLI** -- a Git repository navigator tool for Windows. It uses the remote installer from GitHub (`alimtvnetwork/gitmap-v2`).
 
 ## Install Command
 
@@ -12,7 +12,7 @@ Script 35 installs the **GitMap CLI** -- a Git repository navigator tool for Win
 .\run.ps1 -I 35
 
 # Direct remote install (standalone)
-irm https://raw.githubusercontent.com/alimtvnetwork/git-repo-navigator/main/gitmap/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v2/main/gitmap/scripts/install.ps1 | iex
 ```
 
 ## Config (`config.json`)
