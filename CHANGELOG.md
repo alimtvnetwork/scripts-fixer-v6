@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.5] -- 2026-04-07
+
+**Fixed logging: warnings no longer cause false fail status + improved drive detection + one-line summary**
+
+### Fixed
+
+- `_LogErrors` was tracking both warnings and errors, causing scripts with harmless warnings to report `overallStatus: "fail"` -- now only actual errors trigger fail
+- Split warning tracking into separate `_LogWarnings` collection in `logging.ps1`
+- Drives reporting 0 GB free (phantom/card reader drives) now logged as `info` instead of `warn`, preventing false warning noise
+
+### Added
+
+- One-line copy-paste-friendly summary printed at end of every script run (e.g. `[install-gitmap] Status: ok | Duration: 1.7s`)
+- Error details printed with `>>` prefix for quick scanning when failures occur
+- `warnCount` field added to main log JSON output
+
+---
+
 ## [v0.6.4] -- 2026-04-07
 
 **Updated root-dispatcher spec with -List flag documentation**
