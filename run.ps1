@@ -448,15 +448,107 @@ function Invoke-ScriptById {
     return $true
 }
 
+# ── Choco Update function ────────────────────────────────────────────
+function Invoke-ChocoUpdate {
+    <#
+    .SYNOPSIS
+        Lists all installed Chocolatey packages, confirms with user, then
+        runs choco upgrade all.
+    #>
+
+    # Ensure Chocolatey is available
+    $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
+    $isChocoMissing = -not $chocoCmd
+    if ($isChocoMissing) {
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Chocolatey is not installed. Run .\run.ps1 install choco first."
+        return
+    }
+
+    Write-Host ""
+    Write-Host "  Chocolatey Package Update" -ForegroundColor Cyan
+    Write-Host "  =========================" -ForegroundColor DarkGray
+    Write-Host ""
+
+    # List installed packages
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "Listing installed Chocolatey packages..."
+    Write-Host ""
+
+    $installedRaw = & choco.exe list --local-only 2>&1
+    $packageLines = @($installedRaw | Where-Object {
+        $line = $_.ToString().Trim()
+        $isNotEmpty = $line.Length -gt 0
+        $isNotSummary = $line -notmatch '^\d+ packages installed'
+        $isNotHeader = $line -notmatch '^Chocolatey v'
+        $isNotEmpty -and $isNotSummary -and $isNotHeader
+    })
+
+    $packageCount = $packageLines.Count
+    if ($packageCount -eq 0) {
+        Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+        Write-Host "No Chocolatey packages found."
+        return
+    }
+
+    Write-Host "    Package                              Version" -ForegroundColor DarkGray
+    Write-Host "    -------------------------------------  --------------------" -ForegroundColor DarkGray
+    foreach ($line in $packageLines) {
+        $parts = $line.ToString().Trim() -split '\s+'
+        $pkgName = if ($parts.Count -ge 1) { $parts[0] } else { $line }
+        $pkgVer  = if ($parts.Count -ge 2) { $parts[1] } else { "" }
+        Write-Host "    $($pkgName.PadRight(41))" -NoNewline
+        Write-Host "$pkgVer" -ForegroundColor Yellow
+    }
+
+    Write-Host ""
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "$packageCount package(s) installed"
+    Write-Host ""
+
+    # Confirm
+    $confirm = Read-Host "  Do you want to upgrade ALL packages? [Y/n]"
+    $isAborted = $confirm.Trim().ToUpper() -eq "N"
+    if ($isAborted) {
+        Write-Host "  [ SKIP ] Update cancelled by user." -ForegroundColor Yellow
+        return
+    }
+
+    Write-Host ""
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "Running: choco upgrade all -y"
+    Write-Host ""
+
+    try {
+        & choco.exe upgrade all -y
+        $hasUpgradeFailed = $LASTEXITCODE -ne 0
+        if ($hasUpgradeFailed) {
+            Write-Host ""
+            Write-Host "  [ WARN ] " -ForegroundColor Yellow -NoNewline
+            Write-Host "Some packages may have failed to upgrade (exit code: $LASTEXITCODE)"
+        } else {
+            Write-Host ""
+            Write-Host "  [  OK  ] " -ForegroundColor Green -NoNewline
+            Write-Host "All packages upgraded successfully"
+        }
+    } catch {
+        Write-Host ""
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Upgrade failed: $_"
+    }
+}
+
 # ── Normalize positional command mode ────────────────────────────────
 # Supports:  .\run.ps1 install alldev,mysql
 #             .\run.ps1 install alldev mysql
 #             .\run.ps1 -Install alldev,mysql
+#             .\run.ps1 update
 $normalizedCommand = ""
 $hasCommand = -not [string]::IsNullOrWhiteSpace($Command)
 if ($hasCommand) {
     $normalizedCommand = $Command.Trim().ToLower()
     $isBareInstallCommand = $normalizedCommand -eq "install"
+    $isBareUpdateCommand  = $normalizedCommand -eq "update" -or $normalizedCommand -eq "choco-update" -or $normalizedCommand -eq "upgrade"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
     if ($isBareInstallCommand) {
@@ -470,6 +562,9 @@ if ($hasCommand) {
             Write-Host "  Run .\run.ps1 -Help to see all available keywords" -ForegroundColor Cyan
             exit 1
         }
+    } elseif ($isBareUpdateCommand) {
+        Invoke-ChocoUpdate
+        exit 0
     } elseif ($isBareScriptId) {
         $I = [int]$normalizedCommand
     } else {
