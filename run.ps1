@@ -694,6 +694,7 @@ if ($hasInstallKeywords) {
     $modeEnvVars = @{
         33 = "NPP_MODE"
         16 = "PHP_MODE"
+        36 = "OBS_MODE"
     }
 
     foreach ($entry in $resolvedEntries) {
