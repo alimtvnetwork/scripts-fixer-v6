@@ -672,16 +672,24 @@ if ($hasInstallKeywords) {
     $successCount = 0
     $failCount    = 0
 
+    # Map script IDs to their mode env var names
+    $modeEnvVars = @{
+        33 = "NPP_MODE"
+        16 = "PHP_MODE"
+    }
+
     foreach ($entry in $resolvedEntries) {
         $id      = $entry.Id
         $modeKey = $entry.Mode
         $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
-        if ($hasModeOverride) {
-            $env:NPP_MODE = $modeKey
+        $envVarName = $modeEnvVars[$id]
+        $hasEnvVar  = $null -ne $envVarName
+        if ($hasModeOverride -and $hasEnvVar) {
+            Set-Item "Env:\$envVarName" $modeKey
         }
         $result = Invoke-ScriptById -ScriptId $id
-        if ($hasModeOverride) {
-            Remove-Item Env:\NPP_MODE -ErrorAction SilentlyContinue
+        if ($hasModeOverride -and $hasEnvVar) {
+            Remove-Item "Env:\$envVarName" -ErrorAction SilentlyContinue
         }
         if ($result) { $successCount++ } else { $failCount++ }
     }
