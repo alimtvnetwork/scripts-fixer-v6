@@ -68,6 +68,10 @@ param(
 
     [switch]$t,
 
+    [Alias("D")][switch]$Defaults,
+
+    [switch]$Y,
+
     [switch]$Merge,
 
     [switch]$Clean,
@@ -98,6 +102,8 @@ function Show-RootHelp {
     Write-Host "    $(".\run.ps1 -v".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -w".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -t".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Defaults (-D)".PadRight($col))" -NoNewline; Write-Host "Use all defaults, prompt to confirm" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Defaults -Y".PadRight($col))" -NoNewline; Write-Host "Use all defaults, skip confirmation" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Merge".PadRight($col))" -NoNewline; Write-Host "Run with merge flag (script 02)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Clean".PadRight($col))" -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -CleanOnly".PadRight($col))" -NoNewline; Write-Host "Wipe all cached data" -ForegroundColor DarkGray
@@ -171,6 +177,7 @@ function Show-RootHelp {
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
     Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
+    Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
