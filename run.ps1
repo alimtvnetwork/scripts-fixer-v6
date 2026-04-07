@@ -68,6 +68,10 @@ param(
 
     [switch]$t,
 
+    [Alias("D")][switch]$Defaults,
+
+    [switch]$Y,
+
     [switch]$Merge,
 
     [switch]$Clean,
@@ -98,6 +102,8 @@ function Show-RootHelp {
     Write-Host "    $(".\run.ps1 -v".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 1  (install VS Code)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -w".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 14 (install Winget)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -t".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 15 (Windows tweaks)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Defaults (-D)".PadRight($col))" -NoNewline; Write-Host "Use all defaults, prompt to confirm" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -Defaults -Y".PadRight($col))" -NoNewline; Write-Host "Use all defaults, skip confirmation" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Merge".PadRight($col))" -NoNewline; Write-Host "Run with merge flag (script 02)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number> -Clean".PadRight($col))" -NoNewline; Write-Host "Wipe cache, then run" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -CleanOnly".PadRight($col))" -NoNewline; Write-Host "Wipe all cached data" -ForegroundColor DarkGray
@@ -171,6 +177,7 @@ function Show-RootHelp {
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
     Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
+    Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
@@ -205,12 +212,22 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
+    Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I 12                         " -NoNewline; Write-Host "Interactive menu -- pick what to install" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -All                 " -NoNewline; Write-Host "Install everything without prompting" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -Skip 04,06          " -NoNewline; Write-Host "Skip pnpm and Go" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -I 12 -- -Only 02,03          " -NoNewline; Write-Host "Run only Package Managers + Node.js" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Defaults Mode:" -ForegroundColor Yellow
+    Write-Host "    .\run.ps1 -d -Defaults                  " -NoNewline; Write-Host "All-dev with defaults, prompt to confirm" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -d -Defaults -Y               " -NoNewline; Write-Host "All-dev with defaults, auto-confirm" -ForegroundColor DarkGray
+    Write-Host "    .\run.ps1 -d -D -Y                      " -NoNewline; Write-Host "Short form: -D is alias for -Defaults" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Default dev directory: " -NoNewline -ForegroundColor DarkGray; Write-Host "C:\DevTools" -ForegroundColor White
+    Write-Host "    Default VS Code edition: " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
+    Write-Host "    Default sync mode: " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
     Write-Host ""
     Write-Host "  Per-script help:" -ForegroundColor Yellow
     Write-Host "    .\run.ps1 -I <number> -- -Help          " -NoNewline; Write-Host "Show help for a specific script" -ForegroundColor DarkGray
@@ -374,7 +391,7 @@ if ($hasCommand) {
 
 # ── No params = git pull + help ──────────────────────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
-$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean
+$hasNoParams = -not $hasCommand -and -not $I -and -not $hasInstallKeywords -and -not $d -and -not $a -and -not $h -and -not $v -and -not $w -and -not $t -and -not $Help -and -not $CleanOnly -and -not $Clean -and -not $Defaults
 if ($hasNoParams) {
     Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
     $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
@@ -479,6 +496,8 @@ if ($v) { $I = 1 }
 if ($w) { $I = 14 }
 if ($t) { $I = 15 }
 if ($h) { $I = 13; $scriptArgs = @{ "Report" = $true } }
+# -Defaults without -I defaults to all-dev (script 12)
+if ($Defaults -and -not $I) { $I = 12 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
@@ -494,6 +513,25 @@ if ($isMissingParam) {
 $isScriptArgsUndefined = -not (Test-Path variable:scriptArgs) -or $null -eq $scriptArgs
 if ($isScriptArgsUndefined) { $scriptArgs = @{} }
 if ($Merge) { $scriptArgs["Merge"] = $true }
+if ($Defaults) { $scriptArgs["Defaults"] = $true }
+
+# ── -Defaults -Y confirmation logic ──────────────────────────────────
+if ($Defaults -and -not $Y) {
+    Write-Host ""
+    Write-Host "  Defaults Mode" -ForegroundColor Cyan
+    Write-Host "  =============" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    Dev directory     : " -NoNewline -ForegroundColor DarkGray; Write-Host "auto (C:\DevTools)" -ForegroundColor White
+    Write-Host "    VS Code edition   : " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
+    Write-Host "    Settings sync     : " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
+    Write-Host ""
+    $confirm = Read-Host "  Proceed with these defaults? [Y/n]"
+    $isAborted = $confirm.Trim().ToUpper() -eq "N"
+    if ($isAborted) {
+        Write-Host "  [ SKIP ] Aborted by user." -ForegroundColor Yellow
+        exit 0
+    }
+}
 
 $result = Invoke-ScriptById -ScriptId $I -ExtraArgs $scriptArgs
 

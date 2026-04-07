@@ -52,7 +52,8 @@
     "28": { "enabled": true, "folder": "28-install-duckdb",           "name": "DuckDB",                "desc": "Analytical file-based columnar database" },
     "29": { "enabled": true, "folder": "29-install-litedb",           "name": "LiteDB",                "desc": ".NET embedded NoSQL file-based database" },
     "31": { "enabled": true, "folder": "31-pwsh-context-menu",       "name": "PowerShell Context Menu", "desc": "Add PowerShell right-click context menu (normal + admin)" },
-    "32": { "enabled": true, "folder": "32-install-dbeaver",         "name": "DBeaver Community",     "desc": "Universal database visualization and management tool" }
+    "32": { "enabled": true, "folder": "32-install-dbeaver",         "name": "DBeaver Community",     "desc": "Universal database visualization and management tool" },
+    "35": { "enabled": true, "folder": "35-install-gitmap",          "name": "GitMap",                "desc": "Git repository navigator CLI tool" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "35"]
 }
