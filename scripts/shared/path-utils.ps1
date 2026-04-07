@@ -67,6 +67,7 @@ function Add-ToUserPath {
         Write-Log ($slm.messages.pathAddedToUser -replace '\{path\}', $Directory) -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $Directory -Operation "write" -Reason "Failed to update user PATH: $_" -Module "Add-ToUserPath"
         Write-Log ($slm.messages.pathUserUpdateFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
@@ -102,6 +103,7 @@ function Add-ToMachinePath {
         Write-Log ($slm.messages.pathAddedToMachine -replace '\{path\}', $Directory) -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $Directory -Operation "write" -Reason "Failed to update machine PATH: $_" -Module "Add-ToMachinePath"
         Write-Log ($slm.messages.pathMachineUpdateFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }

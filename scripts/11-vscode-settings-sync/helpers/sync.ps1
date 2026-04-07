@@ -58,6 +58,7 @@ function Resolve-SourceFiles {
                 Write-Log ($LogMessages.messages.extensionsExtracted -replace '\{count\}', $result.Extensions.Count) -Level "success"
             }
         } catch {
+            Write-FileError -FilePath $profilePath -Operation "read" -Reason "Failed to parse .code-profile JSON: $_" -Module "Resolve-SourceFiles"
             Write-Log ($LogMessages.messages.profileParseFailed -replace '\{error\}', $_) -Level "error"
             Write-Log $LogMessages.messages.profileFallback -Level "warn"
         }
@@ -73,6 +74,7 @@ function Resolve-SourceFiles {
             $result.Settings = $settingsPath
             Write-Log $LogMessages.messages.settingsJsonFound -Level "success"
         } else {
+            Write-FileError -FilePath $settingsPath -Operation "read" -Reason "File does not exist -- no settings.json found in script directory" -Module "Resolve-SourceFiles"
             Write-Log $LogMessages.messages.settingsJsonMissing -Level "error"
         }
     }
@@ -146,6 +148,7 @@ function Apply-Settings {
         Write-Log $LogMessages.messages.settingsApplied -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $SourcePath -Operation "copy" -Reason "Failed to copy settings to '$DestPath': $_" -Module "Apply-Settings"
         Write-Log ($LogMessages.messages.settingsCopyFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
@@ -170,6 +173,7 @@ function Apply-Keybindings {
         Write-Log $LogMessages.messages.keybindingsApplied -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $SourcePath -Operation "copy" -Reason "Failed to copy keybindings to '$DestPath': $_" -Module "Apply-Keybindings"
         Write-Log ($LogMessages.messages.keybindingsCopyFailed -replace '\{error\}', $_) -Level "error"
         return $false
     }
@@ -297,6 +301,7 @@ function Invoke-Edition {
     if ($isSettingsPresent) {
         Write-Log ($LogMessages.messages.settingsPresent -replace '\{path\}', $destSettings) -Level "success"
     } else {
+        Write-FileError -FilePath $destSettings -Operation "resolve" -Reason "settings.json not found after apply -- expected at target path" -Module "Invoke-Edition"
         Write-Log ($LogMessages.messages.settingsMissing -replace '\{path\}', $destSettings) -Level "error"
         $isAllOk = $false
     }

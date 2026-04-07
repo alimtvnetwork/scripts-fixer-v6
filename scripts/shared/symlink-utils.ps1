@@ -99,6 +99,8 @@ function New-DbSymlink {
     $actualDir = Resolve-DbInstallDir -VerifyCommand $VerifyCommand
     $hasNoActualDir = -not $actualDir -or -not (Test-Path $actualDir)
     if ($hasNoActualDir) {
+        $resolvedPath = if ($actualDir) { $actualDir } else { "(could not resolve from command: $VerifyCommand)" }
+        Write-FileError -FilePath $resolvedPath -Operation "resolve" -Reason "Install directory does not exist or could not be resolved from verify command '$VerifyCommand'" -Module "New-DbSymlink"
         Write-Log ($slm.messages.symlinkSourceNotFound -replace '\{name\}', $Name) -Level "warn"
         return $false
     }
@@ -141,6 +143,7 @@ function New-DbSymlink {
         Write-Log ($slm.messages.symlinkCreated -replace '\{name\}', $Name -replace '\{link\}', $junctionPath -replace '\{target\}', $actualDir) -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $junctionPath -Operation "write" -Reason "Failed to create junction to '$actualDir': $($_.Exception.Message)" -Module "New-DbSymlink"
         Write-Log ($slm.messages.symlinkFailed -replace '\{name\}', $Name -replace '\{error\}', $_.Exception.Message) -Level "error"
         return $false
     }

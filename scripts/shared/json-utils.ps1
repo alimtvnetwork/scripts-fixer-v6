@@ -34,6 +34,7 @@ function Backup-File {
             Write-Log ($slm.messages.backupCreated -replace '\{name\}', $backupName) -Level "success"
             return $true
         } catch {
+            Write-FileError -FilePath $FilePath -Operation "copy" -Reason "Backup copy failed: $_" -Module "Backup-File"
             Write-Log ($slm.messages.backupFailed -replace '\{name\}', $name -replace '\{error\}', $_) -Level "error"
             return $false
         }

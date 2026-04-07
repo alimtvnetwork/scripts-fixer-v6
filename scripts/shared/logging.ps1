@@ -91,6 +91,59 @@ function Write-Log {
     }
 }
 
+function Write-FileError {
+    <#
+    .SYNOPSIS
+        CODE RED: Logs a file/path error with exact path, operation, and failure reason.
+        All file-related errors in the project MUST use this helper.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+
+        [Parameter(Mandatory)]
+        [ValidateSet("read", "write", "copy", "move", "inject", "load", "extract", "resolve")]
+        [string]$Operation,
+
+        [Parameter(Mandatory)]
+        [string]$Reason,
+
+        [string]$Module,
+
+        [string]$Fallback
+    )
+
+    # Auto-detect module from call stack if not provided
+    $isModuleMissing = [string]::IsNullOrWhiteSpace($Module)
+    if ($isModuleMissing) {
+        $caller = (Get-PSCallStack)[1]
+        $Module = if ($caller.ScriptName) { Split-Path -Leaf $caller.ScriptName } else { "unknown" }
+    }
+
+    $msg = "[CODE RED] File error during ${Operation}: ${FilePath} -- Reason: ${Reason} [Module: ${Module}]"
+    $hasFallback = -not [string]::IsNullOrWhiteSpace($Fallback)
+    if ($hasFallback) {
+        $msg += " -- Fallback: ${Fallback}"
+    }
+
+    Write-Log $msg -Level "error"
+
+    # Record structured file-error event
+    $fileErrorEvent = @{
+        timestamp = (Get-Date -Format "o")
+        level     = "fail"
+        type      = "file-error"
+        filePath  = $FilePath
+        operation = $Operation
+        reason    = $Reason
+        module    = $Module
+        fallback  = if ($hasFallback) { $Fallback } else { $null }
+        message   = $msg
+    }
+    $script:_LogEvents.Add($fileErrorEvent) | Out-Null
+    $script:_LogErrors.Add($fileErrorEvent) | Out-Null
+}
+
 function Write-Banner {
     param(
         [Parameter(Position = 0)]
@@ -258,6 +311,7 @@ function Import-JsonConfig {
 
     $isFileMissing = -not (Test-Path $FilePath)
     if ($isFileMissing) {
+        Write-FileError -FilePath $FilePath -Operation "load" -Reason "File does not exist" -Module "Import-JsonConfig"
         if ($hasSharedLogs) {
             Write-Log ($slm.messages.importNotFound -replace '\{label\}', $Label -replace '\{path\}', $FilePath) -Level "error"
         }

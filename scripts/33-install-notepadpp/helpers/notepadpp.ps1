@@ -88,6 +88,8 @@ function Install-NotepadPP {
     }
 
     if (-not $installedPath) {
+        $checkedPaths = $verifyPaths -join ", "
+        Write-FileError -FilePath $checkedPaths -Operation "resolve" -Reason "notepad++.exe not found after Chocolatey install -- checked: $checkedPaths" -Module "Install-NotepadPP"
         Write-Log ($msgs.installFailed -replace '\{error\}', "notepad++.exe not found after install") -Level "error"
         return $false
     }
@@ -135,6 +137,7 @@ function Sync-NotepadPPSettings {
             Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
             return $true
         } catch {
+            Write-FileError -FilePath $zipFile -Operation "extract" -Reason "Failed to extract settings zip to '$appDataDir': $_" -Module "Sync-NotepadPPSettings"
             Write-Log "Failed to extract settings zip: $_" -Level "error"
             return $false
         }
@@ -142,12 +145,14 @@ function Sync-NotepadPPSettings {
 
     # -- Fallback: loose files in settings/ ----------------------------
     if (-not (Test-Path $settingsSource)) {
+        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "Settings source directory does not exist" -Module "Sync-NotepadPPSettings"
         Write-Log $msgs.settingsSkipped -Level "info"
         return $false
     }
 
     $settingsFiles = Get-ChildItem -Path $settingsSource -File -Exclude "*.zip" -ErrorAction SilentlyContinue
     if ($settingsFiles.Count -eq 0) {
+        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "No settings files found in source directory (excluding .zip)" -Module "Sync-NotepadPPSettings"
         Write-Log $msgs.settingsSkipped -Level "info"
         return $false
     }
