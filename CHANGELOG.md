@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.4] -- 2026-04-07
+
+**Updated root-dispatcher spec with -List flag documentation**
+
+### Docs
+
+- Added `-List` flag to parameters table in `spec/root-dispatcher/readme.md`
+- Updated execution flow to include `-List` check before `-Help` and `-Clean`
+- Added `-List` usage example to spec
+
+---
+
 ## [v0.6.3] -- 2026-04-07
 
 **Added -List flag to run.ps1**
