@@ -133,6 +133,7 @@ function Install-Gitmap {
         & $scriptBlock -InstallDir $installDir
 
     } catch {
+        Write-FileError -FilePath $installDir -Operation "inject" -Reason "Remote installer script failed: $($_.Exception.Message)" -Module "Install-Gitmap"
         Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', $_.Exception.Message) -Level "error"
         return $false
     }
