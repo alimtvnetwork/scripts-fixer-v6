@@ -12,6 +12,7 @@
     "notInPath": "GitMap installed but not found in PATH (may need shell restart)",
     "setupComplete": "GitMap setup complete",
     "disabled": "GitMap install is disabled in config",
+    "installDir": "GitMap install directory: {path}",
     "downloadingInstaller": "Downloading GitMap installer from GitHub...",
     "runningInstaller": "Running GitMap installer..."
   },
