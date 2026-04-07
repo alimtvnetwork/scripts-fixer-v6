@@ -124,57 +124,75 @@ function Sync-OBSSettings {
     )
 
     $msgs = $LogMessages.messages
-    $scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName)
-    $settingsSource = Join-Path $scriptDir "settings"
-    $zipFile = Join-Path $settingsSource "obs-settings.zip"
+    $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName))
+    $settingsSource = Join-Path $repoRoot "settings\02 - obs-settings"
 
-    # -- Target: %APPDATA%\obs-studio ----------------------------------
+    # -- Target dirs: %APPDATA%\obs-studio\basic\{scenes,profiles} -----
     $appDataDir = Join-Path $env:APPDATA "obs-studio"
+    $scenesDir  = Join-Path $appDataDir "basic\scenes"
+    $profilesDir = Join-Path $appDataDir "basic\profiles"
     Write-Log "Settings target: $appDataDir" -Level "info"
 
-    # -- Check for zip -------------------------------------------------
-    if (Test-Path $zipFile) {
-        Write-Log $msgs.syncingSettings -Level "info"
-
-        if (-not (Test-Path $appDataDir)) {
-            New-Item -Path $appDataDir -ItemType Directory -Force | Out-Null
-        }
-
-        try {
-            Expand-Archive -Path $zipFile -DestinationPath $appDataDir -Force
-            Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
-            return $true
-        } catch {
-            Write-FileError -FilePath $zipFile -Operation "extract" -Reason "Failed to extract OBS settings zip to '$appDataDir': $_" -Module "Sync-OBSSettings"
-            Write-Log "Failed to extract settings zip: $_" -Level "error"
-            return $false
-        }
-    }
-
-    # -- Fallback: loose files in settings/ ----------------------------
+    # -- Find the zip file (first .zip in settings source) -------------
     if (-not (Test-Path $settingsSource)) {
-        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "Settings source directory does not exist" -Module "Sync-OBSSettings"
+        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "OBS settings source directory does not exist" -Module "Sync-OBSSettings"
         Write-Log $msgs.settingsSkipped -Level "info"
         return $false
     }
 
-    $settingsFiles = Get-ChildItem -Path $settingsSource -File -Exclude "*.zip" -ErrorAction SilentlyContinue
-    if ($settingsFiles.Count -eq 0) {
-        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "No settings files found in source directory (excluding .zip)" -Module "Sync-OBSSettings"
+    $zipFile = Get-ChildItem -Path $settingsSource -Filter "*.zip" -File | Select-Object -First 1
+    if (-not $zipFile) {
+        Write-FileError -FilePath $settingsSource -Operation "read" -Reason "No .zip file found in OBS settings source directory" -Module "Sync-OBSSettings"
         Write-Log $msgs.settingsSkipped -Level "info"
         return $false
     }
 
-    if (-not (Test-Path $appDataDir)) {
-        New-Item -Path $appDataDir -ItemType Directory -Force | Out-Null
+    Write-Log ($msgs.syncingSettings -replace '\{zip\}', $zipFile.Name) -Level "info"
+
+    # -- Extract to temp ------------------------------------------------
+    $tempDir = Join-Path $env:TEMP "obs-settings-extract-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    try {
+        New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
+        Expand-Archive -Path $zipFile.FullName -DestinationPath $tempDir -Force
+    } catch {
+        Write-FileError -FilePath $zipFile.FullName -Operation "extract" -Reason "Failed to extract OBS settings zip: $_" -Module "Sync-OBSSettings"
+        Write-Log "Failed to extract settings zip: $_" -Level "error"
+        return $false
     }
 
-    Write-Log $msgs.syncingSettings -Level "info"
+    # -- Ensure target directories exist --------------------------------
+    foreach ($dir in @($scenesDir, $profilesDir)) {
+        if (-not (Test-Path $dir)) {
+            New-Item -Path $dir -ItemType Directory -Force | Out-Null
+        }
+    }
 
-    foreach ($file in $settingsFiles) {
-        $dest = Join-Path $appDataDir $file.Name
+    # -- Copy JSON scene collections to basic\scenes\ ------------------
+    $jsonFiles = Get-ChildItem -Path $tempDir -Filter "*.json" -File
+    $sceneCount = 0
+    foreach ($file in $jsonFiles) {
+        $dest = Join-Path $scenesDir $file.Name
         Copy-Item -Path $file.FullName -Destination $dest -Force
+        $sceneCount++
     }
+    Write-Log "Copied $sceneCount scene collection(s) to $scenesDir" -Level "success"
+
+    # -- Copy profile folders to basic\profiles\ -----------------------
+    $profileFolders = Get-ChildItem -Path $tempDir -Directory
+    $profileCount = 0
+    foreach ($folder in $profileFolders) {
+        $dest = Join-Path $profilesDir $folder.Name
+        Copy-Item -Path $folder.FullName -Destination $dest -Recurse -Force
+        $profileCount++
+    }
+    if ($profileCount -gt 0) {
+        Write-Log "Copied $profileCount profile(s) to $profilesDir" -Level "success"
+    }
+
+    # -- Cleanup temp ---------------------------------------------------
+    try {
+        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    } catch { }
 
     Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
     return $true
