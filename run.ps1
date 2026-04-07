@@ -78,6 +78,8 @@ param(
 
     [switch]$CleanOnly,
 
+    [switch]$List,
+
     [switch]$Help
 )
 
