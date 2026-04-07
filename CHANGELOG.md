@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.7.2] -- 2026-04-07
+
+**OBS Studio 3-mode installer script**
+
+### Added
+
+- Script 36: **OBS Studio** installer via Chocolatey (`obs-studio`) with 3-mode support
+  - `install+settings` (default) -- install OBS + sync settings
+  - `settings-only` -- sync settings only (restore/fix config)
+  - `install-only` -- install without touching settings
+  - Mode resolution: `-Mode` param > `$env:OBS_MODE` > default
+- Settings sync extracts zip from `settings/02 - obs-settings/` to `%APPDATA%\obs-studio\`
+- Keywords: `obs`, `obs-studio`, `obs+settings`, `obs-settings`, `install-obs`
+
+### Changed
+
+- Mode env var dispatcher in `run.ps1` now includes `36 = OBS_MODE`
+
+---
+
 ## [v0.7.1] -- 2026-04-07
 
 **Combo keywords, Simple Sticky Notes, Choco update, PHP+phpMyAdmin modes**
