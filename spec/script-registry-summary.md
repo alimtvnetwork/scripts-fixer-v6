@@ -497,11 +497,35 @@ obs, obs-studio, obs+settings, obs-settings, install-obs
 
 ---
 
+## Combo Keywords
+
+Keywords that trigger multiple scripts in sequence.
+
+| Keyword | Scripts | IDs |
+|---------|---------|-----|
+| `full-stack` | 01-install-vscode, 02-install-package-managers, 03-install-nodejs, 04-install-pnpm, 05-install-python, 07-install-git, 08-install-github-desktop, 09-install-cpp, 11-vscode-settings-sync, 16-install-php | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 01-install-vscode, 02-install-package-managers, 03-install-nodejs, 04-install-pnpm, 05-install-python, 07-install-git, 08-install-github-desktop, 09-install-cpp, 11-vscode-settings-sync, 16-install-php | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `web-dev` | 01-install-vscode, 03-install-nodejs, 04-install-pnpm, 07-install-git, 11-vscode-settings-sync | 1, 3, 4, 7, 11 |
+| `webdev` | 01-install-vscode, 03-install-nodejs, 04-install-pnpm, 07-install-git, 11-vscode-settings-sync | 1, 3, 4, 7, 11 |
+| `essentials` | 01-install-vscode, 02-install-package-managers, 03-install-nodejs, 07-install-git, 11-vscode-settings-sync | 1, 2, 3, 7, 11 |
+| `backend` | 05-install-python, 06-install-golang, 16-install-php, 20-install-postgresql | 5, 6, 16, 20 |
+| `frontend` | 01-install-vscode, 03-install-nodejs, 04-install-pnpm, 11-vscode-settings-sync | 1, 3, 4, 11 |
+| `vscode+menu+settings` | 01-install-vscode, 10-vscode-context-menu-fix, 11-vscode-settings-sync | 1, 10, 11 |
+| `vms` | 01-install-vscode, 10-vscode-context-menu-fix, 11-vscode-settings-sync | 1, 10, 11 |
+| `pnpm` | 03-install-nodejs, 04-install-pnpm | 3, 4 |
+| `vscode+settings` | 01-install-vscode, 11-vscode-settings-sync | 1, 11 |
+| `vscode+s` | 01-install-vscode, 11-vscode-settings-sync | 1, 11 |
+| `git+desktop` | 07-install-git, 08-install-github-desktop | 7, 8 |
+| `git+gh` | 07-install-git, 08-install-github-desktop | 7, 8 |
+| `node+pnpm` | 03-install-nodejs, 04-install-pnpm | 3, 4 |
+
+**Total combo keywords**: 15
+
 ## Statistics
 
 | Metric | Count |
 |--------|-------|
-| Registered scripts | 36 |
-| Total keywords | 114 |
-| Mode entries | 17 |
+| Registered scripts | 37 |
+| Total keywords | 119 |
+| Mode entries | 22 |
 | Scripts with modes | 3 |
