@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.2] -- 2026-04-07
+
+**GitMap folder-specific install via devDir integration**
+
+### Changed
+
+- GitMap installer now resolves install directory via `Resolve-DevDir` (smart drive detection, `$env:DEV_DIR`, config override)
+- Passes `-InstallDir <resolved-path>` to the remote installer from GitHub
+- `run.ps1` now dot-sources `dev-dir.ps1` and passes `$config.devDir` to the helper
+- Detection also checks `$env:DEV_DIR\GitMap\gitmap.exe`
+- Resolved state now includes `installDir` field
+- Added `installDir` log message to `log-messages.json`
+- Updated spec with devDir resolution priority, remote installer flags, and detection paths
+
+---
+
 ## [v0.6.1] -- 2026-04-07
 
 **GitMap added to Everything group preset**
