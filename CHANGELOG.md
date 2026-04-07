@@ -4,6 +4,38 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.7.0] -- 2026-04-07
+
+**Code Red: Mandatory file-path error logging with Write-FileError helper**
+
+### Added
+
+- `Write-FileError` centralised helper in `scripts/shared/logging.ps1` -- enforces exact file path, operation, reason, and module in every file/path error log
+- Structured `file-error` event type in JSON logs with fields: `filePath`, `operation`, `reason`, `module`, `fallback`
+- Auto-detects calling module from PowerShell call stack when `-Module` is not provided
+- Spec document: `spec/02-app-issues/error-management-file-path-and-missing-file-code-red-rule.md`
+
+### Improved
+
+- `Import-JsonConfig` -- now calls `Write-FileError` when config file is missing
+- `Backup-File` -- file copy failures include exact source and destination paths
+- `New-DbSymlink` -- unresolved install directory and junction creation failures include full paths
+- `Clear-ResolvedData` -- edition clear and full wipe failures include resolved directory path
+- `Save-ResolvedData` -- read and write failures include resolved.json path
+- `Add-ToUserPath` / `Add-ToMachinePath` -- PATH update failures include target directory
+- `Install-NotepadPP` -- post-install EXE verification logs all checked paths on failure
+- `Sync-NotepadPPSettings` -- zip extraction, missing source dir, and empty settings all log exact paths
+- `Install-Gitmap` -- remote installer failure logs install directory
+- `Resolve-SourceFiles` -- profile parse failure logs profile path
+- `Apply-Settings` / `Apply-Keybindings` -- copy failures log source and destination paths
+- `Invoke-Edition` -- missing settings.json after apply logs expected target path
+
+### Rule
+
+- **CODE RED**: Every file-related or path-related error MUST include exact file path and failure reason. Generic "file not found" without path is forbidden.
+
+---
+
 ## [v0.6.9] -- 2026-04-07
 
 **Keyword mode-merging fix -- duplicate script runs prevented**
