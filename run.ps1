@@ -295,7 +295,9 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    $keywordMap = (Get-Content $keywordsFile -Raw | ConvertFrom-Json).keywords
+    $keywordData = Get-Content $keywordsFile -Raw | ConvertFrom-Json
+    $keywordMap = $keywordData.keywords
+    $modesMap  = $keywordData.modes
 
     $tokens = [System.Collections.Generic.List[string]]::new()
     foreach ($keywordGroup in $Keywords) {
@@ -311,6 +313,7 @@ function Resolve-InstallKeywords {
     }
 
     $scriptIds = [System.Collections.Generic.List[int]]::new()
+    $script:_resolvedModes = @{}
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -326,6 +329,14 @@ function Resolve-InstallKeywords {
             Write-Host "Unknown keyword: '$token'"
             $hasError = $true
             continue
+        }
+
+        # Capture mode overrides from the modes map
+        $tokenModes = $modesMap.$token
+        if ($null -ne $tokenModes) {
+            $tokenModes.PSObject.Properties | ForEach-Object {
+                $script:_resolvedModes[[int]$_.Name] = $_.Value
+            }
         }
 
         foreach ($id in $ids) {
