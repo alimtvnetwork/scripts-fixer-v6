@@ -216,6 +216,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
+    Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
