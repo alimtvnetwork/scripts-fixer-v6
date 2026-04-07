@@ -4,6 +4,39 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.7.1] -- 2026-04-07
+
+**Combo keywords, Simple Sticky Notes, Choco update, PHP+phpMyAdmin modes**
+
+### Added
+
+- Script 34: **Simple Sticky Notes** installer via Chocolatey (`simple-sticky-notes`)
+- `.\run.ps1 update` command -- lists all installed Chocolatey packages, prompts for confirmation, runs `choco upgrade all -y`
+  - Aliases: `update`, `upgrade`, `choco-update`
+- PHP + phpMyAdmin 3-mode support in script 16:
+  - `php+phpmyadmin` (default) -- install both
+  - `php-only` -- PHP only
+  - `phpmyadmin-only` -- phpMyAdmin only
+  - Mode resolution: `-Mode` param > `$env:PHP_MODE` > default
+- Combo shortcut keywords:
+  - `vscode+settings` / `vscode+s` -- VSCode + Settings Sync (01, 11)
+  - `vscode+menu+settings` / `vms` -- VSCode + Menu Fix + Sync (01, 10, 11)
+  - `git+desktop` / `git+gh` -- Git + GitHub Desktop (07, 08)
+  - `node+pnpm` -- Node.js + pnpm (03, 04)
+  - `frontend` -- VSCode + Node + pnpm + Sync (01, 03, 04, 11)
+  - `backend` -- Python + Go + PHP + PostgreSQL (05, 06, 16, 20)
+  - `web-dev` / `webdev` -- VSCode + Node + pnpm + Git + Sync (01, 03, 04, 07, 11)
+  - `essentials` -- VSCode + Choco + Node + Git + Sync (01, 02, 03, 07, 11)
+  - `full-stack` / `fullstack` -- Everything for full-stack dev (01-09, 11, 16)
+- Help tables updated with "Combo Shortcuts" section
+
+### Fixed
+
+- **OrderedDictionary ArgumentOutOfRangeException** -- `[int]` keys in `[ordered]@{}` were treated as positional indexes; changed to string keys
+- Generic mode env var dispatcher (`$modeEnvVars` map) replaces hardcoded `$env:NPP_MODE`
+
+---
+
 ## [v0.7.0] -- 2026-04-07
 
 **Code Red: Mandatory file-path error logging with Write-FileError helper**
