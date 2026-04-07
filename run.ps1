@@ -533,25 +533,24 @@ $env:SCRIPTS_ROOT_RUN = "1"
 # ── Handle install keyword mode (bare or named) ─────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
 if ($hasInstallKeywords) {
-    $scriptIds = Resolve-InstallKeywords -Keywords $Install
+    $resolvedEntries = Resolve-InstallKeywords -Keywords $Install
 
-    $isResolveFailed = $null -eq $scriptIds
+    $isResolveFailed = $null -eq $resolvedEntries
     if ($isResolveFailed) { exit 1 }
 
-    $resolvedModes = $script:_resolvedModes
-
-    $totalScripts = $scriptIds.Count
+    $totalSteps = @($resolvedEntries).Count
+    $idList = ($resolvedEntries | ForEach-Object { $_.Id }) -join ', '
     Write-Host ""
     Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-    Write-Host "Installing $totalScripts tool(s): $($scriptIds -join ', ')"
+    Write-Host "Installing $totalSteps tool(s): $idList"
     Write-Host ""
 
     $successCount = 0
     $failCount    = 0
 
-    foreach ($id in $scriptIds) {
-        # Set per-script mode env vars if defined in keywords modes map
-        $modeKey = $resolvedModes[$id]
+    foreach ($entry in $resolvedEntries) {
+        $id      = $entry.Id
+        $modeKey = $entry.Mode
         $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
         if ($hasModeOverride) {
             $env:NPP_MODE = $modeKey
@@ -566,7 +565,7 @@ if ($hasInstallKeywords) {
     Write-Host ""
     Write-Host "  ======================================" -ForegroundColor DarkGray
     Write-Host "  [ DONE ] " -ForegroundColor Green -NoNewline
-    Write-Host "$successCount of $totalScripts completed successfully"
+    Write-Host "$successCount of $totalSteps completed successfully"
     if ($failCount -gt 0) {
         Write-Host "  [ WARN ] " -ForegroundColor Yellow -NoNewline
         Write-Host "$failCount script(s) failed"
