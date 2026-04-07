@@ -91,7 +91,11 @@
     "git-map":           [35],
     "sticky-notes":      [34],
     "stickynotes":       [34],
-    "sticky":            [34]
+    "sticky":            [34],
+    "vscode+settings":   [1, 11],
+    "vscode+s":          [1, 11],
+    "vscode+menu+settings": [1, 10, 11],
+    "vms":               [1, 10, 11]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },

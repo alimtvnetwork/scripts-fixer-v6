@@ -188,6 +188,11 @@ function Show-RootHelp {
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
+    Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    vscode+settings, vscode+s   VSCode + Settings Sync        01, 11"
+    Write-Host "    vscode+menu+settings, vms   VSCode + Menu Fix + Sync      01, 10, 11"
+    Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "    ID  Name                          Description" -ForegroundColor DarkGray
@@ -290,6 +295,11 @@ function Show-KeywordTable {
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
+    Write-Host ""
+    Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    vscode+settings, vscode+s   VSCode + Settings Sync        01, 11"
+    Write-Host "    vscode+menu+settings, vms   VSCode + Menu Fix + Sync      01, 10, 11"
     Write-Host ""
     Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"
     Write-Host ""
