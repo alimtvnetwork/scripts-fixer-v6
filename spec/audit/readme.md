@@ -18,6 +18,7 @@ inconsistencies. Designed to run after any renumbering or restructuring.
 | 6 | **Stale ID references in specs** | Scan `spec/**/*.md` for patterns like `Script NN` or `scripts/NN-` that reference non-existent IDs. |
 | 7 | **Stale ID references in suggestions** | Scan `suggestions/**/*.md` for the same stale-reference patterns. |
 | 8 | **Stale ID references in PowerShell** | Scan `scripts/**/*.ps1` for hardcoded folder references like `01-install-vscode` and verify they match registry entries. |
+| 9 | **Keyword modes vs config validModes** | Every mode value in `install-keywords.json` `modes` must exist in the target script's `config.json` `validModes` array. |
 
 ## Usage
 
