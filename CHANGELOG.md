@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.7.4] -- 2026-04-07
+
+**Windows Terminal 3-mode installer, golangci-lint + go vet, combo keywords in summary, GitMap URL update**
+
+### Added
+
+- Script 37: **Windows Terminal** installer via winget (`Microsoft.WindowsTerminal`) with 3-mode support
+  - `install+settings` (default) -- install WT + sync settings
+  - `settings-only` -- sync settings only (restore/fix config)
+  - `install-only` -- install without touching settings
+  - Mode resolution: `-Mode` param > `$env:WT_MODE` > default
+- Settings sync copies from `settings/03 - windows-terminal/` to `%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\`
+- Keywords: `wt`, `windows-terminal`, `wt+settings`, `wt-settings`, `install-wt` with mode mappings
+- **golangci-lint** install support in script 06 (Go) -- installs via `go install` with version pinning
+- **go vet** integration in script 06 -- runs `go vet ./...` after Go install for verification
+- Combo keywords section in `spec/script-registry-summary.md` -- lists multi-script keywords (e.g. `web-dev`, `full-stack`, `essentials`) with mapped script IDs
+
+### Changed
+
+- GitMap install URL updated from `alimtvnetwork/git-repo-navigator` to `alimtvnetwork/gitmap-v2` in `scripts/35-install-gitmap/config.json`
+- Updated `spec/35-install-gitmap/readme.md` to reflect new gitmap-v2 repo URL
+- Mode env var dispatcher in `run.ps1` now includes `37 = WT_MODE`
+
+---
+
 ## [v0.7.3] -- 2026-04-07
 
 **OBS settings sync rework, keyword modes audit check**
