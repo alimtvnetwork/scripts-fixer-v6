@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.9] -- 2026-04-07
+
+**Keyword mode-merging fix -- duplicate script runs prevented**
+
+### Fixed
+
+- `Resolve-InstallKeywords` now merges multiple keywords targeting the same script ID into a single entry using highest-priority mode (e.g. `npp,npp-settings` → one run with `install+settings` instead of two separate runs)
+- Mode priority system: `install+settings` (3) > `install-only` (2) > `settings-only` (1)
+
+### Improved
+
+- Keyword resolver deduplicates by script ID before execution loop, preventing redundant Chocolatey installs
+- Execution loop applies per-entry `$env:NPP_MODE` correctly for merged mode
+
+---
+
 ## [v0.6.8] -- 2026-04-07
 
 **Notepad++ 3-variant installation modes with bundled settings zip**
