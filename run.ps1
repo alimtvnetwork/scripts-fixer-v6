@@ -12,6 +12,7 @@
     Use -Clean to wipe all .resolved/ data before running, forcing fresh detection.
     Use -CleanOnly to wipe .resolved/ without running any script.
     Use -Help to see all available scripts and usage information.
+    Use 'update' command to upgrade all Chocolatey packages.
 
 .PARAMETER I
     The script number to run (e.g. 1, 2, 3). Maps to folders like 01-*, 02-*, etc.
@@ -36,6 +37,7 @@
     .\run.ps1 -Install python        # install Python + pip
     .\run.ps1 -Install go,git,cpp    # install Go, Git, and C++
     .\run.ps1 -Install all-dev       # interactive dev tools menu
+    .\run.ps1 update                 # upgrade all Chocolatey packages
     .\run.ps1 -d                     # shortcut for -I 12 (interactive menu)
     .\run.ps1 -I 1                   # run scripts/01-*/run.ps1
     .\run.ps1 -I 1 -Clean           # wipe .resolved/, then run script 01
@@ -44,7 +46,7 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 7.0.0
+    Version: 7.1.0
 #>
 
 param(
@@ -97,6 +99,7 @@ function Show-RootHelp {
     $col = 42
     Write-Host "    $(".\run.ps1 install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (bare command)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (named parameter)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Upgrade all Chocolatey packages" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I <number>".PadRight($col))" -NoNewline; Write-Host "Run a specific script by ID" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -d".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 12 (interactive menu)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -a".PadRight($col))" -NoNewline; Write-Host "Shortcut for -I 13 (audit mode)" -ForegroundColor DarkGray
@@ -182,6 +185,7 @@ function Show-RootHelp {
     Write-Host "    npp+settings         NPP + Settings (explicit)       33"
     Write-Host "    npp-settings         NPP Settings (settings only)    33"
     Write-Host "    install-npp          Install NPP (install only)      33"
+    Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
@@ -218,6 +222,7 @@ function Show-RootHelp {
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
     Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
+    Write-Host "    34  Simple Sticky Notes           " -NoNewline; Write-Host "Install Simple Sticky Notes via Chocolatey" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
@@ -283,6 +288,7 @@ function Show-KeywordTable {
     Write-Host "    npp+settings         NPP + Settings (explicit)       33"
     Write-Host "    npp-settings         NPP Settings (settings only)    33"
     Write-Host "    install-npp          Install NPP (install only)      33"
+    Write-Host "    sticky-notes, sticky  Simple Sticky Notes             34"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"
@@ -442,15 +448,107 @@ function Invoke-ScriptById {
     return $true
 }
 
+# ── Choco Update function ────────────────────────────────────────────
+function Invoke-ChocoUpdate {
+    <#
+    .SYNOPSIS
+        Lists all installed Chocolatey packages, confirms with user, then
+        runs choco upgrade all.
+    #>
+
+    # Ensure Chocolatey is available
+    $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
+    $isChocoMissing = -not $chocoCmd
+    if ($isChocoMissing) {
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Chocolatey is not installed. Run .\run.ps1 install choco first."
+        return
+    }
+
+    Write-Host ""
+    Write-Host "  Chocolatey Package Update" -ForegroundColor Cyan
+    Write-Host "  =========================" -ForegroundColor DarkGray
+    Write-Host ""
+
+    # List installed packages
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "Listing installed Chocolatey packages..."
+    Write-Host ""
+
+    $installedRaw = & choco.exe list --local-only 2>&1
+    $packageLines = @($installedRaw | Where-Object {
+        $line = $_.ToString().Trim()
+        $isNotEmpty = $line.Length -gt 0
+        $isNotSummary = $line -notmatch '^\d+ packages installed'
+        $isNotHeader = $line -notmatch '^Chocolatey v'
+        $isNotEmpty -and $isNotSummary -and $isNotHeader
+    })
+
+    $packageCount = $packageLines.Count
+    if ($packageCount -eq 0) {
+        Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+        Write-Host "No Chocolatey packages found."
+        return
+    }
+
+    Write-Host "    Package                              Version" -ForegroundColor DarkGray
+    Write-Host "    -------------------------------------  --------------------" -ForegroundColor DarkGray
+    foreach ($line in $packageLines) {
+        $parts = $line.ToString().Trim() -split '\s+'
+        $pkgName = if ($parts.Count -ge 1) { $parts[0] } else { $line }
+        $pkgVer  = if ($parts.Count -ge 2) { $parts[1] } else { "" }
+        Write-Host "    $($pkgName.PadRight(41))" -NoNewline
+        Write-Host "$pkgVer" -ForegroundColor Yellow
+    }
+
+    Write-Host ""
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "$packageCount package(s) installed"
+    Write-Host ""
+
+    # Confirm
+    $confirm = Read-Host "  Do you want to upgrade ALL packages? [Y/n]"
+    $isAborted = $confirm.Trim().ToUpper() -eq "N"
+    if ($isAborted) {
+        Write-Host "  [ SKIP ] Update cancelled by user." -ForegroundColor Yellow
+        return
+    }
+
+    Write-Host ""
+    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
+    Write-Host "Running: choco upgrade all -y"
+    Write-Host ""
+
+    try {
+        & choco.exe upgrade all -y
+        $hasUpgradeFailed = $LASTEXITCODE -ne 0
+        if ($hasUpgradeFailed) {
+            Write-Host ""
+            Write-Host "  [ WARN ] " -ForegroundColor Yellow -NoNewline
+            Write-Host "Some packages may have failed to upgrade (exit code: $LASTEXITCODE)"
+        } else {
+            Write-Host ""
+            Write-Host "  [  OK  ] " -ForegroundColor Green -NoNewline
+            Write-Host "All packages upgraded successfully"
+        }
+    } catch {
+        Write-Host ""
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Upgrade failed: $_"
+    }
+}
+
 # ── Normalize positional command mode ────────────────────────────────
 # Supports:  .\run.ps1 install alldev,mysql
 #             .\run.ps1 install alldev mysql
 #             .\run.ps1 -Install alldev,mysql
+#             .\run.ps1 update
 $normalizedCommand = ""
 $hasCommand = -not [string]::IsNullOrWhiteSpace($Command)
 if ($hasCommand) {
     $normalizedCommand = $Command.Trim().ToLower()
     $isBareInstallCommand = $normalizedCommand -eq "install"
+    $isBareUpdateCommand  = $normalizedCommand -eq "update" -or $normalizedCommand -eq "choco-update" -or $normalizedCommand -eq "upgrade"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
     if ($isBareInstallCommand) {
@@ -464,6 +562,9 @@ if ($hasCommand) {
             Write-Host "  Run .\run.ps1 -Help to see all available keywords" -ForegroundColor Cyan
             exit 1
         }
+    } elseif ($isBareUpdateCommand) {
+        Invoke-ChocoUpdate
+        exit 0
     } elseif ($isBareScriptId) {
         $I = [int]$normalizedCommand
     } else {
