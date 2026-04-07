@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.6] -- 2026-04-07
+
+**Install target path now logged prominently before drive detection**
+
+### Improved
+
+- Install target path logged immediately with `success` level and visual spacing so it stands out
+- Changed "GitMap not found" from `warn` to `info` level (expected during first install, no longer pollutes error log)
+- Updated log message to "Install target: {path}" for clarity
+
+---
+
 ## [v0.6.5] -- 2026-04-07
 
 **Fixed logging: warnings no longer cause false fail status + improved drive detection + one-line summary**
