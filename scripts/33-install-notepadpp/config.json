@@ -12,6 +12,7 @@
     "desc": "Lightweight source code editor with syntax highlighting",
     "settingsDir": "",
     "syncSettings": true,
-    "defaultMode": "install+settings"
+    "defaultMode": "install+settings",
+    "validModes": ["install+settings", "settings-only", "install-only"]
   }
 }
