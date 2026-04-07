@@ -12,6 +12,7 @@
     Use -Clean to wipe all .resolved/ data before running, forcing fresh detection.
     Use -CleanOnly to wipe .resolved/ without running any script.
     Use -Help to see all available scripts and usage information.
+    Use 'update' command to upgrade all Chocolatey packages.
 
 .PARAMETER I
     The script number to run (e.g. 1, 2, 3). Maps to folders like 01-*, 02-*, etc.
@@ -36,6 +37,7 @@
     .\run.ps1 -Install python        # install Python + pip
     .\run.ps1 -Install go,git,cpp    # install Go, Git, and C++
     .\run.ps1 -Install all-dev       # interactive dev tools menu
+    .\run.ps1 update                 # upgrade all Chocolatey packages
     .\run.ps1 -d                     # shortcut for -I 12 (interactive menu)
     .\run.ps1 -I 1                   # run scripts/01-*/run.ps1
     .\run.ps1 -I 1 -Clean           # wipe .resolved/, then run script 01
@@ -44,7 +46,7 @@
 
 .NOTES
     Author : Lovable AI
-    Version: 7.0.0
+    Version: 7.1.0
 #>
 
 param(
