@@ -178,7 +178,9 @@ function Show-RootHelp {
     Write-Host "    duckdb               DuckDB                          28"
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
-    Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
+    Write-Host "    notepad++, npp       NPP + Settings (install + sync)  33"
+    Write-Host "    npp-settings         NPP Settings (settings only)    33"
+    Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
@@ -214,6 +216,7 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    Database Tools" -ForegroundColor Magenta
     Write-Host "    32  DBeaver Community              " -NoNewline; Write-Host "Universal database visualization and management tool" -ForegroundColor DarkGray
+    Write-Host "    33  Notepad++ (NPP)                " -NoNewline; Write-Host "Install NPP, NPP Settings, or NPP + Settings" -ForegroundColor DarkGray
     Write-Host "    35  GitMap                         " -NoNewline; Write-Host "Git repository navigator CLI tool" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Script 12 (Install All Dev Tools):" -ForegroundColor Yellow
@@ -275,7 +278,9 @@ function Show-KeywordTable {
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
     Write-Host "    pwsh-menu            PowerShell context menu         31"
-    Write-Host "    dbeaver, dbviewer    DBeaver Community               32"
+    Write-Host "    notepad++, npp       NPP + Settings (install + sync)  33"
+    Write-Host "    npp-settings         NPP Settings (settings only)    33"
+    Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
     Write-Host ""
     Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"
@@ -295,7 +300,9 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    $keywordMap = (Get-Content $keywordsFile -Raw | ConvertFrom-Json).keywords
+    $keywordData = Get-Content $keywordsFile -Raw | ConvertFrom-Json
+    $keywordMap = $keywordData.keywords
+    $modesMap  = $keywordData.modes
 
     $tokens = [System.Collections.Generic.List[string]]::new()
     foreach ($keywordGroup in $Keywords) {
@@ -311,6 +318,7 @@ function Resolve-InstallKeywords {
     }
 
     $scriptIds = [System.Collections.Generic.List[int]]::new()
+    $script:_resolvedModes = @{}
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -326,6 +334,14 @@ function Resolve-InstallKeywords {
             Write-Host "Unknown keyword: '$token'"
             $hasError = $true
             continue
+        }
+
+        # Capture mode overrides from the modes map
+        $tokenModes = $modesMap.$token
+        if ($null -ne $tokenModes) {
+            $tokenModes.PSObject.Properties | ForEach-Object {
+                $script:_resolvedModes[[int]$_.Name] = $_.Value
+            }
         }
 
         foreach ($id in $ids) {
@@ -515,6 +531,8 @@ if ($hasInstallKeywords) {
     $isResolveFailed = $null -eq $scriptIds
     if ($isResolveFailed) { exit 1 }
 
+    $resolvedModes = $script:_resolvedModes
+
     $totalScripts = $scriptIds.Count
     Write-Host ""
     Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
@@ -525,7 +543,16 @@ if ($hasInstallKeywords) {
     $failCount    = 0
 
     foreach ($id in $scriptIds) {
+        # Set per-script mode env vars if defined in keywords modes map
+        $modeKey = $resolvedModes[$id]
+        $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
+        if ($hasModeOverride) {
+            $env:NPP_MODE = $modeKey
+        }
         $result = Invoke-ScriptById -ScriptId $id
+        if ($hasModeOverride) {
+            Remove-Item Env:\NPP_MODE -ErrorAction SilentlyContinue
+        }
         if ($result) { $successCount++ } else { $failCount++ }
     }
 

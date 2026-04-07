@@ -1,19 +1,37 @@
 # --------------------------------------------------------------------------
 #  Helper: Install Notepad++ via Chocolatey and sync settings
+#  Supports 3 modes: install+settings (default), settings-only, install-only
 # --------------------------------------------------------------------------
 
 function Install-NotepadPP {
     param(
         [Parameter(Mandatory)] $NppConfig,
-        [Parameter(Mandatory)] $LogMessages
+        [Parameter(Mandatory)] $LogMessages,
+        [ValidateSet("install+settings", "settings-only", "install-only")]
+        [string]$Mode = "install+settings"
     )
 
     $msgs = $LogMessages.messages
 
-    # -- Check if already installed ----------------------------------------
+    # -- Mode announcement ---------------------------------------------
+    $modeLabel = switch ($Mode) {
+        "install+settings" { "NPP + Settings (install Notepad++ and sync settings)" }
+        "settings-only"    { "NPP Settings (sync settings only)" }
+        "install-only"     { "Install NPP (install Notepad++ only)" }
+    }
+    Write-Log "Mode: $modeLabel" -Level "info"
+    Write-Host ""
+
+    # -- Settings-only mode: skip install, go straight to sync ---------
+    if ($Mode -eq "settings-only") {
+        Write-Log "Skipping Notepad++ installation (settings-only mode)" -Level "info"
+        $syncResult = Sync-NotepadPPSettings -LogMessages $LogMessages
+        return $syncResult
+    }
+
+    # -- Check if already installed ------------------------------------
     $nppPath = Get-Command "notepad++" -ErrorAction SilentlyContinue
     if (-not $nppPath) {
-        # Also check common install locations
         $commonPaths = @(
             "$env:ProgramFiles\Notepad++\notepad++.exe",
             "${env:ProgramFiles(x86)}\Notepad++\notepad++.exe"
@@ -27,7 +45,6 @@ function Install-NotepadPP {
     }
 
     if ($nppPath) {
-        # Get version
         $version = "unknown"
         try {
             $exePath = if ($nppPath -is [System.Management.Automation.ApplicationInfo]) { $nppPath.Source } else { $nppPath.FullName }
@@ -37,12 +54,14 @@ function Install-NotepadPP {
         $isAlreadyInstalled = Test-AlreadyInstalled -Name "notepadpp" -CurrentVersion $version
         if ($isAlreadyInstalled) {
             Write-Log ($msgs.alreadyInstalled -replace '\{version\}', $version) -Level "success"
-            Sync-NotepadPPSettings -LogMessages $LogMessages
+            if ($Mode -eq "install+settings") {
+                Sync-NotepadPPSettings -LogMessages $LogMessages
+            }
             return $true
         }
     }
 
-    # -- Install via Chocolatey --------------------------------------------
+    # -- Install via Chocolatey ----------------------------------------
     Write-Log $msgs.notFound -Level "info"
     Write-Host ""
     Write-Log $msgs.installing -Level "info"
@@ -55,7 +74,7 @@ function Install-NotepadPP {
         return $false
     }
 
-    # -- Verify installation -----------------------------------------------
+    # -- Verify installation -------------------------------------------
     $verifyPaths = @(
         "$env:ProgramFiles\Notepad++\notepad++.exe",
         "${env:ProgramFiles(x86)}\Notepad++\notepad++.exe"
@@ -79,8 +98,12 @@ function Install-NotepadPP {
     Write-Host ""
     Save-InstalledRecord -Name "notepadpp" -Version $version -Method "chocolatey"
 
-    # -- Sync settings -----------------------------------------------------
-    Sync-NotepadPPSettings -LogMessages $LogMessages
+    # -- Sync settings (only in install+settings mode) -----------------
+    if ($Mode -eq "install+settings") {
+        Sync-NotepadPPSettings -LogMessages $LogMessages
+    } else {
+        Write-Log "Settings sync skipped (install-only mode)" -Level "info"
+    }
 
     return $true
 }
@@ -92,21 +115,43 @@ function Sync-NotepadPPSettings {
 
     $msgs = $LogMessages.messages
     $scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName)
-    # Settings source: scripts/33-install-notepadpp/settings/
     $settingsSource = Join-Path $scriptDir "settings"
+    $zipFile = Join-Path $settingsSource "notepadpp-settings.zip"
 
+    # -- Target: %APPDATA%\Notepad++ -----------------------------------
+    $appDataDir = Join-Path $env:APPDATA "Notepad++"
+    Write-Log "Settings target: $appDataDir" -Level "info"
+
+    # -- Check for zip -------------------------------------------------
+    if (Test-Path $zipFile) {
+        Write-Log $msgs.syncingSettings -Level "info"
+
+        if (-not (Test-Path $appDataDir)) {
+            New-Item -Path $appDataDir -ItemType Directory -Force | Out-Null
+        }
+
+        try {
+            Expand-Archive -Path $zipFile -DestinationPath $appDataDir -Force
+            Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
+            return $true
+        } catch {
+            Write-Log "Failed to extract settings zip: $_" -Level "error"
+            return $false
+        }
+    }
+
+    # -- Fallback: loose files in settings/ ----------------------------
     if (-not (Test-Path $settingsSource)) {
         Write-Log $msgs.settingsSkipped -Level "info"
-        return
+        return $false
     }
 
-    $settingsFiles = Get-ChildItem -Path $settingsSource -File -ErrorAction SilentlyContinue
+    $settingsFiles = Get-ChildItem -Path $settingsSource -File -Exclude "*.zip" -ErrorAction SilentlyContinue
     if ($settingsFiles.Count -eq 0) {
         Write-Log $msgs.settingsSkipped -Level "info"
-        return
+        return $false
     }
 
-    $appDataDir = Join-Path $env:APPDATA "Notepad++"
     if (-not (Test-Path $appDataDir)) {
         New-Item -Path $appDataDir -ItemType Directory -Force | Out-Null
     }
@@ -119,4 +164,5 @@ function Sync-NotepadPPSettings {
     }
 
     Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
+    return $true
 }

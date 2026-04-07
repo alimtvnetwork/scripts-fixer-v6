@@ -1,10 +1,26 @@
 # --------------------------------------------------------------------------
 #  Script 33 -- Install Notepad++
-#  Lightweight source code editor with syntax highlighting
+#  Supports 3 modes via -Mode parameter:
+#    install+settings  (default) -- NPP + Settings
+#    settings-only               -- NPP Settings
+#    install-only                -- Install NPP
 # --------------------------------------------------------------------------
 param(
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet("install+settings", "settings-only", "install-only")]
+    [string]$Mode = ""
 )
+
+# -- Resolve mode: param > env var > default -----------------------------------
+if ([string]::IsNullOrWhiteSpace($Mode)) {
+    $envMode = $env:NPP_MODE
+    $hasEnvMode = -not [string]::IsNullOrWhiteSpace($envMode)
+    if ($hasEnvMode) {
+        $Mode = $envMode
+    } else {
+        $Mode = "install+settings"
+    }
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -42,7 +58,7 @@ try {
 Invoke-GitPull
 
 # -- Install -------------------------------------------------------------------
-$ok = Install-NotepadPP -NppConfig $config.notepadpp -LogMessages $logMessages
+$ok = Install-NotepadPP -NppConfig $config.notepadpp -LogMessages $logMessages -Mode $Mode
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {
