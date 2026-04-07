@@ -496,6 +496,8 @@ if ($v) { $I = 1 }
 if ($w) { $I = 14 }
 if ($t) { $I = 15 }
 if ($h) { $I = 13; $scriptArgs = @{ "Report" = $true } }
+# -Defaults without -I defaults to all-dev (script 12)
+if ($Defaults -and -not $I) { $I = 12 }
 
 # ── Validate -I is provided ──────────────────────────────────────────
 $isMissingParam = -not $I
