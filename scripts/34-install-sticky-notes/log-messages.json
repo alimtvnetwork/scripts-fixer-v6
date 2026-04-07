@@ -1,0 +1,26 @@
+{
+  "scriptName": "install-sticky-notes",
+  "description": "Installs Simple Sticky Notes -- lightweight desktop sticky notes for Windows.",
+  "messages": {
+    "notAdmin": "This script requires admin privileges. Please run as Administrator.",
+    "checking": "Checking for Simple Sticky Notes...",
+    "found": "Simple Sticky Notes already installed",
+    "notFound": "Simple Sticky Notes not found -- will install now",
+    "installing": "Installing Simple Sticky Notes via Chocolatey...",
+    "installSuccess": "Simple Sticky Notes installed successfully",
+    "installFailed": "Simple Sticky Notes install failed: {error}",
+    "notInPath": "Simple Sticky Notes installed but executable not found in PATH (may need shell restart)",
+    "setupComplete": "Simple Sticky Notes setup complete",
+    "disabled": "Simple Sticky Notes install is disabled in config"
+  },
+  "help": {
+    "commands": {
+      "install": "Install Simple Sticky Notes (default)"
+    },
+    "examples": [
+      ".\\run.ps1 -I 34",
+      ".\\run.ps1 install sticky-notes",
+      ".\\run.ps1 -I 34 -- -Help"
+    ]
+  }
+}

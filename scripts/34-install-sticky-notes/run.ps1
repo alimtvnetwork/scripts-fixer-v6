@@ -1,0 +1,69 @@
+# --------------------------------------------------------------------------
+#  Script 34 -- Install Simple Sticky Notes
+#  Lightweight desktop sticky notes for Windows
+# --------------------------------------------------------------------------
+param(
+    [switch]$Help
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+$scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
+
+# -- Dot-source shared helpers ------------------------------------------------
+. (Join-Path $sharedDir "logging.ps1")
+. (Join-Path $sharedDir "resolved.ps1")
+. (Join-Path $sharedDir "git-pull.ps1")
+. (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "choco-utils.ps1")
+
+# -- Dot-source script helper -------------------------------------------------
+. (Join-Path $scriptDir "helpers\sticky-notes.ps1")
+
+# -- Load config & log messages -----------------------------------------------
+$config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
+$logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+
+# -- Help ---------------------------------------------------------------------
+if ($Help) {
+    Show-ScriptHelp -LogMessages $logMessages
+    return
+}
+
+# -- Banner --------------------------------------------------------------------
+Write-Banner -Title $logMessages.scriptName
+
+# -- Initialize logging --------------------------------------------------------
+Initialize-Logging -ScriptName $logMessages.scriptName
+
+try {
+
+# -- Git pull ------------------------------------------------------------------
+Invoke-GitPull
+
+# -- Assert admin --------------------------------------------------------------
+$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$isNotAdmin = -not $hasAdminRights
+if ($isNotAdmin) {
+    Write-Log $logMessages.messages.notAdmin -Level "error"
+    return
+}
+
+# -- Install -------------------------------------------------------------------
+$ok = Install-StickyNotes -StickyConfig $config.stickyNotes -LogMessages $logMessages
+
+$isSuccess = $ok -eq $true
+if ($isSuccess) {
+    Write-Log $logMessages.messages.setupComplete -Level "success"
+} else {
+    Write-Log ($logMessages.messages.installFailed -replace '\{error\}', "See errors above") -Level "error"
+}
+
+} catch {
+    Write-Log "Unhandled error: $_" -Level "error"
+    Write-Log "Stack: $($_.ScriptStackTrace)" -Level "error"
+} finally {
+    $hasAnyErrors = $script:_LogErrors.Count -gt 0
+    Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
+}
