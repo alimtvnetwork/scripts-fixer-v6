@@ -16,6 +16,7 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "dev-dir.ps1")
 
 # -- Dot-source script helper -------------------------------------------------
 . (Join-Path $scriptDir "helpers\gitmap.ps1")
@@ -42,7 +43,7 @@ try {
 Invoke-GitPull
 
 # -- Install -------------------------------------------------------------------
-$ok = Install-Gitmap -GitmapConfig $config.gitmap -LogMessages $logMessages
+$ok = Install-Gitmap -GitmapConfig $config.gitmap -DevDirConfig $config.devDir -LogMessages $logMessages
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {
