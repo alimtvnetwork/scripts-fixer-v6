@@ -179,6 +179,7 @@ function Show-RootHelp {
     Write-Host "    litedb               LiteDB                          29"
     Write-Host "    databases, db        Database installer menu         30"
     Write-Host "    notepad++, npp       NPP + Settings (install + sync)  33"
+    Write-Host "    npp+settings         NPP + Settings (explicit)       33"
     Write-Host "    npp-settings         NPP Settings (settings only)    33"
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
@@ -279,6 +280,7 @@ function Show-KeywordTable {
     Write-Host "    databases, db        Database installer menu         30"
     Write-Host "    pwsh-menu            PowerShell context menu         31"
     Write-Host "    notepad++, npp       NPP + Settings (install + sync)  33"
+    Write-Host "    npp+settings         NPP + Settings (explicit)       33"
     Write-Host "    npp-settings         NPP Settings (settings only)    33"
     Write-Host "    install-npp          Install NPP (install only)      33"
     Write-Host "    gitmap, git-map      GitMap CLI                      35"
@@ -317,8 +319,8 @@ function Resolve-InstallKeywords {
         }
     }
 
-    $scriptIds = [System.Collections.Generic.List[int]]::new()
-    $script:_resolvedModes = @{}
+    # Build list of {Id, Mode} entries -- same ID can appear multiple times with different modes
+    $entries = [System.Collections.Generic.List[hashtable]]::new()
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -336,18 +338,25 @@ function Resolve-InstallKeywords {
             continue
         }
 
-        # Capture mode overrides from the modes map
+        # Determine mode override for this token (if any)
         $tokenModes = $modesMap.$token
-        if ($null -ne $tokenModes) {
-            $tokenModes.PSObject.Properties | ForEach-Object {
-                $script:_resolvedModes[[int]$_.Name] = $_.Value
-            }
-        }
-
         foreach ($id in $ids) {
-            $isAlreadyAdded = $scriptIds -contains $id
-            if (-not $isAlreadyAdded) {
-                $scriptIds.Add($id)
+            $mode = $null
+            if ($null -ne $tokenModes) {
+                $mode = $tokenModes."$id"
+            }
+            # Deduplicate: skip if same Id+Mode combo already queued
+            $isDuplicate = $false
+            foreach ($existing in $entries) {
+                $isSameId   = $existing.Id -eq $id
+                $isSameMode = $existing.Mode -eq $mode
+                if ($isSameId -and $isSameMode) {
+                    $isDuplicate = $true
+                    break
+                }
+            }
+            if (-not $isDuplicate) {
+                $entries.Add(@{ Id = [int]$id; Mode = $mode })
             }
         }
     }
@@ -358,8 +367,8 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    # Sort by ID for logical execution order
-    $sorted = $scriptIds | Sort-Object
+    # Sort by ID for logical execution order (stable -- preserves mode order within same ID)
+    $sorted = $entries | Sort-Object { $_.Id }
     return $sorted
 }
 
@@ -526,25 +535,24 @@ $env:SCRIPTS_ROOT_RUN = "1"
 # ── Handle install keyword mode (bare or named) ─────────────────────
 $hasInstallKeywords = $null -ne $Install -and $Install.Count -gt 0
 if ($hasInstallKeywords) {
-    $scriptIds = Resolve-InstallKeywords -Keywords $Install
+    $resolvedEntries = Resolve-InstallKeywords -Keywords $Install
 
-    $isResolveFailed = $null -eq $scriptIds
+    $isResolveFailed = $null -eq $resolvedEntries
     if ($isResolveFailed) { exit 1 }
 
-    $resolvedModes = $script:_resolvedModes
-
-    $totalScripts = $scriptIds.Count
+    $totalSteps = @($resolvedEntries).Count
+    $idList = ($resolvedEntries | ForEach-Object { $_.Id }) -join ', '
     Write-Host ""
     Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-    Write-Host "Installing $totalScripts tool(s): $($scriptIds -join ', ')"
+    Write-Host "Installing $totalSteps tool(s): $idList"
     Write-Host ""
 
     $successCount = 0
     $failCount    = 0
 
-    foreach ($id in $scriptIds) {
-        # Set per-script mode env vars if defined in keywords modes map
-        $modeKey = $resolvedModes[$id]
+    foreach ($entry in $resolvedEntries) {
+        $id      = $entry.Id
+        $modeKey = $entry.Mode
         $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
         if ($hasModeOverride) {
             $env:NPP_MODE = $modeKey
@@ -559,7 +567,7 @@ if ($hasInstallKeywords) {
     Write-Host ""
     Write-Host "  ======================================" -ForegroundColor DarkGray
     Write-Host "  [ DONE ] " -ForegroundColor Green -NoNewline
-    Write-Host "$successCount of $totalScripts completed successfully"
+    Write-Host "$successCount of $totalSteps completed successfully"
     if ($failCount -gt 0) {
         Write-Host "  [ WARN ] " -ForegroundColor Yellow -NoNewline
         Write-Host "$failCount script(s) failed"
