@@ -79,6 +79,10 @@
     "health":            [13],
     "health-check":      [13],
     "healthcheck":       [13],
+    "notepad++":         [33],
+    "notepadpp":         [33],
+    "notepad-plus":      [33],
+    "npp":               [33],
     "gitmap":            [35],
     "git-map":           [35]
   }
