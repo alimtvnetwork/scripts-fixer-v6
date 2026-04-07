@@ -194,6 +194,13 @@ function Show-RootHelp {
     Write-Host ""
     Write-Host "    vscode+settings, vscode+s   VSCode + Settings Sync        01, 11"
     Write-Host "    vscode+menu+settings, vms   VSCode + Menu Fix + Sync      01, 10, 11"
+    Write-Host "    git+desktop, git+gh         Git + GitHub Desktop           07, 08"
+    Write-Host "    node+pnpm                   Node.js + pnpm                03, 04"
+    Write-Host "    frontend                    VSCode + Node + pnpm + Sync   01, 03, 04, 11"
+    Write-Host "    backend                     Python + Go + PHP + Postgres  05, 06, 16, 20"
+    Write-Host "    web-dev, webdev             VSCode + Node + pnpm + Git    01, 03, 04, 07, 11"
+    Write-Host "    essentials                  VSCode + Choco + Node + Git   01, 02, 03, 07, 11"
+    Write-Host "    full-stack, fullstack       Everything for full-stack dev 01-09, 11, 16"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
     Write-Host ""
