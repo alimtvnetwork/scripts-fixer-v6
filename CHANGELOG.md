@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.6.7] -- 2026-04-07
+
+**Notepad++ installer with settings sync**
+
+### Added
+
+- Script 33 (`33-install-notepadpp`) -- installs Notepad++ via Chocolatey and syncs custom settings to `%APPDATA%\Notepad++\`
+- `Sync-NotepadPPSettings` helper copies all files from script's `settings/` folder, replacing existing config
+- `npp`, `notepad++`, `notepadpp`, `notepad-plus-plus` install keywords mapping to script ID 33
+- Notepad++ added to Everything group preset and registry
+- `spec/33-install-notepadpp/readme.md` with full usage documentation
+
+---
+
 ## [v0.6.6] -- 2026-04-07
 
 **Install target path now logged prominently before drive detection**
