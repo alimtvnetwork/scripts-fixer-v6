@@ -9,7 +9,7 @@
     "installing": "Installing OBS Studio via Chocolatey...",
     "installSuccess": "OBS Studio installed successfully",
     "installFailed": "OBS Studio install failed: {error}",
-    "syncingSettings": "Syncing OBS settings to %APPDATA%\\obs-studio...",
+    "syncingSettings": "Extracting {zip} to temp and syncing scenes + profiles...",
     "settingsSynced": "OBS settings synced to {path}",
     "settingsSkipped": "No OBS settings bundle found in script folder -- skipping sync",
     "setupComplete": "OBS Studio setup complete",

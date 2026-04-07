@@ -1,3 +1,16 @@
-export or unzip to temp and then feed each json to the obs exe with command line if possible as import settings, do you understand??
+OBS Studio Settings Package
+==========================
 
-clear???
+Contains scene collections (.json) and profile folders.
+
+Script 36 (install-obs) handles sync automatically:
+1. Extracts the .zip to a temp directory
+2. Copies .json files to %APPDATA%\obs-studio\basic\scenes\
+3. Copies profile folders to %APPDATA%\obs-studio\basic\profiles\
+4. Cleans up temp
+
+OBS discovers scenes and profiles from these directories on startup.
+
+Usage:
+  .\run.ps1 install obs            # Install OBS + sync settings
+  .\run.ps1 install obs-settings   # Sync settings only
