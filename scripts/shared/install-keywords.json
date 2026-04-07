@@ -1,5 +1,6 @@
 {
   "_comment": "Keyword-to-script-ID mapping for .\\run.ps1 Install <keyword> shortcut. Keys are lowercase. Multiple IDs = installs in sequence.",
+  "_modeComment": "Entries in 'modes' override the default mode for a script. Format: { scriptId: mode }. Used for NPP variants.",
   "keywords": {
     "vscode":            [1],
     "vs-code":           [1],
@@ -76,14 +77,26 @@
     "dbeaver":           [32],
     "db-viewer":         [32],
     "dbviewer":          [32],
-    "health":            [13],
-    "health-check":      [13],
-    "healthcheck":       [13],
     "notepad++":         [33],
     "notepadpp":         [33],
     "notepad-plus":      [33],
     "npp":               [33],
+    "npp+settings":      [33],
+    "npp-settings":      [33],
+    "install-npp":       [33],
+    "health":            [13],
+    "health-check":      [13],
+    "healthcheck":       [13],
     "gitmap":            [35],
     "git-map":           [35]
+  },
+  "modes": {
+    "notepad++":         { "33": "install+settings" },
+    "notepadpp":         { "33": "install+settings" },
+    "notepad-plus":      { "33": "install+settings" },
+    "npp":               { "33": "install+settings" },
+    "npp+settings":      { "33": "install+settings" },
+    "npp-settings":      { "33": "settings-only" },
+    "install-npp":       { "33": "install-only" }
   }
 }
