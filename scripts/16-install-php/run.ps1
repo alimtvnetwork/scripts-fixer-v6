@@ -1,10 +1,26 @@
 # --------------------------------------------------------------------------
-#  Script 16 -- Install PHP
-#  Installs PHP via Chocolatey and verifies the installation.
+#  Script 16 -- Install PHP (+ phpMyAdmin)
+#  Supports 3 modes via -Mode parameter:
+#    php+phpmyadmin  (default) -- PHP + phpMyAdmin
+#    php-only                  -- PHP only
+#    phpmyadmin-only           -- phpMyAdmin only
 # --------------------------------------------------------------------------
 param(
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet("php+phpmyadmin", "php-only", "phpmyadmin-only")]
+    [string]$Mode = ""
 )
+
+# -- Resolve mode: param > env var > default -----------------------------------
+if ([string]::IsNullOrWhiteSpace($Mode)) {
+    $envMode = $env:PHP_MODE
+    $hasEnvMode = -not [string]::IsNullOrWhiteSpace($envMode)
+    if ($hasEnvMode) {
+        $Mode = $envMode
+    } else {
+        $Mode = "php+phpmyadmin"
+    }
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -41,7 +57,6 @@ Initialize-Logging -ScriptName $logMessages.scriptName
 
 try {
 
-
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
@@ -60,25 +75,45 @@ if ($isNotAdmin) {
     return
 }
 
+# -- Mode announcement ---------------------------------------------------------
+$modeLabel = switch ($Mode) {
+    "php+phpmyadmin"  { "PHP + phpMyAdmin (install both)" }
+    "php-only"        { "PHP only (no phpMyAdmin)" }
+    "phpmyadmin-only" { "phpMyAdmin only (no PHP install)" }
+}
+Write-Log "Mode: $modeLabel" -Level "info"
+Write-Host ""
+
 # -- Install PHP ---------------------------------------------------------------
-$ok = Install-Php -Config $config.php -LogMessages $logMessages
+$phpOk = $true
+$isPhpNeeded = $Mode -ne "phpmyadmin-only"
+if ($isPhpNeeded) {
+    $phpOk = Install-Php -Config $config.php -LogMessages $logMessages
+} else {
+    Write-Log "Skipping PHP installation (phpmyadmin-only mode)" -Level "info"
+}
+
+# -- Install phpMyAdmin --------------------------------------------------------
+$pmaOk = $true
+$isPmaNeeded = $Mode -ne "php-only"
+if ($isPmaNeeded) {
+    $pmaOk = Install-PhpMyAdmin -PmaConfig $config.phpmyadmin -LogMessages $logMessages
+} else {
+    Write-Log $logMessages.messages.pmaSkipped -Level "info"
+}
 
 # -- Summary -------------------------------------------------------------------
-if ($ok) {
-    Write-Log $logMessages.messages.done -Level "success"
+$isAllGood = $phpOk -and $pmaOk
+if ($isAllGood) {
+    Write-Log $logMessages.messages.setupComplete -Level "success"
 } else {
     Write-Log $logMessages.messages.completedWithWarnings -Level "warn"
 }
-
-Write-Log $logMessages.messages.setupComplete -Level "success"
-
-# -- Save log ------------------------------------------------------------------
 
 } catch {
     Write-Log "Unhandled error: $_" -Level "error"
     Write-Log "Stack: $($_.ScriptStackTrace)" -Level "error"
 } finally {
-    # -- Save log (always runs, even on crash) --
     $hasAnyErrors = $script:_LogErrors.Count -gt 0
     Save-LogFile -Status $(if ($hasAnyErrors) { "fail" } else { "ok" })
 }

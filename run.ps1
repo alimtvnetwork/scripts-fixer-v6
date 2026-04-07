@@ -166,7 +166,9 @@ function Show-RootHelp {
     Write-Host "    health, healthcheck  Health check (audit + report)   13"
     Write-Host "    winget               Winget package manager          14"
     Write-Host "    tweaks               Windows tweaks                  15"
-    Write-Host "    php                  PHP                             16"
+    Write-Host "    php, php+phpmyadmin  PHP + phpMyAdmin (default)      16"
+    Write-Host "    php-only             PHP only                        16"
+    Write-Host "    phpmyadmin           phpMyAdmin only                 16"
     Write-Host "    powershell, pwsh     PowerShell (latest)             17"
     Write-Host "    mysql                MySQL                           18"
     Write-Host "    mariadb              MariaDB                         19"
@@ -273,7 +275,9 @@ function Show-KeywordTable {
     Write-Host "    health, healthcheck  Health check (audit + report)   13"
     Write-Host "    winget               Winget package manager          14"
     Write-Host "    tweaks               Windows tweaks                  15"
-    Write-Host "    php                  PHP                             16"
+    Write-Host "    php, php+phpmyadmin  PHP + phpMyAdmin (default)      16"
+    Write-Host "    php-only             PHP only                        16"
+    Write-Host "    phpmyadmin           phpMyAdmin only                 16"
     Write-Host "    powershell, pwsh     PowerShell (latest)             17"
     Write-Host "    mysql                MySQL                           18"
     Write-Host "    mariadb              MariaDB                         19"
@@ -672,16 +676,24 @@ if ($hasInstallKeywords) {
     $successCount = 0
     $failCount    = 0
 
+    # Map script IDs to their mode env var names
+    $modeEnvVars = @{
+        33 = "NPP_MODE"
+        16 = "PHP_MODE"
+    }
+
     foreach ($entry in $resolvedEntries) {
         $id      = $entry.Id
         $modeKey = $entry.Mode
         $hasModeOverride = -not [string]::IsNullOrWhiteSpace($modeKey)
-        if ($hasModeOverride) {
-            $env:NPP_MODE = $modeKey
+        $envVarName = $modeEnvVars[$id]
+        $hasEnvVar  = $null -ne $envVarName
+        if ($hasModeOverride -and $hasEnvVar) {
+            Set-Item "Env:\$envVarName" $modeKey
         }
         $result = Invoke-ScriptById -ScriptId $id
-        if ($hasModeOverride) {
-            Remove-Item Env:\NPP_MODE -ErrorAction SilentlyContinue
+        if ($hasModeOverride -and $hasEnvVar) {
+            Remove-Item "Env:\$envVarName" -ErrorAction SilentlyContinue
         }
         if ($result) { $successCount++ } else { $failCount++ }
     }

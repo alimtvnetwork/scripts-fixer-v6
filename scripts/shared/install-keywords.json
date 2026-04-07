@@ -52,6 +52,10 @@
     "windows-tweaks":    [15],
     "windowstweaks":     [15],
     "php":               [16],
+    "phpmyadmin":        [16],
+    "php+phpmyadmin":    [16],
+    "php-only":          [16],
+    "phpmyadmin-only":   [16],
     "powershell":        [17],
     "pwsh":              [17],
     "mysql":             [18],
@@ -104,6 +108,11 @@
     "npp":               { "33": "install+settings" },
     "npp+settings":      { "33": "install+settings" },
     "npp-settings":      { "33": "settings-only" },
-    "install-npp":       { "33": "install-only" }
+    "install-npp":       { "33": "install-only" },
+    "php":               { "16": "php+phpmyadmin" },
+    "php+phpmyadmin":    { "16": "php+phpmyadmin" },
+    "phpmyadmin":        { "16": "phpmyadmin-only" },
+    "php-only":          { "16": "php-only" },
+    "phpmyadmin-only":   { "16": "phpmyadmin-only" }
   }
 }
