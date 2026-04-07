@@ -95,6 +95,7 @@ function Save-ResolvedData {
                 $existing[$prop.Name] = $prop.Value
             }
         } catch {
+            Write-FileError -FilePath $resolvedFile -Operation "read" -Reason "Could not parse existing resolved.json: $_" -Module "Save-ResolvedData"
             Write-Log $slm.messages.resolvedReadFailed -Level "warn"
         }
     }
@@ -109,6 +110,7 @@ function Save-ResolvedData {
         [System.IO.File]::WriteAllText($resolvedFile, $json)
         Write-Log ($slm.messages.resolvedSaved -replace '\{path\}', $resolvedFile) -Level "success"
     } catch {
+        Write-FileError -FilePath $resolvedFile -Operation "write" -Reason "Failed to write resolved.json: $_" -Module "Save-ResolvedData"
         Write-Log ($slm.messages.resolvedSaveFailed -replace '\{error\}', $_) -Level "warn"
     }
 }

@@ -311,6 +311,7 @@ function Import-JsonConfig {
 
     $isFileMissing = -not (Test-Path $FilePath)
     if ($isFileMissing) {
+        Write-FileError -FilePath $FilePath -Operation "load" -Reason "File does not exist" -Module "Import-JsonConfig"
         if ($hasSharedLogs) {
             Write-Log ($slm.messages.importNotFound -replace '\{label\}', $Label -replace '\{path\}', $FilePath) -Level "error"
         }

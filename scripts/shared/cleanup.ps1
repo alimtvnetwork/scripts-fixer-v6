@@ -75,6 +75,7 @@ function Clear-ResolvedData {
                 Write-Log ($slm.messages.cleanupClearedEdition -replace '\{edition\}', $EditionName -replace '\{script\}', $scriptName) -Level "success"
             }
         } catch {
+            Write-FileError -FilePath $resolvedFile -Operation "write" -Reason "Failed to clear edition '$EditionName': $_" -Module "Clear-ResolvedData"
             Write-Log ($slm.messages.cleanupEditionFailed -replace '\{edition\}', $EditionName -replace '\{error\}', $_) -Level "warn"
         }
         return
@@ -86,6 +87,7 @@ function Clear-ResolvedData {
         Get-ChildItem -Path $resolvedDir -Recurse -Force | Remove-Item -Recurse -Force
         Write-Log $slm.messages.cleanupAllRemoved -Level "success"
     } catch {
+        Write-FileError -FilePath $resolvedDir -Operation "write" -Reason "Failed to clear .resolved/ directory: $_" -Module "Clear-ResolvedData"
         Write-Log ($slm.messages.cleanupFailed -replace '\{error\}', $_) -Level "warn"
     }
 }
