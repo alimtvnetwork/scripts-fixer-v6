@@ -1,0 +1,28 @@
+{
+  "scriptName": "Install GitMap",
+  "description": "Installs GitMap CLI -- a Git repository navigator tool for Windows.",
+  "messages": {
+    "notAdmin": "This script requires admin privileges. Please run as Administrator.",
+    "checking": "Checking for GitMap...",
+    "found": "GitMap already installed",
+    "notFound": "GitMap not found -- installing...",
+    "installing": "Installing GitMap via remote installer...",
+    "installSuccess": "GitMap installed successfully",
+    "installFailed": "GitMap install failed: {error}",
+    "notInPath": "GitMap installed but not found in PATH (may need shell restart)",
+    "setupComplete": "GitMap setup complete",
+    "disabled": "GitMap install is disabled in config",
+    "downloadingInstaller": "Downloading GitMap installer from GitHub...",
+    "runningInstaller": "Running GitMap installer..."
+  },
+  "help": {
+    "commands": {
+      "install": "Install GitMap CLI (default)"
+    },
+    "examples": [
+      ".\\run.ps1 -I 35",
+      ".\\run.ps1 install gitmap",
+      ".\\run.ps1 -I 35 -- -Help"
+    ]
+  }
+}
