@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.7.3] -- 2026-04-07
+
+**OBS settings sync rework, keyword modes audit check**
+
+### Changed
+
+- OBS settings sync reworked: extract zip to `%TEMP%`, copy `.json` scene collections to `basic\scenes\`, profile folders to `basic\profiles\`
+- Settings source changed from script-local folder to `settings/02 - obs-settings/` (shared settings directory)
+- OBS picks up scenes and profiles automatically on startup -- no CLI import needed
+
+### Added
+
+- Audit Check 10: **Keyword modes vs config validModes** -- verifies every mode in `install-keywords.json` maps to a valid entry in the target script's `config.json` `validModes` array
+- Added `validModes` arrays to `config.json` for scripts 16 (PHP), 33 (NPP), 36 (OBS)
+
+---
+
 ## [v0.7.2] -- 2026-04-07
 
 **OBS Studio 3-mode installer script**
