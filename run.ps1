@@ -68,7 +68,7 @@ param(
 
     [switch]$t,
 
-    [Alias("D")][switch]$Defaults,
+    [switch]$Defaults,
 
     [switch]$Y,
 
