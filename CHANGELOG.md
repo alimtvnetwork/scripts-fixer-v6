@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.5.5] -- 2026-04-07
+
+**Release pipeline script for versioned ZIP packaging**
+
+### Added
+
+- `release.ps1` -- packages `scripts/`, `run.ps1`, `bump-version.ps1`, `readme.md`, `LICENSE`, and `CHANGELOG.md` into a versioned ZIP under `.release/`
+- Supports `-DryRun` (preview contents) and `-Force` (overwrite existing ZIP) flags
+- Reads version automatically from `.gitmap/release/latest.json`
+- `spec/release-pipeline/readme.md` with full usage documentation
+
+---
+
 ## [v0.5.4] -- 2026-04-06
 
 **Audit --DryRun flag and Invoke-WithTimeout shared helper**
