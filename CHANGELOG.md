@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.8.1] -- 2026-04-08
+
+**Orchestrator config fix, repo URL update to v6**
+
+### Fixed
+
+- Added scripts 34 (Sticky Notes), 36 (OBS Studio), 37 (Windows Terminal) to orchestrator config (`scripts/12-install-all-dev-tools/config.json`) -- scripts block, execution sequence, and "Everything (01-37)" group
+
+### Changed
+
+- Repository clone URL updated from `scripts-fixer-v5` to `scripts-fixer-v6` in `readme.md`
+
+---
+
 ## [v0.7.4] -- 2026-04-07
 
 **Windows Terminal 3-mode installer, golangci-lint + go vet, combo keywords in summary, GitMap URL update**
