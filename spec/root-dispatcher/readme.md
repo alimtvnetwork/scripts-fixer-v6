@@ -101,6 +101,20 @@ be passed as comma-separated values, space-separated values, or a mix of both.
 | `duckdb` | DuckDB | 28 |
 | `litedb` | LiteDB | 29 |
 | `databases`, `db` | Interactive database installer menu | 30 |
+| `pwsh-menu` | PowerShell context menu | 31 |
+| `notepad++`, `npp` | NPP + Settings (install + sync) | 33 |
+| `npp+settings` | NPP + Settings (explicit) | 33 |
+| `npp-settings` | NPP Settings only | 33 |
+| `install-npp` | Install NPP only | 33 |
+| `sticky-notes`, `sticky` | Simple Sticky Notes | 34 |
+| `gitmap`, `git-map` | GitMap CLI | 35 |
+| `obs`, `obs+settings` | OBS + Settings (install + sync) | 36 |
+| `obs-settings` | OBS Settings only | 36 |
+| `install-obs` | Install OBS only | 36 |
+| `wt`, `windows-terminal` | WT + Settings (install + sync) | 37 |
+| `wt+settings` | WT + Settings (explicit) | 37 |
+| `wt-settings` | WT Settings only | 37 |
+| `install-wt` | Install WT only | 37 |
 
 ### Combo Examples
 

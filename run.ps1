@@ -213,6 +213,10 @@ function Show-RootHelp {
     Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
     Write-Host "    obs-settings         OBS Settings (settings only)    36"
     Write-Host "    install-obs          Install OBS (install only)      36"
+    Write-Host "    wt, windows-terminal WT + Settings (install + sync)  37"
+    Write-Host "    wt+settings          WT + Settings (explicit)        37"
+    Write-Host "    wt-settings          WT Settings (settings only)     37"
+    Write-Host "    install-wt           Install WT (install only)       37"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
@@ -334,6 +338,10 @@ function Show-KeywordTable {
     Write-Host "    obs, obs+settings    OBS + Settings (install + sync)  36"
     Write-Host "    obs-settings         OBS Settings (settings only)    36"
     Write-Host "    install-obs          Install OBS (install only)      36"
+    Write-Host "    wt, windows-terminal WT + Settings (install + sync)  37"
+    Write-Host "    wt+settings          WT + Settings (explicit)        37"
+    Write-Host "    wt-settings          WT Settings (settings only)     37"
+    Write-Host "    install-wt           Install WT (install only)       37"
     Write-Host ""
     Write-Host "  Combo Shortcuts:" -ForegroundColor Yellow
     Write-Host ""
