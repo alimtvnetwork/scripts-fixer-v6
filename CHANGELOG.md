@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.8.2] -- 2026-04-08
+
+**Version header, self-update on update command, WT keywords, OBS path fix**
+
+### Added
+
+- Version header (`Scripts Fixer vX.Y.Z`) displayed at top of `run.ps1` output (no-params, `-Help`, `update`)
+- `Get-ScriptVersion` and `Show-VersionHeader` helpers in `run.ps1` reading from `scripts/version.json`
+- WT keywords added to `Show-RootHelp` and `Show-KeywordTable`: `wt`, `windows-terminal`, `wt+settings`, `wt-settings`, `install-wt` (script 37)
+- All missing keywords (scripts 31-37) added to `spec/root-dispatcher/readme.md` keyword table
+
+### Changed
+
+- `update` command now performs git pull (self-update) before running `choco upgrade all`
+- Updated `spec/root-dispatcher/readme.md` with version header docs, separate execution flow sections, and self-update behaviour
+
+### Fixed
+
+- OBS settings sync path traversal bug -- `Sync-OBSSettings` was resolving to `scripts/settings/` instead of project root `settings/` (added missing `Split-Path -Parent` level)
+
+---
+
 ## [v0.8.1] -- 2026-04-08
 
 **Orchestrator config fix, repo URL update to v6**
