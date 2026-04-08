@@ -6,15 +6,18 @@ The root-level `run.ps1` is the single entry point for running any numbered
 script in the project. It handles git pull, log cleanup, environment flags,
 and cache management before delegating to the target script.
 
-When run with no parameters, it performs a git pull and shows help
-(available scripts and usage).
+When run with no parameters, it performs a git pull, displays the project
+version from `scripts/version.json`, and shows help (available scripts and usage).
+
+The `update` command self-updates the scripts (git pull) before upgrading
+Chocolatey packages.
 
 ---
 
 ## Usage
 
 ```powershell
-.\run.ps1                              # Git pull + show help
+.\run.ps1                              # Git pull + version header + show help
 .\run.ps1 install vscode              # Install VS Code by bare command
 .\run.ps1 install alldev,mysql        # Bare install command with comma-separated keywords
 .\run.ps1 -Install vscode             # Install VS Code by keyword
@@ -127,12 +130,18 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 
 ## Execution Flow
 
+### No parameters
+1. Clear stale `$env:SCRIPTS_ROOT_RUN`
+2. Git pull (update scripts)
+3. Display version header (`Scripts Fixer vX.Y.Z`)
+4. Show help menu
+5. Exit
+
 ### Standard mode (-I)
-1. If no parameters at all: clear stale `$env:SCRIPTS_ROOT_RUN`, git pull, show help, exit
-2. If `-List`: print keyword table and exit
-3. If `-Help`: show help and exit
-4. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
-5. If `-Clean`: wipe `.resolved/` contents, then continue
+1. If `-List`: print keyword table and exit
+2. If `-Help`: show help (with version header) and exit
+3. If `-CleanOnly`: wipe `.resolved/` contents and exit immediately
+4. If `-Clean`: wipe `.resolved/` contents, then continue
 5. Dot-source `scripts/shared/git-pull.ps1`
 6. Run `Invoke-GitPull` from repo root
 7. Set `$env:SCRIPTS_ROOT_RUN = "1"`
@@ -141,8 +150,14 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 10. Delegate to the child script
 11. Clean up `$env:SCRIPTS_ROOT_RUN`
 
+### Update mode (`update`)
+1. Display version header (`Scripts Fixer vX.Y.Z`)
+2. Git pull (self-update scripts to latest)
+3. Run `Invoke-ChocoUpdate` (list packages, confirm, `choco upgrade all -y`)
+4. Exit
+
 ### Keyword mode (`install` or `-Install`)
-1. Steps 1-7 same as above
+1. Steps 1-7 same as standard mode
 2. Normalize input from either bare `install` or named `-Install`
 3. Parse comma-separated and/or space-separated keywords via `Resolve-InstallKeywords`
 4. Look up each keyword in `scripts/shared/install-keywords.json`
@@ -150,6 +165,20 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 6. Run each script in sequence via `Invoke-ScriptById`
 7. Show summary (success/fail counts)
 8. Clean up `$env:SCRIPTS_ROOT_RUN`
+
+## Version Header
+
+The version is read from `scripts/version.json` (single source of truth) by
+`Get-ScriptVersion` and displayed via `Show-VersionHeader`. It prints:
+
+```
+  Scripts Fixer v0.8.1
+```
+
+Shown automatically on:
+- No-params run (before help menu)
+- `update` command (before git pull + choco upgrade)
+- `-Help` flag
 
 ## Script Resolution
 
@@ -199,6 +228,8 @@ If `registry.json` is missing, the dispatcher falls back to globbing
 
 | Decision | Rationale |
 |----------|-----------|
+| Version header from `version.json` | Single source of truth; user sees current version immediately |
+| Self-update on `update` command | Scripts are always up to date before upgrading Chocolatey packages |
 | Keyword install system | Human-friendly names avoid needing to memorize script IDs |
 | Bare `install` support | Matches the user's natural CLI usage |
 | External keyword JSON | Easy to add new keywords without editing run.ps1 |
