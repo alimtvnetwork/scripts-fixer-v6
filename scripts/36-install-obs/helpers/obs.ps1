@@ -124,7 +124,7 @@ function Sync-OBSSettings {
     )
 
     $msgs = $LogMessages.messages
-    $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName))
+    $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.ScriptName)))
     $settingsSource = Join-Path $repoRoot "settings\02 - obs-settings"
 
     # -- Target dirs: %APPDATA%\obs-studio\basic\{scenes,profiles} -----
