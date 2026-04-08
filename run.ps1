@@ -743,6 +743,7 @@ if ($hasInstallKeywords) {
         33 = "NPP_MODE"
         16 = "PHP_MODE"
         36 = "OBS_MODE"
+        37 = "WT_MODE"
     }
 
     foreach ($entry in $resolvedEntries) {
