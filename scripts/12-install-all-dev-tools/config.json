@@ -18,7 +18,7 @@
     { "letter": "k", "label": "Backend Stack (03-04,06,18-20,24)", "ids": ["03", "04", "06", "18", "19", "20", "24"] },
     { "letter": "l", "label": "Full Stack (03,04,06,07,16,18,20,22,24)", "ids": ["03", "04", "06", "07", "16", "18", "20", "22", "24"] },
     { "letter": "m", "label": "Data Engineering (05,20,27,28)", "ids": ["05", "20", "27", "28"] },
-    { "letter": "n", "label": "Everything (01-35)",             "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "35"] },
+    { "letter": "n", "label": "Everything (01-37)",             "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37"] },
     { "letter": "o", "label": "All Dev + MySQL",                "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "18"] },
     { "letter": "p", "label": "All Dev + PostgreSQL",           "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "20"] },
     { "letter": "r", "label": "All Dev + PostgreSQL + Redis",   "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "20", "24"] },
@@ -54,7 +54,10 @@
     "31": { "enabled": true, "folder": "31-pwsh-context-menu",       "name": "PowerShell Context Menu", "desc": "Add PowerShell right-click context menu (normal + admin)" },
     "32": { "enabled": true, "folder": "32-install-dbeaver",         "name": "DBeaver Community",     "desc": "Universal database visualization and management tool" },
     "33": { "enabled": true, "folder": "33-install-notepadpp",       "name": "Notepad++",             "desc": "Lightweight source code editor with syntax highlighting" },
-    "35": { "enabled": true, "folder": "35-install-gitmap",          "name": "GitMap",                "desc": "Git repository navigator CLI tool" }
+    "34": { "enabled": true, "folder": "34-install-sticky-notes",   "name": "Sticky Notes",          "desc": "Install Microsoft Sticky Notes" },
+    "35": { "enabled": true, "folder": "35-install-gitmap",          "name": "GitMap",                "desc": "Git repository navigator CLI tool" },
+    "36": { "enabled": true, "folder": "36-install-obs",             "name": "OBS Studio",            "desc": "Install OBS Studio screen recorder and streaming tool" },
+    "37": { "enabled": true, "folder": "37-install-windows-terminal","name": "Windows Terminal",      "desc": "Install Windows Terminal with settings sync" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "35"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37"]
 }
