@@ -20,7 +20,7 @@
 
 ```powershell
 # Clone the repo
-git clone https://github.com/alimtvnetwork/scripts-fixer-v5.git scripts-fixture
+git clone https://github.com/alimtvnetwork/scripts-fixer-v6.git scripts-fixture
 cd scripts-fixture
 ```
 
