@@ -88,8 +88,29 @@ param(
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
+# ── Read project version ─────────────────────────────────────────────
+function Get-ScriptVersion {
+    $vf = Join-Path $RootDir "scripts" "version.json"
+    $isPresent = Test-Path $vf
+    if ($isPresent) {
+        $data = Get-Content $vf -Raw | ConvertFrom-Json
+        return $data.version
+    }
+    return $null
+}
+
+function Show-VersionHeader {
+    $ver = Get-ScriptVersion
+    $hasVersion = -not [string]::IsNullOrWhiteSpace($ver)
+    if ($hasVersion) {
+        Write-Host ""
+        Write-Host "  Scripts Fixer v$ver" -ForegroundColor Magenta
+    }
+}
+
 # ── Help function ────────────────────────────────────────────────────
 function Show-RootHelp {
+    Show-VersionHeader
     Write-Host ""
     Write-Host "  Dev Tools Setup Scripts" -ForegroundColor Cyan
     Write-Host "  =======================" -ForegroundColor DarkGray
@@ -598,6 +619,18 @@ if ($hasCommand) {
             exit 1
         }
     } elseif ($isBareUpdateCommand) {
+        Show-VersionHeader
+
+        # Self-update: pull latest script changes first
+        Remove-Item Env:\SCRIPTS_ROOT_RUN -ErrorAction SilentlyContinue
+        $sharedGitPull = Join-Path $RootDir "scripts\shared\git-pull.ps1"
+        $isHelperAvailable = Test-Path $sharedGitPull
+        if ($isHelperAvailable) {
+            . $sharedGitPull
+            Invoke-GitPull -RepoRoot $RootDir
+        }
+
+        # Then update Chocolatey packages
         Invoke-ChocoUpdate
         exit 0
     } elseif ($isBareScriptId) {
