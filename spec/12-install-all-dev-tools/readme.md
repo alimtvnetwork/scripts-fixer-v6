@@ -147,6 +147,7 @@ directory post-install.
 | 28 | DuckDB | Analytical file-based columnar database |
 | 29 | LiteDB | .NET embedded NoSQL file-based database |
 | 31 | PowerShell Context Menu | Add PowerShell right-click context menu |
+| 38 | Flutter | Flutter SDK, Android Studio, Chrome, VS Code extensions |
 
 ## Summary Output
 
