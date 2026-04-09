@@ -55,7 +55,7 @@ function Install-GitHubDesktop {
         if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
     }
     else {
-        Write-Log $LogMessages.messages.ghDesktopNotFound -Level "warn"
+        Write-Log $LogMessages.messages.ghDesktopNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
             Write-Log $LogMessages.messages.ghDesktopInstallSuccess -Level "success"
