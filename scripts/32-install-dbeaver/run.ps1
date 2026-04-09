@@ -1,9 +1,12 @@
 # --------------------------------------------------------------------------
 #  Script 32 -- Install DBeaver Community
 #  Universal database visualization and management tool
+#  Supports 3 modes: install+settings, settings-only, install-only
 # --------------------------------------------------------------------------
 param(
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet("install+settings", "settings-only", "install-only")]
+    [string]$Mode = ""
 )
 
 Set-StrictMode -Version Latest
@@ -17,6 +20,7 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helper -------------------------------------------------
 . (Join-Path $scriptDir "helpers\dbeaver.ps1")
@@ -43,16 +47,27 @@ try {
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 
-# -- Assert admin --------------------------------------------------------------
-$hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$isNotAdmin = -not $hasAdminRights
-if ($isNotAdmin) {
-    Write-Log $logMessages.messages.notAdmin -Level "error"
-    return
+# -- Resolve mode --------------------------------------------------------------
+$isModePassed = $Mode -ne ""
+if (-not $isModePassed) {
+    $Mode = $config.database.defaultMode
+}
+
+# -- Settings-only mode does not require admin ---------------------------------
+$isSettingsOnly = $Mode -eq "settings-only"
+
+if (-not $isSettingsOnly) {
+    # -- Assert admin ----------------------------------------------------------
+    $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $isNotAdmin = -not $hasAdminRights
+    if ($isNotAdmin) {
+        Write-Log $logMessages.messages.notAdmin -Level "error"
+        return
+    }
 }
 
 # -- Install -------------------------------------------------------------------
-$ok = Install-Dbeaver -DbConfig $config.database -LogMessages $logMessages
+$ok = Install-Dbeaver -DbConfig $config.database -LogMessages $logMessages -Mode $Mode
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {

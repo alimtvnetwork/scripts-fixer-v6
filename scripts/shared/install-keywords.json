@@ -81,6 +81,9 @@
     "dbeaver":           [32],
     "db-viewer":         [32],
     "dbviewer":          [32],
+    "dbeaver+settings":  [32],
+    "dbeaver-settings":  [32],
+    "install-dbeaver":   [32],
     "notepad++":         [33],
     "notepadpp":         [33],
     "notepad-plus":      [33],
@@ -145,6 +148,12 @@
     "wt":                { "37": "install+settings" },
     "wt+settings":       { "37": "install+settings" },
     "wt-settings":       { "37": "settings-only" },
-    "install-wt":        { "37": "install-only" }
+    "install-wt":        { "37": "install-only" },
+    "dbeaver":           { "32": "install+settings" },
+    "db-viewer":         { "32": "install+settings" },
+    "dbviewer":          { "32": "install+settings" },
+    "dbeaver+settings":  { "32": "install+settings" },
+    "dbeaver-settings":  { "32": "settings-only" },
+    "install-dbeaver":   { "32": "install-only" }
   }
 }

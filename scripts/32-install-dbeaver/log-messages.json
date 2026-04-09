@@ -1,6 +1,6 @@
 {
   "scriptName": "Install DBeaver Community",
-  "description": "Installs DBeaver Community Edition -- universal database visualization and management tool.",
+  "description": "Installs DBeaver Community Edition -- universal database visualization and management tool. Optionally syncs connection profiles and settings.",
   "messages": {
     "notAdmin": "This script requires admin privileges. Please run as Administrator.",
     "checking": "Checking for DBeaver...",
@@ -11,15 +11,22 @@
     "installFailed": "DBeaver install failed: {error}",
     "notInPath": "DBeaver installed but dbeaver-cli not found in PATH (may need shell restart)",
     "setupComplete": "DBeaver Community setup complete",
-    "disabled": "DBeaver install is disabled in config"
+    "disabled": "DBeaver install is disabled in config",
+    "syncingSettings": "Syncing DBeaver settings from {source}...",
+    "settingsSynced": "DBeaver settings synced -- {count} item(s) copied to {path}",
+    "settingsSkipped": "DBeaver settings sync skipped -- no source files found"
   },
   "help": {
     "commands": {
-      "install": "Install DBeaver Community Edition (default)"
+      "install": "Install DBeaver Community Edition + sync settings (default)",
+      "settings-only": "Sync DBeaver settings only (skip install)",
+      "install-only": "Install DBeaver only (skip settings sync)"
     },
     "examples": [
       ".\\run.ps1 -I 32",
       ".\\run.ps1 install dbeaver",
+      ".\\run.ps1 install dbeaver-settings",
+      ".\\run.ps1 install install-dbeaver",
       ".\\run.ps1 -I 32 -- -Help"
     ]
   }
