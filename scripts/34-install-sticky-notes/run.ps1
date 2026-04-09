@@ -55,6 +55,18 @@ $ok = Install-StickyNotes -StickyConfig $config.stickyNotes -LogMessages $logMes
 
 $isSuccess = $ok -eq $true
 if ($isSuccess) {
+    # -- Custom data folder ----------------------------------------------------
+    $hasDataFolderConfig = $null -ne $config.stickyNotes.dataFolder
+    if ($hasDataFolderConfig) {
+        $dataOk = Set-StickyNotesDataFolder -DataFolderConfig $config.stickyNotes.dataFolder -LogMessages $logMessages
+        $isDataFail = -not $dataOk
+        if ($isDataFail) {
+            $isSuccess = $false
+        }
+    }
+}
+
+if ($isSuccess) {
     Write-Log $logMessages.messages.setupComplete -Level "success"
 } else {
     Write-Log ($logMessages.messages.installFailed -replace '\{error\}', "See errors above") -Level "error"

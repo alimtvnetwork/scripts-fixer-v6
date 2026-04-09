@@ -110,3 +110,83 @@ function Install-StickyNotes {
 
     return $true
 }
+
+function Set-StickyNotesDataFolder {
+    <#
+    .SYNOPSIS
+        Redirects SSN data storage to a custom folder via directory symlink.
+        Default SSN data lives in %APPDATA%\Simple Sticky Notes.
+        This creates a symlink from that location to the configured path.
+    #>
+    param(
+        [PSCustomObject]$DataFolderConfig,
+        $LogMessages
+    )
+
+    $isDisabled = -not $DataFolderConfig.enabled
+    if ($isDisabled) {
+        Write-Log $LogMessages.messages.dataFolderSkipped -Level "info"
+        return $true
+    }
+
+    $targetPath = $DataFolderConfig.path
+
+    # Ensure target folder exists
+    $isTargetMissing = -not (Test-Path $targetPath)
+    if ($isTargetMissing) {
+        if ($DataFolderConfig.createIfMissing) {
+            try {
+                New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
+                Write-Log ($LogMessages.messages.dataFolderCreated -replace '\{path\}', $targetPath) -Level "success"
+            } catch {
+                Write-FileError -FilePath $targetPath -Operation "create" -Reason "$_" -Module "Set-StickyNotesDataFolder"
+                Write-Log ($LogMessages.messages.dataFolderFailed -replace '\{error\}', "$_") -Level "error"
+                return $false
+            }
+        } else {
+            Write-FileError -FilePath $targetPath -Operation "resolve" -Reason "Custom data folder does not exist and createIfMissing is false" -Module "Set-StickyNotesDataFolder"
+            Write-Log ($LogMessages.messages.dataFolderFailed -replace '\{error\}', "Target folder does not exist") -Level "error"
+            return $false
+        }
+    } else {
+        Write-Log ($LogMessages.messages.dataFolderExists -replace '\{path\}', $targetPath) -Level "info"
+    }
+
+    # SSN default data location
+    $ssnDataDir = Join-Path $env:APPDATA "Simple Sticky Notes"
+
+    # Check if already a symlink pointing to the right place
+    $isExistingLink = (Test-Path $ssnDataDir) -and ((Get-Item $ssnDataDir).Attributes -band [System.IO.FileAttributes]::ReparsePoint)
+    if ($isExistingLink) {
+        $linkTarget = (Get-Item $ssnDataDir).Target
+        $isCorrectTarget = $linkTarget -eq $targetPath
+        if ($isCorrectTarget) {
+            Write-Log ($LogMessages.messages.dataFolderAlreadyLinked -replace '\{path\}', $targetPath) -Level "info"
+            return $true
+        }
+        # Wrong target -- remove and re-link
+        Remove-Item $ssnDataDir -Force
+    }
+
+    # If SSN data dir exists as a real folder, move contents to target
+    $isRealFolder = (Test-Path $ssnDataDir) -and -not $isExistingLink
+    if ($isRealFolder) {
+        $existingFiles = Get-ChildItem -Path $ssnDataDir -Recurse -Force
+        $hasFiles = $existingFiles.Count -gt 0
+        if ($hasFiles) {
+            Copy-Item -Path "$ssnDataDir\*" -Destination $targetPath -Recurse -Force
+        }
+        Remove-Item $ssnDataDir -Recurse -Force
+    }
+
+    # Create symlink: %APPDATA%\Simple Sticky Notes -> D:\notes
+    try {
+        New-Item -ItemType SymbolicLink -Path $ssnDataDir -Target $targetPath -Force | Out-Null
+        Write-Log ($LogMessages.messages.dataFolderSymlinked -replace '\{path\}', $targetPath) -Level "success"
+        return $true
+    } catch {
+        Write-FileError -FilePath $ssnDataDir -Operation "symlink" -Reason "$_" -Module "Set-StickyNotesDataFolder"
+        Write-Log ($LogMessages.messages.dataFolderFailed -replace '\{error\}', "$_") -Level "error"
+        return $false
+    }
+}
