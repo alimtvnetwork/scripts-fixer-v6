@@ -64,6 +64,13 @@ Assert-Choco
 # -- Install -------------------------------------------------------------------
 Install-GitHubDesktop -Config $config -LogMessages $logMessages
 
+# -- Scan folders for Git repos ------------------------------------------------
+$hasScanConfig = $null -ne $config.scanFolders
+if ($hasScanConfig) {
+    Write-Host ""
+    Add-ReposToGitHubDesktop -ScanConfig $config.scanFolders -LogMessages $logMessages
+}
+
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
 

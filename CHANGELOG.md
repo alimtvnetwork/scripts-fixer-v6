@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.8.7] -- 2026-04-09
+
+**GitHub Desktop: post-install folder scanning for Git repos**
+
+### Added
+
+- `scanFolders` config block in Script 08 (`config.json`) with `paths`, `maxDepth`, and `excludePatterns`
+- `Add-ReposToGitHubDesktop` function -- scans configured folders for `.git` directories and adds discovered repos to `%APPDATA%\GitHub Desktop\repositories.json`
+- `Find-GitRepos` helper -- breadth-first search for `.git` folders with depth limit and exclusion patterns
+- Log messages for scan progress, discovery, and summary
+
+---
+
 ## [v0.8.6] -- 2026-04-09
 
 **Simple Sticky Notes: SSN keyword + custom data folder**
