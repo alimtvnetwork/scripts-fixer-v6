@@ -21,7 +21,8 @@ In-memory key-value store and cache.
 | `devDir.override` | string | Hard override (skips prompt) |
 | `installMode.default` | string | Default install location (devDir/custom/system) |
 | `database.enabled` | bool | Toggle installation |
-| `database.chocoPackage` | string | Chocolatey package name |
+| `database.chocoPackage` | string | Primary Chocolatey package name |
+| `database.fallbackPackage` | string | Fallback Chocolatey package if primary fails |
 | `database.verifyCommand` | string | Command to verify installation |
 | `database.versionFlag` | string | Flag to check version |
 
@@ -31,11 +32,25 @@ In-memory key-value store and cache.
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 
+## Fallback Chain
+
+Redis installation uses a fallback chain to handle the common MSI 1603 error
+with the Memurai dependency in the `redis-64` package:
+
+1. **Primary**: `redis-64` (Memurai-based, preferred)
+2. **Fallback**: `redis` (tporadowski Windows port)
+3. **Manual**: Logs a download URL if both packages fail
+
+The chain is automatic -- if the primary package fails, the installer
+immediately retries with the fallback package before reporting failure.
+
 ## Flow
 
 1. Assert admin privileges
 2. Resolve dev directory from config
 3. Prompt for install location
 4. Check if Redis is already installed
-5. Install via Chocolatey if not found
-6. Verify installation and save resolved state
+5. Install via Chocolatey (primary package)
+6. If primary fails, retry with fallback package
+7. If both fail, log manual download hint
+8. Verify installation and save resolved state
