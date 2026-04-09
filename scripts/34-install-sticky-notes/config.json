@@ -9,6 +9,11 @@
     "verifyCommand": "SimpleSticky",
     "name": "Simple Sticky Notes",
     "desc": "Lightweight sticky notes for Windows desktop",
-    "chocoPackage": "simple-sticky-notes"
+    "chocoPackage": "simple-sticky-notes",
+    "dataFolder": {
+      "enabled": true,
+      "path": "D:\\notes",
+      "createIfMissing": true
+    }
   }
 }

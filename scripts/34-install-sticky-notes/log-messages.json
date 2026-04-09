@@ -11,7 +11,13 @@
     "installFailed": "Simple Sticky Notes install failed: {error}",
     "notInPath": "Simple Sticky Notes installed but executable not found in PATH (may need shell restart)",
     "setupComplete": "Simple Sticky Notes setup complete",
-    "disabled": "Simple Sticky Notes install is disabled in config"
+    "disabled": "Simple Sticky Notes install is disabled in config",
+    "dataFolderCreated": "Created custom data folder: {path}",
+    "dataFolderExists": "Custom data folder already exists: {path}",
+    "dataFolderSymlinked": "Symlinked SSN data to custom folder: {path}",
+    "dataFolderAlreadyLinked": "SSN data folder already linked to: {path}",
+    "dataFolderSkipped": "Custom data folder config disabled -- using default location",
+    "dataFolderFailed": "Failed to set up custom data folder: {error}"
   },
   "help": {
     "commands": {
