@@ -90,7 +90,7 @@ $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # ── Read project version ─────────────────────────────────────────────
 function Get-ScriptVersion {
-    $vf = Join-Path $RootDir "scripts" "version.json"
+    $vf = Join-Path (Join-Path $RootDir "scripts") "version.json"
     $isPresent = Test-Path $vf
     if ($isPresent) {
         $data = Get-Content $vf -Raw | ConvertFrom-Json

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.8.5] -- 2026-04-09
+
+**Fix Join-Path PS 5.1 compatibility in Get-ScriptVersion**
+
+### Fixed
+
+- `Get-ScriptVersion` in `run.ps1` used 3-argument `Join-Path` which only works in PowerShell 7+; PS 5.1 threw "positional parameter cannot be found that accepts argument 'version.json'" -- nested to `Join-Path (Join-Path ...) "version.json"`
+
 ---
 
 ## [v0.8.4] -- 2026-04-09
