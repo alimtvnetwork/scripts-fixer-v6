@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.8.3] -- 2026-04-09
+
+**PSScriptRoot path fix for OBS and WT settings sync**
+
+### Fixed
+
+- OBS settings sync (`Sync-OBSSettings`) now uses `$PSScriptRoot` instead of `$MyInvocation.ScriptName` to resolve the repo root -- fixes incorrect path when dot-sourced from `run.ps1`
+- WT settings sync (`Sync-WTSettings`) updated with the same `$PSScriptRoot` path resolution fix for consistency
+- Added `37 = "WT_MODE"` to `$modeEnvVars` in `run.ps1` so WT mode keywords (`wt-settings`, `wt+settings`) pass the mode correctly
+
+---
+
 ## [v0.8.2] -- 2026-04-08
 
 **Version header, self-update on update command, WT keywords, OBS path fix**
