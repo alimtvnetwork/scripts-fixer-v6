@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.10.0] -- 2026-04-10
+
+### Added
+
+- **Script 38 -- Install Flutter** -- complete Flutter development environment setup
+  - Installs Flutter SDK (includes Dart) via Chocolatey
+  - Installs Android Studio via Chocolatey
+  - Installs Google Chrome for Flutter web development
+  - Installs VS Code Flutter and Dart extensions (`Dart-Code.dart-code`, `Dart-Code.flutter`)
+  - Runs `flutter doctor` post-install and auto-accepts Android licenses
+  - Subcommands: `all`, `install`, `android`, `chrome`, `extensions`, `doctor`
+- Registered script 38 in `registry.json` and orchestrator config
+- Added to "Everything" group and execution sequence
+- Created spec at `spec/38-install-flutter/readme.md`
+
+---
+
 ## [v0.9.1] -- 2026-04-10
 
 ### Fixed
