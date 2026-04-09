@@ -2,13 +2,6 @@
 
 All notable changes to this project are documented in this file.
 
-## [v0.8.9] -- 2026-04-10
-
-### Fixed
-
-- Changed `ghDesktopNotFound` log level from `warn` to `info` in Script 08 -- "not found, installing" is expected install flow, not a warning
-
----
 ## [v0.9.0] -- 2026-04-10
 
 ### Added
@@ -19,6 +12,14 @@ All notable changes to this project are documented in this file.
 - Added keywords: `dbeaver+settings`, `dbeaver-settings`, `install-dbeaver` with mode mappings
 - Settings-only mode does not require admin privileges
 - Updated spec/32 readme with full mode documentation
+
+---
+
+## [v0.8.9] -- 2026-04-10
+
+### Fixed
+
+- Changed `ghDesktopNotFound` log level from `warn` to `info` in Script 08 -- "not found, installing" is expected install flow, not a warning
 
 ---
 
