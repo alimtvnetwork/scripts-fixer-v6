@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.8.6] -- 2026-04-09
+
+**Simple Sticky Notes: SSN keyword + custom data folder**
+
+### Added
+
+- `ssn` keyword shortcut for Script 34 in `install-keywords.json`
+- Custom data folder support for Simple Sticky Notes: redirects `%APPDATA%\Simple Sticky Notes` to a configurable path (default `D:\notes`) via directory symlink
+- New `Set-StickyNotesDataFolder` function in `helpers/sticky-notes.ps1` -- creates target folder, migrates existing data, creates symlink
+- `dataFolder` config block in `config.json` with `enabled`, `path`, and `createIfMissing` fields
+
+---
+
 ## [v0.8.5] -- 2026-04-09
 
 **Fix Join-Path PS 5.1 compatibility in Get-ScriptVersion**
