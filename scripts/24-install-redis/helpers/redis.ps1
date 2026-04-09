@@ -1,5 +1,6 @@
 # --------------------------------------------------------------------------
 #  Helper -- Redis installer
+#  Fallback chain: redis-64 -> redis (tporadowski) -> manual guidance
 # --------------------------------------------------------------------------
 
 # -- Bootstrap shared helpers --------------------------------------------------
@@ -16,7 +17,9 @@ if ((Test-Path $_chocoUtilsPath) -and -not (Get-Command Install-ChocoPackage -Er
 function Install-Redis {
     <#
     .SYNOPSIS
-        Installs Redis and verifies the installation.
+        Installs Redis with a fallback chain.
+        Tries redis-64 (Memurai-based) first, then falls back to
+        tporadowski/redis if the primary fails (common MSI 1603 issue).
         Returns $true on success, $false on failure.
     #>
     param(
@@ -35,60 +38,78 @@ function Install-Redis {
 
     Write-Log $LogMessages.messages.checking -Level "info"
 
+    # -- Already installed? ----------------------------------------------------
     $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
     if ($cmd) {
-        $version = ""
-        try {
-            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
-        } catch { $version = "(version check failed)" }
-
+        $version = Get-RedisVersion -DbConfig $DbConfig
         Write-Log ($LogMessages.messages.found -replace '\{version\}', $version) -Level "success"
-
-        Save-ResolvedData -ScriptFolder "24-install-redis" -Data @{
-            version    = "$version".Trim()
-            resolvedAt = (Get-Date -Format "o")
-            resolvedBy = $env:USERNAME
-        }
-
+        Save-RedisResolved -Version $version
         return $true
     }
 
+    # -- Try primary package (redis-64 / Memurai) ------------------------------
     Write-Log $LogMessages.messages.notFound -Level "warn"
     Write-Log $LogMessages.messages.installing -Level "info"
-    # Build install args (system default -- custom directory is Chocolatey Business only)
-    $chocoArgs = @()
 
-    # Install
-    $isInstalled = $false
-    $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs $chocoArgs
+    $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs @()
 
-    $hasInstallFailed = -not $isInstalled
-    if ($hasInstallFailed) {
-        Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', "Install returned failure") -Level "error"
-        return $false
+    # -- Fallback: try alternative package if primary failed -------------------
+    $hasPrimaryFailed = -not $isInstalled
+    if ($hasPrimaryFailed) {
+        $hasFallback = $null -ne $DbConfig.fallbackPackage -and $DbConfig.fallbackPackage -ne ""
+        if ($hasFallback) {
+            $fallbackPkg = $DbConfig.fallbackPackage
+            Write-Log ($LogMessages.messages.primaryFailed -replace '\{package\}', $DbConfig.chocoPackage) -Level "warn"
+            Write-Log ($LogMessages.messages.tryingFallback -replace '\{package\}', $fallbackPkg) -Level "info"
+
+            $isInstalled = Install-ChocoPackage -PackageName $fallbackPkg -ExtraArgs @()
+
+            $hasFallbackFailed = -not $isInstalled
+            if ($hasFallbackFailed) {
+                Write-Log ($LogMessages.messages.fallbackFailed -replace '\{package\}', $fallbackPkg) -Level "error"
+                Write-Log $LogMessages.messages.manualHint -Level "info"
+                return $false
+            }
+        } else {
+            Write-Log ($LogMessages.messages.installFailed -replace '\{error\}', "Install returned failure") -Level "error"
+            Write-Log $LogMessages.messages.manualHint -Level "info"
+            return $false
+        }
     }
 
-    # Refresh PATH
+    # -- Refresh PATH and verify -----------------------------------------------
     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 
     $cmd = Get-Command $DbConfig.verifyCommand -ErrorAction SilentlyContinue
     if ($cmd) {
-        $version = ""
-        try {
-            $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
-        } catch { $version = "(version check failed)" }
-
+        $version = Get-RedisVersion -DbConfig $DbConfig
         Write-Log ($LogMessages.messages.installSuccess -replace '\{version\}', $version) -Level "success"
-
-        Save-ResolvedData -ScriptFolder "24-install-redis" -Data @{
-            version    = "$version".Trim()
-            resolvedAt = (Get-Date -Format "o")
-            resolvedBy = $env:USERNAME
-        }
-
+        Save-RedisResolved -Version $version
         return $true
     } else {
         Write-Log $LogMessages.messages.notInPath -Level "warn"
+        Write-Log $LogMessages.messages.manualHint -Level "info"
         return $false
+    }
+}
+
+# -- Internal helpers ----------------------------------------------------------
+
+function Get-RedisVersion {
+    param([PSCustomObject]$DbConfig)
+    try {
+        $version = & $DbConfig.verifyCommand $DbConfig.versionFlag 2>&1 | Select-Object -First 1
+        return "$version"
+    } catch {
+        return "(version check failed)"
+    }
+}
+
+function Save-RedisResolved {
+    param([string]$Version)
+    Save-ResolvedData -ScriptFolder "24-install-redis" -Data @{
+        version    = "$Version".Trim()
+        resolvedAt = (Get-Date -Format "o")
+        resolvedBy = $env:USERNAME
     }
 }
