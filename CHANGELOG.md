@@ -9,6 +9,18 @@ All notable changes to this project are documented in this file.
 - Changed `ghDesktopNotFound` log level from `warn` to `info` in Script 08 -- "not found, installing" is expected install flow, not a warning
 
 ---
+## [v0.9.0] -- 2026-04-10
+
+### Added
+
+- **DBeaver settings sync** -- Script 32 now supports 3 modes: `install+settings`, `settings-only`, `install-only`
+- New `Sync-DbeaverSettings` function syncs config files from `settings/04 - dbeaver/` to `%APPDATA%\DBeaverData\workspace6\General\.dbeaver\`
+- Created `settings/04 - dbeaver/` folder with readme explaining usage
+- Added keywords: `dbeaver+settings`, `dbeaver-settings`, `install-dbeaver` with mode mappings
+- Settings-only mode does not require admin privileges
+- Updated spec/32 readme with full mode documentation
+
+---
 
 
 ## [v0.8.8] -- 2026-04-09
