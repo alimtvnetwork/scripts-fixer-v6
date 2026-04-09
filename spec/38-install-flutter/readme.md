@@ -50,6 +50,28 @@ Flutter/Dart extensions. Runs `flutter doctor` post-install to verify setup.
 | `postInstall.runFlutterDoctor` | bool | Run flutter doctor after install |
 | `postInstall.acceptAndroidLicenses` | bool | Auto-accept Android licenses |
 
+## Install Keywords
+
+| Keyword | Script | Mode |
+|---------|--------|------|
+| `flutter` | 38 | `install` |
+| `dart` | 38 | `install` |
+| `mobile` | 38 | `install` |
+| `install-flutter` | 38 | `install` |
+| `flutter+android` | 38 | `android` |
+| `flutter-extensions` | 38 | `extensions` |
+| `flutter-doctor` | 38 | `doctor` |
+| `mobile-dev` | 38 | (default -- all components) |
+| `mobiledev` | 38 | (default -- all components) |
+
+```powershell
+.\run.ps1 install flutter            # SDK only
+.\run.ps1 install flutter+android    # Android Studio only
+.\run.ps1 install flutter-extensions # VS Code extensions only
+.\run.ps1 install flutter-doctor     # Run flutter doctor only
+.\run.ps1 install mobile-dev         # Full Flutter stack
+```
+
 ## Helpers
 
 | File | Functions | Purpose |
