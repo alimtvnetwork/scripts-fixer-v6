@@ -62,7 +62,8 @@ function Install-OBS {
             Write-Log ($msgs.alreadyInstalled -replace '\{version\}', $version) -Level "success"
             # Settings always sync (user may want to restore/fix)
             if ($Mode -eq "install+settings") {
-                Sync-OBSSettings -LogMessages $LogMessages
+                $syncOk = Sync-OBSSettings -LogMessages $LogMessages
+                return $syncOk
             }
             return $true
         }
@@ -110,7 +111,8 @@ function Install-OBS {
 
     # -- Sync settings (only in install+settings mode) -----------------
     if ($Mode -eq "install+settings") {
-        Sync-OBSSettings -LogMessages $LogMessages
+        $syncOk = Sync-OBSSettings -LogMessages $LogMessages
+        return $syncOk
     } else {
         Write-Log "Settings sync skipped (install-only mode)" -Level "info"
     }
