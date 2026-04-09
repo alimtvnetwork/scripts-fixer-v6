@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.9.1] -- 2026-04-10
+
+### Fixed
+
+- Fixed `Test-KeywordModes` audit check crash when config.json has no top-level `validModes` -- replaced direct property access with safe `PSObject.Properties.Name -contains` check to avoid strict-mode errors
+
+---
+
 ## [v0.9.0] -- 2026-04-10
 
 ### Added
