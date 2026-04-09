@@ -46,7 +46,7 @@ function Install-Flutter {
         }
     }
     else {
-        Write-Log $LogMessages.messages.flutterNotFound -Level "warn"
+        Write-Log $LogMessages.messages.flutterNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
 
@@ -101,7 +101,7 @@ function Install-AndroidStudio {
         Save-InstalledRecord -Name "android-studio" -Version "detected"
     }
     else {
-        Write-Log $LogMessages.messages.androidStudioNotFound -Level "warn"
+        Write-Log $LogMessages.messages.androidStudioNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
             Write-Log $LogMessages.messages.androidStudioInstallSuccess -Level "success"
@@ -144,7 +144,7 @@ function Install-Chrome {
         Save-InstalledRecord -Name "chrome" -Version "detected"
     }
     else {
-        Write-Log $LogMessages.messages.chromeNotFound -Level "warn"
+        Write-Log $LogMessages.messages.chromeNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
             Write-Log $LogMessages.messages.chromeInstallSuccess -Level "success"

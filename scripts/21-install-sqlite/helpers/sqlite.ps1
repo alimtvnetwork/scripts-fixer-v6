@@ -99,7 +99,7 @@ function Install-Sqlite {
         Write-Log ($LogMessages.messages.found -replace '\{version\}', $version) -Level "success"
         Save-SqliteResolvedState -Version $version
     } else {
-        Write-Log $LogMessages.messages.notFound -Level "warn"
+        Write-Log $LogMessages.messages.notFound -Level "info"
         Write-Log $LogMessages.messages.installing -Level "info"
 
         # Build install args for custom path

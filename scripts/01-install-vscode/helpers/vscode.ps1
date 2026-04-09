@@ -50,7 +50,7 @@ function Install-VsCodeEdition {
         return $true
     }
 
-    Write-Log ($LogMessages.messages.editionNotFound -replace '\{label\}', $Label) -Level "warn"
+    Write-Log ($LogMessages.messages.editionNotFound -replace '\{label\}', $Label) -Level "info"
     try {
         $installResult = Install-ChocoPackage -PackageName $ChocoPackageName
         if ($installResult) {

@@ -57,7 +57,7 @@ function Install-Winget {
         return $false
     }
 
-    Write-Log $LogMessages.messages.wingetNotFound -Level "warn"
+    Write-Log $LogMessages.messages.wingetNotFound -Level "info"
 
     try {
         Write-Log ($LogMessages.messages.wingetDownloading -replace '\{url\}', $Config.msStoreUrl) -Level "info"
