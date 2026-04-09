@@ -1,5 +1,18 @@
 {
   "enabled": true,
   "chocoPackageName": "github-desktop",
-  "alwaysUpgradeToLatest": true
+  "alwaysUpgradeToLatest": true,
+  "scanFolders": {
+    "enabled": true,
+    "paths": [
+      "D:\\dev",
+      "D:\\projects"
+    ],
+    "maxDepth": 2,
+    "excludePatterns": [
+      "node_modules",
+      ".archive",
+      "vendor"
+    ]
+  }
 }
