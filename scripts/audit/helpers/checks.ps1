@@ -361,7 +361,7 @@ function Test-KeywordModes {
         $isConfigPresent = Test-Path $configPath
         if ($isConfigPresent) {
             $scriptConfig = Get-Content $configPath -Raw | ConvertFrom-Json
-            $hasValidModes = $null -ne $scriptConfig.validModes
+            $hasValidModes = ($scriptConfig.PSObject.Properties.Name -contains 'validModes')
             if ($hasValidModes) {
                 $validModesMap[$id] = @($scriptConfig.validModes)
             } else {
@@ -369,7 +369,7 @@ function Test-KeywordModes {
                 foreach ($nested in $scriptConfig.PSObject.Properties) {
                     $isObject = $nested.Value -is [PSCustomObject]
                     if ($isObject) {
-                        $hasNestedModes = $null -ne $nested.Value.validModes
+                        $hasNestedModes = ($nested.Value.PSObject.Properties.Name -contains 'validModes')
                         if ($hasNestedModes) {
                             $validModesMap[$id] = @($nested.Value.validModes)
                             break
