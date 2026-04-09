@@ -9,6 +9,9 @@
     "verifyCommand": "dbeaver-cli",
     "name": "DBeaver Community",
     "desc": "Universal database visualization and management tool",
-    "chocoPackage": "dbeaver"
+    "chocoPackage": "dbeaver",
+    "syncSettings": true,
+    "defaultMode": "install+settings",
+    "validModes": ["install+settings", "settings-only", "install-only"]
   }
 }
