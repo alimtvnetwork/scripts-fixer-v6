@@ -285,3 +285,4 @@ run.ps1 -DryRun
 | `elasticsearch` | 27 | Direct install |
 | `duckdb` | 28 | Direct install |
 | `litedb` | 29 | Direct install |
+| `data-dev`, `datadev` | 20, 24, 28, 32 | Group: PostgreSQL + Redis + DuckDB + DBeaver |

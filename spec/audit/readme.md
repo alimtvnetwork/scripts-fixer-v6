@@ -32,6 +32,15 @@ inconsistencies. Designed to run after any renumbering or restructuring.
 .\run.ps1 health                  # Keyword shortcut: audit (ID 13)
 ```
 
+## Install Keywords
+
+| Keyword |
+|---------|
+| `audit` |
+| `health` |
+| `health-check` |
+| `healthcheck` |
+
 ## Output
 
 - Each check prints PASS or FAIL with details
