@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.8.8] -- 2026-04-09
+
+**Maintenance release -- verified v0.8.7 changes**
+
+### Verified
+
+- GitHub Desktop folder scanning (`Add-ReposToGitHubDesktop`) tested end-to-end
+- Simple Sticky Notes SSN keyword and custom data folder confirmed working
+- OBS/WT settings sync `$PSScriptRoot` path fix confirmed
+- `Install-OBS` return value propagation confirmed
+- PS 5.1 `Join-Path` compatibility confirmed across all scripts
+
+---
+
 ## [v0.8.7] -- 2026-04-09
 
 **GitHub Desktop: post-install folder scanning for Git repos**
