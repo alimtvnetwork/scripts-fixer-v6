@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.8.9] -- 2026-04-10
+
+### Fixed
+
+- Changed `ghDesktopNotFound` log level from `warn` to `info` in Script 08 -- "not found, installing" is expected install flow, not a warning
+
+---
+
+
 ## [v0.8.8] -- 2026-04-09
 
 **Maintenance release -- verified v0.8.7 changes**
