@@ -39,3 +39,24 @@ Advanced open-source relational database.
 4. Check if PostgreSQL is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `postgresql` |
+| `postgres` |
+| `psql` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `backend` | 5, 6, 16, 20 |
+| `data-dev` | 20, 24, 28, 32 |
+| `datadev` | 20, 24, 28, 32 |
+
+```powershell
+.\run.ps1 install postgresql
+.\run.ps1 install backend
+```

@@ -111,3 +111,17 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `obs.ps1` | `Install-OBS` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `obs.ps1` | `Sync-OBSSettings` | Extract zip to temp, copy scenes + profiles to AppData |
+
+## Install Keywords
+
+| Keyword | Mode |
+|---------|------|
+| `obs` | install+settings |
+| `obs-studio` | install+settings |
+| `obs+settings` | install+settings |
+| `obs-settings` | settings-only |
+| `install-obs` | install-only |
+
+```powershell
+.\run.ps1 install obs
+```

@@ -53,3 +53,24 @@ The `mingw` Chocolatey package installs MinGW-w64 which includes:
 | Verify multiple commands | Ensures full toolchain is functional, not just the package installed |
 | Optional install directory | Keeps tools in the dev directory alongside Go, Node, etc. |
 | Session PATH refresh | User can compile immediately without opening a new terminal |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `cpp` |
+| `c++` |
+| `mingw` |
+| `gcc` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+
+```powershell
+.\run.ps1 install cpp
+.\run.ps1 install full-stack
+```

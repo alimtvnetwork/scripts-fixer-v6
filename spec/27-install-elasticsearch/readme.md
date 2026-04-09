@@ -39,3 +39,13 @@ Full-text search and analytics engine.
 4. Check if Elasticsearch is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `elasticsearch` |
+
+```powershell
+.\run.ps1 install elasticsearch
+```

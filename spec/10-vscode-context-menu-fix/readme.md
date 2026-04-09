@@ -204,3 +204,24 @@ cd scripts\01-vscode-context-menu-fix
 | Plain ASCII banners | Avoids Unicode alignment bugs in terminals |
 | Per-run log files | Debugging aid; cleaned each run to avoid clutter |
 | -Confirm:$false on all registry ops | Prevents interactive prompts that hang the script |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `vs-context-menu` |
+| `vscontextmenu` |
+| `context-menu` |
+| `contextmenu` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `vscode+menu+settings` | 1, 10, 11 |
+| `vms` | 1, 10, 11 |
+
+```powershell
+.\run.ps1 install vs-context-menu
+.\run.ps1 install vscode+menu+settings
+```

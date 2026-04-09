@@ -97,3 +97,26 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `php.ps1` | `Install-Php` | Install PHP via Chocolatey, verify, track |
 | `php.ps1` | `Install-PhpMyAdmin` | Install phpMyAdmin via Chocolatey, track |
+
+## Install Keywords
+
+| Keyword | Mode |
+|---------|------|
+| `php` | php+phpmyadmin |
+| `phpmyadmin` | phpmyadmin-only |
+| `php+phpmyadmin` | php+phpmyadmin |
+| `php-only` | php-only |
+| `phpmyadmin-only` | phpmyadmin-only |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `backend` | 5, 6, 16, 20 |
+
+```powershell
+.\run.ps1 install php
+.\run.ps1 install full-stack
+```

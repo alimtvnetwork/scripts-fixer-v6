@@ -170,3 +170,15 @@ directory post-install.
 | `execution.ps1` | `Invoke-ScriptSequence` | Runs scripts in sequence, captures results |
 | `summary.ps1` | `Show-Summary` | Displays formatted summary table |
 | `questionnaire.ps1` | `Show-QuickMenu`, `Invoke-Questionnaire`, `Get-ScriptListForMode` | Quick 3-option menu and front-loaded questions |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `all-dev` |
+| `alldev` |
+| `all` |
+
+```powershell
+.\run.ps1 install all-dev
+```

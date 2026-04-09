@@ -39,3 +39,13 @@ Installs LiteDB with flexible installation path options.
 4. Check if LiteDB is already installed
 5. Install via dotnet tool if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `litedb` |
+
+```powershell
+.\run.ps1 install litedb
+```

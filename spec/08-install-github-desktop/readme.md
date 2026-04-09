@@ -55,3 +55,24 @@ internal repo list.
 | Skip dot-prefixed folders | `.git`, `.cache`, `.venv` etc. are never repo containers |
 | Forward-slash in repo entry | GitHub Desktop uses forward slashes internally |
 | Array wrapper for single item | `ConvertTo-Json` unwraps single-element arrays; manual wrap needed |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `github-desktop` |
+| `githubdesktop` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `git+desktop` | 7, 8 |
+| `git+gh` | 7, 8 |
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+
+```powershell
+.\run.ps1 install github-desktop
+.\run.ps1 install git+desktop
+```

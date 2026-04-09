@@ -53,3 +53,31 @@ line endings, editor, and push behavior.
 12. Set push.autoSetupRemote to `true`
 13. Ensure git bin is in PATH
 14. Save resolved state (versions, configs, gh user)
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `git` |
+| `git-lfs` |
+| `gitlfs` |
+| `gh` |
+| `github-cli` |
+| `githubcli` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `git+desktop` | 7, 8 |
+| `git+gh` | 7, 8 |
+| `web-dev` | 1, 3, 4, 7, 11 |
+| `webdev` | 1, 3, 4, 7, 11 |
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `essentials` | 1, 2, 3, 7, 11 |
+
+```powershell
+.\run.ps1 install git
+.\run.ps1 install git+desktop
+```
