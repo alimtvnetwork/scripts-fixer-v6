@@ -53,3 +53,31 @@ scripts/03-install-nodejs/
 - Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`,
   `choco-utils.ps1`, `path-utils.ps1`, `dev-dir.ps1`
 - Requires: Administrator privileges, Chocolatey
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `nodejs` |
+| `node` |
+| `node.js` |
+| `yarn` |
+| `bun` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `pnpm` | 3, 4 |
+| `node+pnpm` | 3, 4 |
+| `web-dev` | 1, 3, 4, 7, 11 |
+| `webdev` | 1, 3, 4, 7, 11 |
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `frontend` | 1, 3, 4, 11 |
+| `essentials` | 1, 2, 3, 7, 11 |
+
+```powershell
+.\run.ps1 install nodejs
+.\run.ps1 install pnpm
+```

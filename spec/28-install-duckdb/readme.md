@@ -39,3 +39,21 @@ Analytical file-based columnar database.
 4. Check if DuckDB is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `duckdb` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `data-dev` | 20, 24, 28, 32 |
+| `datadev` | 20, 24, 28, 32 |
+
+```powershell
+.\run.ps1 install duckdb
+.\run.ps1 install data-dev
+```

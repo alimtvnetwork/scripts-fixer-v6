@@ -34,3 +34,26 @@ Install Python via Chocolatey and configure `PYTHONUSERBASE` so that
 3. Set `PYTHONUSERBASE` env var to dev dir subfolder
 4. Add `Scripts\` to User PATH
 5. Save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `python` |
+| `pip` |
+| `python-pip` |
+| `pythonpip` |
+| `python+pip` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `backend` | 5, 6, 16, 20 |
+
+```powershell
+.\run.ps1 install python
+.\run.ps1 install full-stack
+```

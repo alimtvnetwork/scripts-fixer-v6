@@ -54,3 +54,23 @@ immediately retries with the fallback package before reporting failure.
 6. If primary fails, retry with fallback package
 7. If both fail, log manual download hint
 8. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `redis` |
+| `cache` |
+| `key-value` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `data-dev` | 20, 24, 28, 32 |
+| `datadev` | 20, 24, 28, 32 |
+
+```powershell
+.\run.ps1 install redis
+.\run.ps1 install data-dev
+```

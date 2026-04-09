@@ -54,3 +54,14 @@ scripts/17-install-powershell/
 |----------|-----------|
 | Winget first, Choco fallback | Winget provides official Microsoft package; Choco as safety net |
 | Verifies `pwsh` not `powershell` | `pwsh` is the modern cross-platform PowerShell; `powershell` is Windows PowerShell 5.1 |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `powershell` |
+| `pwsh` |
+
+```powershell
+.\run.ps1 install powershell
+```

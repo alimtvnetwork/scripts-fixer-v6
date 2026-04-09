@@ -39,3 +39,13 @@ Graph database for connected data.
 4. Check if Neo4j is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `neo4j` |
+
+```powershell
+.\run.ps1 install neo4j
+```

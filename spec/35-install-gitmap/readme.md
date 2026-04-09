@@ -67,3 +67,14 @@ The resolved path is passed as `-InstallDir` to the remote installer script.
 ## Keywords
 
 `gitmap`, `git-map`
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `gitmap` |
+| `git-map` |
+
+```powershell
+.\run.ps1 install gitmap
+```

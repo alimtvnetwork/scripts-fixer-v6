@@ -39,3 +39,13 @@ MySQL-compatible fork with extra features.
 4. Check if MariaDB is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `mariadb` |
+
+```powershell
+.\run.ps1 install mariadb
+```

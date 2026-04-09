@@ -95,3 +95,15 @@ handles the elevation via `ShellExecute` with the `runas` verb internally.
 - **PowerShell 5.1+** (to run the script itself)
 - **Administrator privileges**
 - **pwsh installed** (script 17) or legacy powershell.exe as fallback
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `pwsh-menu` |
+| `pwsh-context-menu` |
+| `ps-context-menu` |
+
+```powershell
+.\run.ps1 install pwsh-menu
+```

@@ -127,3 +127,13 @@ On successful install, the script saves to `.resolved/21-install-sqlite/resolved
   "resolvedBy": "USERNAME"
 }
 ```
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `sqlite` |
+
+```powershell
+.\run.ps1 install sqlite
+```

@@ -39,3 +39,13 @@ Apache document database with REST API.
 4. Check if CouchDB is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `couchdb` |
+
+```powershell
+.\run.ps1 install couchdb
+```

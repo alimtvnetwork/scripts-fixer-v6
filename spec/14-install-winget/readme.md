@@ -64,3 +64,13 @@ Or via root dispatcher:
 | Separate from script 02 | Winget is optional and OS-bundled; Chocolatey is the primary package manager |
 | Outside orchestrator (script 12) | User preference -- not part of the standard dev tools install flow |
 | Same helper pattern | Consistent with all other scripts in the project |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `winget` |
+
+```powershell
+.\run.ps1 install winget
+```

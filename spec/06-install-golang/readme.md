@@ -95,3 +95,21 @@ The binary is placed in `GOPATH\bin` which should already be in PATH
 - **PowerShell 5.1+**
 - **Administrator privileges**
 - **Chocolatey** (script 03, or will auto-check via `Assert-Choco`)
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `go` |
+| `golang` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `backend` | 5, 6, 16, 20 |
+
+```powershell
+.\run.ps1 install go
+.\run.ps1 install backend
+```

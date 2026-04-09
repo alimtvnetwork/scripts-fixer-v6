@@ -66,3 +66,24 @@ scripts/02-install-package-managers/
 | Winget extracted to script 14 | Winget is optional and OS-bundled; keeps this script focused on Chocolatey |
 | Assert-Choco from shared helper | Same logic reused by scripts 03-09 |
 | Versions saved to .resolved/ | Other scripts can check prerequisite versions |
+## Install Keywords
+
+| Keyword |
+|---------|
+| `choco` |
+| `chocolatey` |
+| `package-managers` |
+| `packagemanagers` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `essentials` | 1, 2, 3, 7, 11 |
+
+```powershell
+.\run.ps1 install choco
+.\run.ps1 install full-stack
+```

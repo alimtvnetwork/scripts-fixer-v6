@@ -211,3 +211,34 @@ what was extracted from it, and which fallback JSON files were used.
 | Per-run log files           | Debugging aid; cleaned each run to avoid clutter             |
 | -Confirm:$false on all ops  | Prevents interactive prompts that hang the script            |
 | try/catch/finally in Main   | Ensures Stop-Transcript always runs, even on errors          |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `vs-settings-sync` |
+| `vssettingssync` |
+| `vs-setting-sync` |
+| `vssettingsync` |
+| `settings-sync` |
+| `settingssync` |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `vscode+settings` | 1, 11 |
+| `vscode+s` | 1, 11 |
+| `vscode+menu+settings` | 1, 10, 11 |
+| `vms` | 1, 10, 11 |
+| `web-dev` | 1, 3, 4, 7, 11 |
+| `webdev` | 1, 3, 4, 7, 11 |
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `frontend` | 1, 3, 4, 11 |
+| `essentials` | 1, 2, 3, 7, 11 |
+
+```powershell
+.\run.ps1 install vs-settings-sync
+.\run.ps1 install vscode+settings
+```

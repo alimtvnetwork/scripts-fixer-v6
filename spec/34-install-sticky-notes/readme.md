@@ -83,3 +83,16 @@ This ensures SSN reads/writes all data (notes database, settings) from the custo
 | `Install-ChocoPackage` helper | Consistent with all other Choco-based scripts |
 | Symlink for data folder | Non-destructive redirect; SSN unaware of relocation |
 | `createIfMissing` flag | Safety switch to prevent accidental folder creation |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `sticky-notes` |
+| `stickynotes` |
+| `sticky` |
+| `ssn` |
+
+```powershell
+.\run.ps1 install sticky-notes
+```

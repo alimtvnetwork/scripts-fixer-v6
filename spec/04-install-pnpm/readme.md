@@ -37,3 +37,24 @@ inside the shared dev directory. Does **not** require admin privileges.
 
 - Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`, `path-utils.ps1`
 - Requires: Node.js/npm (script 06), no admin needed
+
+## Install Keywords
+
+| Keyword |
+|---------|
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `pnpm` | 3, 4 |
+| `node+pnpm` | 3, 4 |
+| `web-dev` | 1, 3, 4, 7, 11 |
+| `webdev` | 1, 3, 4, 7, 11 |
+| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
+| `frontend` | 1, 3, 4, 11 |
+
+```powershell
+.\run.ps1 install pnpm
+```

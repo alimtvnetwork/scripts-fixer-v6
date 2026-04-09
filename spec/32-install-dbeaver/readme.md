@@ -65,3 +65,26 @@ Supported files:
   also checks `Program Files\DBeaver\` as a fallback
 - Settings-only mode does not require admin privileges
 - Pairs well with database installs (SQLite, MySQL, PostgreSQL, etc.)
+
+## Install Keywords
+
+| Keyword | Mode |
+|---------|------|
+| `dbeaver` | install+settings |
+| `db-viewer` | install+settings |
+| `dbviewer` | install+settings |
+| `dbeaver+settings` | install+settings |
+| `dbeaver-settings` | settings-only |
+| `install-dbeaver` | install-only |
+
+**Group shortcuts** (installs multiple scripts):
+
+| Keyword | Scripts |
+|---------|---------|
+| `data-dev` | 20, 24, 28, 32 |
+| `datadev` | 20, 24, 28, 32 |
+
+```powershell
+.\run.ps1 install dbeaver
+.\run.ps1 install data-dev
+```

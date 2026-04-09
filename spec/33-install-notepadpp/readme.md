@@ -85,3 +85,19 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `notepadpp.ps1` | `Install-NotepadPP` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `notepadpp.ps1` | `Sync-NotepadPPSettings` | Extract settings zip to AppData |
+
+## Install Keywords
+
+| Keyword | Mode |
+|---------|------|
+| `notepad++` | install+settings |
+| `notepadpp` | install+settings |
+| `notepad-plus` | install+settings |
+| `npp` | install+settings |
+| `npp+settings` | install+settings |
+| `npp-settings` | settings-only |
+| `install-npp` | install-only |
+
+```powershell
+.\run.ps1 install notepad++
+```

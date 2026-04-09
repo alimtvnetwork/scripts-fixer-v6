@@ -100,3 +100,17 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `windows-terminal.ps1` | `Install-WindowsTerminal` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `windows-terminal.ps1` | `Sync-WindowsTerminalSettings` | Copy settings.json to LocalState |
+
+## Install Keywords
+
+| Keyword | Mode |
+|---------|------|
+| `windows-terminal` | install+settings |
+| `wt` | install+settings |
+| `wt+settings` | install+settings |
+| `wt-settings` | settings-only |
+| `install-wt` | install-only |
+
+```powershell
+.\run.ps1 install windows-terminal
+```

@@ -39,3 +39,14 @@ Document-oriented NoSQL database.
 4. Check if MongoDB is already installed
 5. Install via Chocolatey if not found
 6. Verify installation and save resolved state
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `mongodb` |
+| `mongo` |
+
+```powershell
+.\run.ps1 install mongodb
+```

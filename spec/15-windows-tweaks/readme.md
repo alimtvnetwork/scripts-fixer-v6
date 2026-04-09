@@ -65,3 +65,15 @@ Or via root dispatcher:
 | Outside orchestrator (script 12) | System tweaks are not dev tool installs; user preference |
 | Confirmation prompt by default | Running remote scripts should require explicit consent |
 | Configurable URL | Allows pointing to forks or specific versions |
+
+## Install Keywords
+
+| Keyword |
+|---------|
+| `tweaks` |
+| `windows-tweaks` |
+| `windowstweaks` |
+
+```powershell
+.\run.ps1 install tweaks
+```
