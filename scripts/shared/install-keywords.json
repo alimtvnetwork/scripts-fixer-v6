@@ -135,7 +135,9 @@
     "frontend":          [1, 3, 4, 11],
     "essentials":        [1, 2, 3, 7, 11],
     "mobile-dev":        [38],
-    "mobiledev":         [38]
+    "mobiledev":         [38],
+    "data-dev":          [20, 24, 28, 32],
+    "datadev":           [20, 24, 28, 32]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },
