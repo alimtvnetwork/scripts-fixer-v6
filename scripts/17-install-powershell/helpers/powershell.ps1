@@ -53,7 +53,7 @@ function Install-PowerShellLatest {
         return $true
     }
 
-    Write-Log $LogMessages.messages.pwshNotFound -Level "warn"
+    Write-Log $LogMessages.messages.pwshNotFound -Level "info"
 
     # Try Winget first
     $wingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue

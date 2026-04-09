@@ -48,7 +48,7 @@ function Install-Redis {
     }
 
     # -- Try primary package (redis-64 / Memurai) ------------------------------
-    Write-Log $LogMessages.messages.notFound -Level "warn"
+    Write-Log $LogMessages.messages.notFound -Level "info"
     Write-Log $LogMessages.messages.installing -Level "info"
 
     $isInstalled = Install-ChocoPackage -PackageName $DbConfig.chocoPackage -ExtraArgs @()

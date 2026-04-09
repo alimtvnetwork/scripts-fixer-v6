@@ -70,7 +70,7 @@ function Install-Database {
         return $true
     }
 
-    Write-Log ($LogMessages.messages.notFound -replace '\{name\}', $name) -Level "warn"
+    Write-Log ($LogMessages.messages.notFound -replace '\{name\}', $name) -Level "info"
     Write-Log ($LogMessages.messages.installing -replace '\{name\}', $name) -Level "info"
 
     # Build install args

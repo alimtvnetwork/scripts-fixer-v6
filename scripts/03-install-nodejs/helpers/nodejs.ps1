@@ -45,7 +45,7 @@ function Install-NodeJs {
         }
     }
     else {
-        Write-Log $LogMessages.messages.nodeNotFound -Level "warn"
+        Write-Log $LogMessages.messages.nodeNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
             

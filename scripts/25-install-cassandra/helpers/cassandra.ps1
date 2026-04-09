@@ -53,7 +53,7 @@ function Install-Cassandra {
         return $true
     }
 
-    Write-Log $LogMessages.messages.notFound -Level "warn"
+    Write-Log $LogMessages.messages.notFound -Level "info"
     Write-Log $LogMessages.messages.installing -Level "info"
     # Build install args (system default -- custom directory is Chocolatey Business only)
     $chocoArgs = @()

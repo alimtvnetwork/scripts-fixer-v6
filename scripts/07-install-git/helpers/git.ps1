@@ -44,7 +44,7 @@ function Install-Git {
         }
     }
     else {
-        Write-Log $LogMessages.messages.gitNotFound -Level "warn"
+        Write-Log $LogMessages.messages.gitNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
 
@@ -99,7 +99,7 @@ function Install-GitLfs {
         }
     }
     else {
-        Write-Log $LogMessages.messages.lfsNotFound -Level "warn"
+        Write-Log $LogMessages.messages.lfsNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
 
@@ -159,7 +159,7 @@ function Install-GitHubCli {
         }
     }
     else {
-        Write-Log $LogMessages.messages.ghNotFound -Level "warn"
+        Write-Log $LogMessages.messages.ghNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
 

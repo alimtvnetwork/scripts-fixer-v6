@@ -44,7 +44,7 @@ function Install-Python {
         }
     }
     else {
-        Write-Log $LogMessages.messages.pythonNotFound -Level "warn"
+        Write-Log $LogMessages.messages.pythonNotFound -Level "info"
         try {
             Install-ChocoPackage -PackageName $packageName
 

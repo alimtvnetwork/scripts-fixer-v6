@@ -53,7 +53,7 @@ function Install-Php {
         return $true
     }
 
-    Write-Log $LogMessages.messages.phpNotFound -Level "warn"
+    Write-Log $LogMessages.messages.phpNotFound -Level "info"
     Write-Log $LogMessages.messages.phpInstalling -Level "info"
 
     try {
