@@ -116,6 +116,8 @@
     "dart":              [38],
     "mobile":            [38],
     "flutter+android":   [38],
+    "flutter-extensions":[38],
+    "flutter-doctor":    [38],
     "install-flutter":   [38],
     "vscode+settings":   [1, 11],
     "vscode+s":          [1, 11],
@@ -161,6 +163,13 @@
     "dbviewer":          { "32": "install+settings" },
     "dbeaver+settings":  { "32": "install+settings" },
     "dbeaver-settings":  { "32": "settings-only" },
-    "install-dbeaver":   { "32": "install-only" }
+    "install-dbeaver":   { "32": "install-only" },
+    "flutter":           { "38": "install" },
+    "dart":              { "38": "install" },
+    "mobile":            { "38": "install" },
+    "flutter+android":   { "38": "android" },
+    "flutter-extensions":{ "38": "extensions" },
+    "flutter-doctor":    { "38": "doctor" },
+    "install-flutter":   { "38": "install" }
   }
 }
