@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.8.4] -- 2026-04-09
+
+**Install-OBS return value fix**
+
+### Fixed
+
+- `Install-OBS` now correctly returns `$false` when `Sync-OBSSettings` fails -- previously returned `$true` after a successful install even if settings sync failed, causing the root dispatcher to report `1 of 1` instead of `0 of 1`
+
+---
+
 ## [v0.8.3] -- 2026-04-09
 
 **PSScriptRoot path fix for OBS and WT settings sync**
