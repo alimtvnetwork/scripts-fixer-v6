@@ -603,17 +603,85 @@ function Invoke-ChocoUpdate {
     }
 }
 
+# ── Path command function ─────────────────────────────────────────────
+function Invoke-PathCommand {
+    param([string[]]$Args)
+
+    # Load dev-dir helper
+    $devDirHelper = Join-Path $RootDir "scripts\shared\dev-dir.ps1"
+    $isHelperMissing = -not (Test-Path $devDirHelper)
+    if ($isHelperMissing) {
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Shared helper not found: $devDirHelper"
+        return
+    }
+    . $devDirHelper
+
+    $firstArg = if ($Args -and $Args.Count -gt 0) { $Args[0].Trim() } else { "" }
+    $isReset = $firstArg -eq "--reset" -or $firstArg -eq "reset"
+    $isShowOnly = [string]::IsNullOrWhiteSpace($firstArg)
+
+    if ($isReset) {
+        Remove-SavedDevPath
+        Write-Host ""
+        Write-Host "  [  OK  ] " -ForegroundColor Green -NoNewline
+        Write-Host "Saved dev directory cleared. Smart detection will be used."
+        Write-Host ""
+        return
+    }
+
+    if ($isShowOnly) {
+        $savedPath = Get-SavedDevPath
+        $hasSavedPath = $null -ne $savedPath
+        Write-Host ""
+        if ($hasSavedPath) {
+            Write-Host "  Current dev directory: " -NoNewline -ForegroundColor DarkGray
+            Write-Host "$savedPath" -ForegroundColor White
+        } else {
+            Write-Host "  No saved dev directory. Using smart detection (E:\dev-tool > D:\dev-tool > best drive)." -ForegroundColor Yellow
+        }
+        Write-Host ""
+        Write-Host "  Usage:" -ForegroundColor Yellow
+        Write-Host "    .\run.ps1 path D:\devtools          " -NoNewline; Write-Host "Set default dev directory" -ForegroundColor DarkGray
+        Write-Host "    .\run.ps1 path                      " -NoNewline; Write-Host "Show current dev directory" -ForegroundColor DarkGray
+        Write-Host "    .\run.ps1 path --reset              " -NoNewline; Write-Host "Clear saved path, use smart detection" -ForegroundColor DarkGray
+        Write-Host ""
+        return
+    }
+
+    # Validate the path
+    $targetPath = $firstArg
+    $isValidFormat = $targetPath -match '^[A-Za-z]:\\'
+    if (-not $isValidFormat) {
+        Write-Host ""
+        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
+        Write-Host "Invalid path format. Use a full path like D:\devtools or F:\dev-tool"
+        Write-Host ""
+        return
+    }
+
+    Set-SavedDevPath -Path $targetPath
+    Write-Host ""
+    Write-Host "  [  OK  ] " -ForegroundColor Green -NoNewline
+    Write-Host "Default dev directory set to: $targetPath"
+    Write-Host ""
+    Write-Host "  All scripts will now use this path. Use '.\run.ps1 path --reset' to revert to smart detection." -ForegroundColor DarkGray
+    Write-Host ""
+}
+
 # ── Normalize positional command mode ────────────────────────────────
 # Supports:  .\run.ps1 install alldev,mysql
 #             .\run.ps1 install alldev mysql
 #             .\run.ps1 -Install alldev,mysql
 #             .\run.ps1 update
+#             .\run.ps1 path D:\devtools
 $normalizedCommand = ""
 $hasCommand = -not [string]::IsNullOrWhiteSpace($Command)
 if ($hasCommand) {
     $normalizedCommand = $Command.Trim().ToLower()
     $isBareInstallCommand = $normalizedCommand -eq "install"
     $isBareUpdateCommand  = $normalizedCommand -eq "update" -or $normalizedCommand -eq "choco-update" -or $normalizedCommand -eq "upgrade"
+    $isBarePathCommand    = $normalizedCommand -eq "path"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
     if ($isBareInstallCommand) {
@@ -627,6 +695,10 @@ if ($hasCommand) {
             Write-Host "  Run .\run.ps1 -Help to see all available keywords" -ForegroundColor Cyan
             exit 1
         }
+    } elseif ($isBarePathCommand) {
+        Show-VersionHeader
+        Invoke-PathCommand -Args $Install
+        exit 0
     } elseif ($isBareUpdateCommand) {
         Show-VersionHeader
 
