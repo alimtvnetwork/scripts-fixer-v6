@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.19.1] -- 2026-04-11
+
+### Fixed
+
+- **`Add-UniquePath` no longer rejects empty `List[string]`** -- removed `[Parameter(Mandatory)]` that caused PowerShell to reject a valid but empty list, added null guard instead
+
+---
+
 ## [v0.19.0] -- 2026-04-11
 
 ### Fixed
