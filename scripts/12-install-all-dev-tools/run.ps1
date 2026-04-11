@@ -2,6 +2,7 @@
 #  Script 12 -- Install All Dev Tools
 #  Orchestrator: front-loads all questions, then runs scripts unattended.
 #  Supports: quick menu (All Dev / All Dev+DB / Custom), -All, -Skip, -Only.
+#  Also supports -Uninstall to batch-uninstall selected tools.
 # --------------------------------------------------------------------------
 param(
     [string]$Path,
@@ -10,6 +11,7 @@ param(
     [switch]$All,
     [switch]$DryRun,
     [Alias("D")][switch]$Defaults,
+    [switch]$Uninstall,
     [switch]$Help
 )
 
@@ -25,6 +27,7 @@ $scriptsRoot = Split-Path -Parent $scriptDir
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\orchestrator.ps1")
@@ -55,6 +58,83 @@ $hasAdminRights = ([Security.Principal.WindowsPrincipal] [Security.Principal.Win
 $isNotAdmin = -not $hasAdminRights
 if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
+    return
+}
+
+# ==============================================================================
+#  UNINSTALL MODE
+# ==============================================================================
+if ($Uninstall) {
+    $hasFilter = $Skip -or $Only
+
+    # Build script list
+    $scriptList = if ($Only -or $Skip) {
+        Resolve-ScriptList -Config $config -Skip $Skip -Only $Only
+    } elseif ($All) {
+        Resolve-ScriptList -Config $config -Skip "" -Only ""
+    } else {
+        # Interactive: show menu to pick what to uninstall
+        $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
+        $groups   = if ($config.groups) { $config.groups } else { $null }
+
+        Write-Host ""
+        Write-Log $logMessages.messages.uninstallMenuTitle -Level "warn"
+        $selected = Show-InteractiveMenu -ScriptList $fullList -LogMessages $logMessages -Groups $groups
+
+        $isUserQuit = $null -eq $selected
+        if ($isUserQuit) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            return
+        }
+
+        $hasNoSelection = $selected.Count -eq 0
+        if ($hasNoSelection) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            return
+        }
+
+        $selected
+    }
+
+    # Dry run for uninstall
+    if ($DryRun) {
+        Write-Host ""
+        Write-Log $logMessages.messages.uninstallDryRunBanner -Level "warn"
+        Write-Host ""
+        foreach ($s in $scriptList) {
+            Write-Log ("  [WOULD UNINSTALL] {0} - {1}" -f $s.Id, $s.Name) -Level "info"
+        }
+        Write-Log ("Dry run complete. {0} script(s) would be uninstalled." -f $scriptList.Count) -Level "success"
+        return
+    }
+
+    # Confirmation prompt
+    Write-Host ""
+    Write-Log ($logMessages.messages.uninstallConfirmPrompt -replace '\{count\}', $scriptList.Count) -Level "warn"
+    foreach ($s in $scriptList) {
+        Write-Host "    $($s.Id) - $($s.Name)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    $confirm = Read-Host "  Type YES to confirm uninstall (or anything else to cancel)"
+    $isConfirmed = $confirm -eq "YES"
+    if (-not $isConfirmed) {
+        Write-Log $logMessages.messages.uninstallCancelled -Level "info"
+        return
+    }
+
+    # Execute uninstall sequence (reverse order)
+    Write-Log ($logMessages.messages.uninstallStarting -replace '\{count\}', $scriptList.Count) -Level "info"
+    $results = Invoke-UninstallSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages
+
+    # Summary
+    Show-Summary -Results $results -LogMessages $logMessages
+    Write-Log $logMessages.messages.uninstallComplete -Level "success"
+
+    Save-ResolvedData -ScriptFolder "12-install-all-dev-tools" -Data @{
+        action    = "uninstall"
+        results   = $results
+        timestamp = (Get-Date -Format "o")
+    }
     return
 }
 
@@ -111,13 +191,56 @@ if ($hasFilter -or $All -or $DryRun -or $Defaults) {
 #  MODE B: Interactive (front-loaded questions, then unattended execution)
 # ==============================================================================
 while ($true) {
-    # ── Step 1: Quick menu ────────────────────────────────────────────────────
+    # -- Step 1: Quick menu ────────────────────────────────────────────────────
     $mode = Show-QuickMenu -LogMessages $logMessages
 
     $isQuit = $mode -eq "quit"
     if ($isQuit) {
         Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
         break
+    }
+
+    $isUninstallMode = $mode -eq "uninstall"
+    if ($isUninstallMode) {
+        # Delegate to uninstall flow via recursive call
+        $fullList = Resolve-ScriptList -Config $config -Skip "" -Only ""
+        $groups   = if ($config.groups) { $config.groups } else { $null }
+
+        Write-Host ""
+        Write-Log $logMessages.messages.uninstallMenuTitle -Level "warn"
+        $selected = Show-InteractiveMenu -ScriptList $fullList -LogMessages $logMessages -Groups $groups
+
+        $isUserQuit = $null -eq $selected
+        if ($isUserQuit) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            continue
+        }
+
+        $hasNoSelection = $selected.Count -eq 0
+        if ($hasNoSelection) {
+            Write-Log $logMessages.messages.menuNoneSelected -Level "warn"
+            continue
+        }
+
+        # Confirmation
+        Write-Host ""
+        Write-Log ($logMessages.messages.uninstallConfirmPrompt -replace '\{count\}', $selected.Count) -Level "warn"
+        foreach ($s in $selected) {
+            Write-Host "    $($s.Id) - $($s.Name)" -ForegroundColor Yellow
+        }
+        Write-Host ""
+        $confirm = Read-Host "  Type YES to confirm uninstall (or anything else to cancel)"
+        $isConfirmed = $confirm -eq "YES"
+        if (-not $isConfirmed) {
+            Write-Log $logMessages.messages.uninstallCancelled -Level "info"
+            continue
+        }
+
+        Write-Log ($logMessages.messages.uninstallStarting -replace '\{count\}', $selected.Count) -Level "info"
+        $results = Invoke-UninstallSequence -ScriptList $selected -ScriptsRoot $scriptsRoot -LogMessages $logMessages
+        Show-Summary -Results $results -LogMessages $logMessages
+        Write-Log $logMessages.messages.uninstallComplete -Level "success"
+        continue
     }
 
     $isCustom = $mode -eq "custom"
@@ -144,7 +267,7 @@ while ($true) {
         $scriptList = Get-ScriptListForMode -Mode $mode -Config $config
     }
 
-    # ── Step 2: Front-load all questions ──────────────────────────────────────
+    # -- Step 2: Front-load all questions ──────────────────────────────────────
     $hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
     if ($hasPathParam) {
         $env:DEV_DIR = $Path
@@ -155,12 +278,12 @@ while ($true) {
     $devDir = $env:DEV_DIR
     Initialize-DevDir -Path $devDir
 
-    # ── Step 3: Run scripts unattended ────────────────────────────────────────
+    # -- Step 3: Run scripts unattended ────────────────────────────────────────
     Write-Log ($logMessages.messages.menuRunning -replace '\{count\}', $scriptList.Count) -Level "info"
 
     $results = Invoke-ScriptSequence -ScriptList $scriptList -ScriptsRoot $scriptsRoot -LogMessages $logMessages -Skip $Skip
 
-    # ── Step 4: Summary ──────────────────────────────────────────────────────
+    # -- Step 4: Summary ──────────────────────────────────────────────────────
     Show-Summary -Results $results -LogMessages $logMessages
     Write-Log $logMessages.messages.allComplete -Level "success"
 
