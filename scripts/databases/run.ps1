@@ -2,6 +2,7 @@
 #  Script 30 -- Install Databases (Orchestrator)
 #  Interactive database installer menu that dispatches to individual
 #  numbered DB scripts (18-29).
+#  Supports: -All, -Only, -Skip, -Uninstall, -DryRun.
 # --------------------------------------------------------------------------
 param(
     [string]$Path,
@@ -10,13 +11,14 @@ param(
     [string]$Only,
     [string]$Drive,
     [switch]$DryRun,
+    [switch]$Uninstall,
     [switch]$Help
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
+$scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$sharedDir   = Join-Path (Split-Path -Parent $scriptDir) "shared"
 $scriptsRoot = Split-Path -Parent $scriptDir
 
 $script:ScriptDir = $scriptDir
@@ -69,7 +71,7 @@ if ($hasPathParam) {
     Write-Log "Using user-specified dev directory: $devDir" -Level "info"
 } elseif ($hasDriveOverride) {
     $driveLetter = $Drive.TrimEnd(':', '\').Substring(0, 1).ToUpper()
-    $devDir = "${driveLetter}:\dev"
+    $devDir = "${driveLetter}:\dev-tool"
     Write-Log ($logMessages.messages.driveOverride -replace '\{drive\}', "${driveLetter}:") -Level "info"
 } else {
     $devDir = Resolve-DevDir -Config $config.devDir
@@ -148,12 +150,44 @@ function Invoke-DbScript {
     }
 }
 
+# -- Helper: invoke uninstall for an individual DB script ----------------------
+function Invoke-DbUninstall {
+    param(
+        [string]$Folder,
+        [string]$Name,
+        [string]$Key,
+        [switch]$DryRun
+    )
+
+    $scriptPath = Join-Path $scriptsRoot $Folder "run.ps1"
+    $hasScript = Test-Path $scriptPath
+    if (-not $hasScript) {
+        Write-Log "Script not found: $scriptPath" -Level "error"
+        return "fail"
+    }
+
+    if ($DryRun) {
+        Write-Host "  [DRY] Would uninstall: $Folder\run.ps1 uninstall" -ForegroundColor Yellow
+        return "skip"
+    }
+
+    Write-Log ($logMessages.messages.uninstallRunning -replace '\{name\}', $Name) -Level "info"
+    try {
+        & $scriptPath uninstall
+        return "ok"
+    } catch {
+        Write-Log ($logMessages.messages.uninstallScriptFailed -replace '\{name\}', $Name -replace '\{error\}', $_.Exception.Message) -Level "error"
+        return "fail"
+    }
+}
+
 # -- Show summary --------------------------------------------------------------
 function Show-DbSummary {
-    param($SelectedKeys, $Results, $Dbs)
+    param($SelectedKeys, $Results, $Dbs, [string]$ActionLabel = "Install")
 
     Write-Host ""
-    Write-Host "  $($logMessages.messages.summaryTitle)" -ForegroundColor Cyan
+    $title = if ($ActionLabel -eq "Uninstall") { $logMessages.messages.uninstallSummaryTitle } else { $logMessages.messages.summaryTitle }
+    Write-Host "  $title" -ForegroundColor Cyan
     foreach ($key in $SelectedKeys) {
         $dbConfig = $Dbs.$key
         $status = $Results[$key]
@@ -169,6 +203,88 @@ function Show-DbSummary {
     }
     Write-Host ""
 }
+
+# ==============================================================================
+#  UNINSTALL MODE
+# ==============================================================================
+if ($Uninstall) {
+    $selectedKeys = @()
+
+    if ($All) {
+        $selectedKeys = $sequence
+    } elseif ($hasOnly) {
+        $selectedKeys = $sequence
+    } else {
+        # Interactive: reuse the DB menu for selection
+        $selectedKeys = Show-DbMenu -Config $config -LogMessages $logMessages
+        $isQuit = $selectedKeys.Count -eq 0
+        if ($isQuit) {
+            Write-Log $logMessages.messages.menuInputQuit -Level "info"
+            return
+        }
+    }
+
+    # Dry run
+    if ($DryRun) {
+        Write-Host ""
+        Write-Log $logMessages.messages.uninstallDryRunBanner -Level "warn"
+        Write-Host ""
+        foreach ($key in $selectedKeys) {
+            $dbConfig = $dbs.$key
+            $hasNoConfig = -not $dbConfig
+            if ($hasNoConfig) { continue }
+            Write-Host "  [WOULD UNINSTALL] $($dbConfig.name)" -ForegroundColor Yellow
+        }
+        Write-Log ("Dry run complete. {0} database(s) would be uninstalled." -f $selectedKeys.Count) -Level "success"
+        return
+    }
+
+    # Confirmation prompt
+    Write-Host ""
+    Write-Log ($logMessages.messages.uninstallConfirmPrompt -replace '\{count\}', $selectedKeys.Count) -Level "warn"
+    foreach ($key in $selectedKeys) {
+        $dbConfig = $dbs.$key
+        $hasNoConfig = -not $dbConfig
+        if ($hasNoConfig) { continue }
+        Write-Host "    $($dbConfig.name)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    $confirm = Read-Host "  Type YES to confirm uninstall (or anything else to cancel)"
+    $isConfirmed = $confirm -eq "YES"
+    if (-not $isConfirmed) {
+        Write-Log $logMessages.messages.uninstallCancelled -Level "info"
+        return
+    }
+
+    # Execute uninstalls in reverse order
+    $reversedKeys = @($selectedKeys)
+    [array]::Reverse($reversedKeys)
+
+    Write-Log ($logMessages.messages.uninstallStarting -replace '\{count\}', $selectedKeys.Count) -Level "info"
+    $results = @{}
+    foreach ($key in $reversedKeys) {
+        $dbConfig = $dbs.$key
+        $hasNoConfig = -not $dbConfig
+        if ($hasNoConfig) { continue }
+
+        $results[$key] = Invoke-DbUninstall -Folder $dbConfig.folder -Name $dbConfig.name -Key $key
+    }
+
+    Show-DbSummary -SelectedKeys $selectedKeys -Results $results -Dbs $dbs -ActionLabel "Uninstall"
+
+    Save-ResolvedData -ScriptFolder "databases" -Data @{
+        action    = "uninstall"
+        results   = $results
+        timestamp = (Get-Date -Format "o")
+    }
+
+    Write-Log $logMessages.messages.uninstallComplete -Level "success"
+    return
+}
+
+# ==============================================================================
+#  INSTALL MODE (existing behaviour)
+# ==============================================================================
 
 # -- Interactive menu (loop) or direct install ---------------------------------
 $selectedKeys = @()
