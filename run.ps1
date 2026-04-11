@@ -172,17 +172,34 @@ function Show-RootHelp {
     Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Python & pip libraries:" -ForegroundColor Magenta
+    Write-Host ""
+    Write-Host "      Quick install:" -ForegroundColor DarkYellow
     Write-Host "    $("install python-libs".PadRight($kc))" -NoNewline; Write-Host "Install all Python/ML libraries (numpy, pandas, etc.)" -ForegroundColor DarkGray
     Write-Host "    $("install python+libs".PadRight($kc))" -NoNewline; Write-Host "Install Python + all libraries in one go" -ForegroundColor DarkGray
-    Write-Host "    $("install ml-libs".PadRight($kc))" -NoNewline; Write-Host "Install ML libraries (same as python-libs)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group ml".PadRight($kc))" -NoNewline; Write-Host "Install ML group only (numpy, scipy, scikit-learn...)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group jupyter".PadRight($kc))" -NoNewline; Write-Host "Install Jupyter Notebook (jupyterlab, notebook...)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group viz".PadRight($kc))" -NoNewline; Write-Host "Install visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group web".PadRight($kc))" -NoNewline; Write-Host "Install web frameworks (django, flask, fastapi)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group data".PadRight($kc))" -NoNewline; Write-Host "Install data tools (pandas, polars)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      By purpose:" -ForegroundColor DarkYellow
+    Write-Host "    $("install data-science".PadRight($kc))" -NoNewline; Write-Host "Python + data/viz libs (pandas, matplotlib, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $("install ai-dev".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (numpy, scipy, scikit-learn, torch)" -ForegroundColor DarkGray
+    Write-Host "    $("install deep-learning".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (same as ai-dev)" -ForegroundColor DarkGray
+    Write-Host "    $("install jupyter+libs".PadRight($kc))" -NoNewline; Write-Host "Jupyter only (jupyterlab, notebook, ipykernel)" -ForegroundColor DarkGray
+    Write-Host "    $("install python+jupyter".PadRight($kc))" -NoNewline; Write-Host "Python + all libraries (includes Jupyter)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      By group (.\run.ps1 -I 41 --):" -ForegroundColor DarkYellow
+    Write-Host "    $(".\run.ps1 -I 41 -- group ml".PadRight($kc))" -NoNewline; Write-Host "ML group (numpy, scipy, scikit-learn, torch...)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group jupyter".PadRight($kc))" -NoNewline; Write-Host "Jupyter (jupyterlab, notebook, ipykernel, ipywidgets)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group viz".PadRight($kc))" -NoNewline; Write-Host "Visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group data".PadRight($kc))" -NoNewline; Write-Host "Data tools (pandas, polars)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group web".PadRight($kc))" -NoNewline; Write-Host "Web frameworks (django, flask, fastapi, uvicorn)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group scraping".PadRight($kc))" -NoNewline; Write-Host "Scraping (requests, beautifulsoup4)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group cv".PadRight($kc))" -NoNewline; Write-Host "Computer Vision (opencv-python)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group db".PadRight($kc))" -NoNewline; Write-Host "Database (sqlalchemy)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      Utilities:" -ForegroundColor DarkYellow
     Write-Host "    $(".\run.ps1 -I 41 -- add <pkg1> <pkg2>".PadRight($kc))" -NoNewline; Write-Host "Install specific packages by name" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I 41 -- list".PadRight($kc))" -NoNewline; Write-Host "Show all available library groups" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I 41 -- installed".PadRight($kc))" -NoNewline; Write-Host "Show currently installed pip packages" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- uninstall".PadRight($kc))" -NoNewline; Write-Host "Uninstall all tracked libraries" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- uninstall <pkg>".PadRight($kc))" -NoNewline; Write-Host "Uninstall specific packages" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Database installs:" -ForegroundColor Magenta
     Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Open the interactive database installer menu" -ForegroundColor DarkGray
