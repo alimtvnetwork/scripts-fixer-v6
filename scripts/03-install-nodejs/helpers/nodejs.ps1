@@ -195,13 +195,14 @@ function Install-NodeExtras {
             $hasBunVersion = -not [string]::IsNullOrWhiteSpace($bunVersion)
 
             if ($hasBunVersion) {
-            $isBunTracked = Test-AlreadyInstalled -Name "bun" -CurrentVersion $bunVersion
-            if ($isBunTracked) {
-                Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"
-            }
-            else {
-                Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"
-                Save-InstalledRecord -Name "bun" -Version $bunVersion
+                $isBunTracked = Test-AlreadyInstalled -Name "bun" -CurrentVersion $bunVersion
+                if ($isBunTracked) {
+                    Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"
+                }
+                else {
+                    Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"
+                    Save-InstalledRecord -Name "bun" -Version $bunVersion
+                }
             }
         }
         else {
