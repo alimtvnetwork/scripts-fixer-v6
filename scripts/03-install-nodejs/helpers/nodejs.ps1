@@ -160,14 +160,14 @@ function Install-NodeExtras {
             $hasYarnVersion = -not [string]::IsNullOrWhiteSpace($yarnVersion)
 
             if ($hasYarnVersion) {
-            $isYarnTracked = Test-AlreadyInstalled -Name "yarn" -CurrentVersion $yarnVersion
-            if ($isYarnTracked) {
-                Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
-            }
-            }
-            else {
-                Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
-                Save-InstalledRecord -Name "yarn" -Version $yarnVersion -Method "npm"
+                $isYarnTracked = Test-AlreadyInstalled -Name "yarn" -CurrentVersion $yarnVersion
+                if ($isYarnTracked) {
+                    Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
+                }
+                else {
+                    Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
+                    Save-InstalledRecord -Name "yarn" -Version $yarnVersion -Method "npm"
+                }
             }
         }
         else {
