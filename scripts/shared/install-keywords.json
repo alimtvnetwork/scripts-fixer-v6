@@ -129,15 +129,29 @@
     "node+pnpm":         [3, 4],
     "web-dev":           [1, 3, 4, 7, 11],
     "webdev":            [1, 3, 4, 7, 11],
-    "full-stack":        [1, 2, 3, 4, 5, 7, 8, 9, 11, 16],
-    "fullstack":         [1, 2, 3, 4, 5, 7, 8, 9, 11, 16],
-    "backend":           [5, 6, 16, 20],
+    "full-stack":        [1, 2, 3, 4, 5, 7, 8, 9, 11, 16, 39, 40],
+    "fullstack":         [1, 2, 3, 4, 5, 7, 8, 9, 11, 16, 39, 40],
+    "backend":           [5, 6, 16, 20, 39, 40],
     "frontend":          [1, 3, 4, 11],
     "essentials":        [1, 2, 3, 7, 11],
     "mobile-dev":        [38],
     "mobiledev":         [38],
     "data-dev":          [20, 24, 28, 32],
-    "datadev":           [20, 24, 28, 32]
+    "datadev":           [20, 24, 28, 32],
+    "dotnet":            [39],
+    ".net":              [39],
+    "dotnet-sdk":        [39],
+    "csharp":            [39],
+    "c#":                [39],
+    "dotnet-6":          [39],
+    "dotnet-8":          [39],
+    "dotnet-9":          [39],
+    "java":              [40],
+    "openjdk":           [40],
+    "jdk":               [40],
+    "jre":               [40],
+    "jdk-17":            [40],
+    "jdk-21":            [40]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },
@@ -174,6 +188,11 @@
     "flutter+android":   { "38": "android" },
     "flutter-extensions":{ "38": "extensions" },
     "flutter-doctor":    { "38": "doctor" },
-    "install-flutter":   { "38": "install" }
+    "install-flutter":   { "38": "install" },
+    "dotnet-6":          { "39": "install 6" },
+    "dotnet-8":          { "39": "install 8" },
+    "dotnet-9":          { "39": "install 9" },
+    "jdk-17":            { "40": "install 17" },
+    "jdk-21":            { "40": "install 21" }
   }
 }

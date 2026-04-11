@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.16.0] -- 2026-04-11
+
+### Added
+
+- **Install .NET SDK** (script 39) -- `.\run.ps1 install dotnet`
+  - Version selection: latest, .NET 6 LTS, .NET 8 LTS, .NET 9 STS
+  - `.\run.ps1 -I 39 -- install 8` installs a specific version
+  - Installs to dev directory (`<devDir>\dotnet`)
+  - Adds dev dir to User PATH
+  - Full uninstall support with PATH cleanup and tracking purge
+- **Install Java (OpenJDK)** (script 40) -- `.\run.ps1 install java`
+  - Version selection: latest, OpenJDK 17 LTS, OpenJDK 21 LTS
+  - `.\run.ps1 -I 40 -- install 21` installs a specific version
+  - Sets JAVA_HOME environment variable automatically
+  - Installs to dev directory (`<devDir>\java`)
+  - Full uninstall support with JAVA_HOME cleanup and tracking purge
+- **Install location logging** -- all scripts now log the target install directory at startup
+
+### Keywords
+
+- `dotnet`, `.net`, `dotnet-sdk`, `csharp`, `c#`, `dotnet-6`, `dotnet-8`, `dotnet-9`
+- `java`, `openjdk`, `jdk`, `jre`, `jdk-17`, `jdk-21`
+
+---
+
 ## [v0.15.2] -- 2026-04-11
 
 ### Fixed
