@@ -530,6 +530,106 @@ function Invoke-ScriptById {
 # ── Load choco-update helper ─────────────────────────────────────────
 . (Join-Path $RootDir "scripts\shared\choco-update.ps1")
 
+# ── Export command function ────────────────────────────────────────────
+function Invoke-ExportCommand {
+    param([string[]]$Args)
+
+    Write-Host ""
+    Write-Host "  Export Settings" -ForegroundColor Cyan
+    Write-Host "  ===============" -ForegroundColor DarkGray
+    Write-Host ""
+
+    # Settings-capable scripts: scriptId -> keyword for display
+    $exportScripts = @{
+        "32" = "DBeaver"
+        "33" = "Notepad++"
+        "36" = "OBS Studio"
+        "37" = "Windows Terminal"
+    }
+
+    # Parse filter keywords from args
+    $filterKeywords = @()
+    $hasArgs = $null -ne $Args -and $Args.Count -gt 0
+    if ($hasArgs) {
+        foreach ($arg in $Args) {
+            $tokens = $arg -split '[,\s]+' | Where-Object { $_.Length -gt 0 }
+            $filterKeywords += $tokens
+        }
+    }
+
+    # Keyword-to-scriptId mapping for filtering
+    $exportKeywordMap = @{
+        "dbeaver"  = "32"; "db-viewer" = "32"; "dbviewer" = "32"
+        "npp"      = "33"; "notepad++" = "33"; "notepadpp" = "33"
+        "obs"      = "36"; "obs-studio" = "36"
+        "wt"       = "37"; "windows-terminal" = "37"
+    }
+
+    # Resolve which scripts to export
+    $scriptIds = @()
+    $hasFilters = $filterKeywords.Count -gt 0
+    if ($hasFilters) {
+        foreach ($kw in $filterKeywords) {
+            $kwLower = $kw.ToLower()
+            $hasMapping = $exportKeywordMap.ContainsKey($kwLower)
+            if ($hasMapping) {
+                $scriptIds += $exportKeywordMap[$kwLower]
+            } else {
+                Write-Host "  [ WARN ] Unknown export keyword: $kw" -ForegroundColor Yellow
+                Write-Host "           Available: dbeaver, npp, obs, wt" -ForegroundColor DarkGray
+            }
+        }
+        $scriptIds = @($scriptIds | Select-Object -Unique)
+    } else {
+        $scriptIds = @($exportScripts.Keys | Sort-Object)
+    }
+
+    $hasNoScripts = $scriptIds.Count -eq 0
+    if ($hasNoScripts) {
+        Write-Host "  [ FAIL ] No valid export targets specified" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "  Usage:" -ForegroundColor Yellow
+        Write-Host "    .\run.ps1 export              # export all settings"
+        Write-Host "    .\run.ps1 export npp,obs      # export specific apps"
+        Write-Host "    .\run.ps1 export dbeaver      # export DBeaver settings"
+        Write-Host ""
+        return
+    }
+
+    Write-Host "  Exporting $($scriptIds.Count) app(s): $($scriptIds | ForEach-Object { $exportScripts[$_] }) " -ForegroundColor Magenta
+    Write-Host ""
+
+    $successCount = 0
+    $failCount = 0
+
+    foreach ($id in $scriptIds) {
+        $label = $exportScripts[$id]
+        Write-Host "  [ RUN  ] Exporting: $label (script $id)..." -ForegroundColor Cyan
+
+        try {
+            $isExported = Invoke-ScriptById -ScriptId $id -ExtraArgs @("export")
+            if ($isExported) {
+                $successCount++
+            } else {
+                $failCount++
+            }
+        } catch {
+            Write-Host "  [ FAIL ] Export failed for $label : $_" -ForegroundColor Red
+            $failCount++
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  ======================================" -ForegroundColor DarkGray
+    $hasFails = $failCount -gt 0
+    if ($hasFails) {
+        Write-Host "  [ DONE ] $successCount of $($scriptIds.Count) exported successfully ($failCount failed)" -ForegroundColor Yellow
+    } else {
+        Write-Host "  [ DONE ] $successCount of $($scriptIds.Count) exported successfully" -ForegroundColor Green
+    }
+    Write-Host ""
+}
+
 # ── Path command function ─────────────────────────────────────────────
 function Invoke-PathCommand {
     param([string[]]$Args)
