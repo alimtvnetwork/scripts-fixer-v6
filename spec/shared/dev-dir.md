@@ -46,7 +46,7 @@ All `config.json` files use:
 | Field | Description |
 |-------|-------------|
 | `mode` | `"smart"` triggers auto-detection. Legacy `"json-or-prompt"` also triggers smart mode for backwards compatibility |
-| `default` | `"auto"` means use smart detection. Any explicit path (e.g. `"F:\\dev"`) uses that path directly |
+| `default` | `"auto"` means use smart detection. Any explicit path (e.g. `"F:\\dev-tool"`) uses that path directly |
 | `override` | If non-empty, this path is used unconditionally (bypasses smart detection) |
 
 ---
