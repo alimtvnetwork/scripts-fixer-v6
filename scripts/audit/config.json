@@ -10,6 +10,7 @@
     "staleRefsSuggestions": true,
     "staleRefsPowerShell": true,
     "keywordModes": true,
-    "verifySymlinks": true
+    "verifySymlinks": true,
+    "uninstallCoverage": true
   }
 }
