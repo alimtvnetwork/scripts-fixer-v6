@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.18.2] -- 2026-04-11
+
+### Added
+
+- **Python+group combo keywords** that chain script 05 (install Python) + script 41 (specific group)
+  - `python+viz`, `python+web`, `python+scraping`, `python+db`, `python+cv`, `python+data`, `python+ml`
+  - Each installs Python first if missing, then runs the specific library group
+  - All help sections updated with "With Python" sub-header
+
+---
+
 ## [v0.18.1] -- 2026-04-11
 
 ### Added
