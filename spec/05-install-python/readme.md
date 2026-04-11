@@ -26,7 +26,7 @@ Install Python via Chocolatey and configure `PYTHONUSERBASE` so that
 ```powershell
 .\run.ps1 all F:\dev           # Install + configure pip to F:\dev\python
 .\run.ps1 install D:\projects  # Install Python, dev dir set to D:\projects
-.\run.ps1 -Path E:\dev         # Same as: .\run.ps1 all E:\dev
+.\run.ps1 -Path E:\dev-tool         # Same as: .\run.ps1 all E:\dev
 .\run.ps1 configure G:\tools   # Configure pip site to G:\tools\python
 ```
 
@@ -46,7 +46,7 @@ The `uninstall` subcommand performs a full cleanup:
 
 ```powershell
 .\run.ps1 uninstall            # Full uninstall with smart dev dir detection
-.\run.ps1 uninstall E:\dev     # Uninstall, clean E:\dev-tool\python specifically
+.\run.ps1 uninstall E:\dev-tool     # Uninstall, clean E:\dev-tool\python specifically
 ```
 
 ## config.json
