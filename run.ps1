@@ -717,8 +717,53 @@ if ($hasCommand) {
             Invoke-GitPull -RepoRoot $RootDir
         }
 
-        # Then update Chocolatey packages
-        Invoke-ChocoUpdate
+        # Parse update arguments from $Install (remaining positional args)
+        $updateArgs = @{}
+        $updatePackages = @()
+        $updateExclude  = @()
+        $isCheckOnly    = $false
+        $isAutoConfirm  = $false
+
+        if ($null -ne $Install -and $Install.Count -gt 0) {
+            foreach ($arg in $Install) {
+                $argLower = $arg.Trim().ToLower()
+
+                $isCheckFlag = $argLower -eq "--check" -or $argLower -eq "-check"
+                if ($isCheckFlag) { $isCheckOnly = $true; continue }
+
+                $isYesFlag = $argLower -eq "-y" -or $argLower -eq "--yes"
+                if ($isYesFlag) { $isAutoConfirm = $true; continue }
+
+                $isExcludeFlag = $argLower.StartsWith("--exclude")
+                if ($isExcludeFlag) {
+                    # Handle --exclude pkg1,pkg2 or --exclude=pkg1,pkg2
+                    $excludeValue = ""
+                    $hasEquals = $argLower.Contains("=")
+                    if ($hasEquals) {
+                        $excludeValue = $arg.Substring($arg.IndexOf("=") + 1)
+                    }
+                    $hasExcludeValue = $excludeValue.Length -gt 0
+                    if ($hasExcludeValue) {
+                        $updateExclude += $excludeValue -split ','
+                    }
+                    continue
+                }
+
+                # Otherwise treat as package name(s)
+                $pkgTokens = $arg -split '[,\s]+' | Where-Object { $_.Length -gt 0 }
+                $updatePackages += $pkgTokens
+            }
+        }
+
+        # Also check if -Y switch was passed at root level
+        if ($Y) { $isAutoConfirm = $true }
+
+        $updateArgs["Packages"]    = $updatePackages
+        $updateArgs["Exclude"]     = $updateExclude
+        if ($isCheckOnly)   { $updateArgs["CheckOnly"]   = $true }
+        if ($isAutoConfirm) { $updateArgs["AutoConfirm"] = $true }
+
+        Invoke-ChocoUpdate @updateArgs
         exit 0
     } elseif ($isBareScriptId) {
         $I = [int]$normalizedCommand
