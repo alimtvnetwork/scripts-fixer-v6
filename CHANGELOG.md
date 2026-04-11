@@ -2,7 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
-## [v0.19.2] -- 2026-04-11
+## [v0.21.0] -- 2026-04-12
+
+### Fixed
+
+- **Python direct install now persists to the correct env scope** -- all-users installs write `PYTHON_EXE`, `PYTHON_HOME`, `PYTHON_SCRIPTS`, and runtime PATH entries to Machine scope so new terminals can resolve Python immediately
+- **Installer PATH bootstrap is now more reliable** -- script 05 enables `PrependPath=1`, refreshes the current session PATH, accepts installer reboot code `3010`, and no longer uses `Start-Process -NoNewWindow` for the GUI installer
+- **Library bootstrapping now runs full Python setup** -- script 41 calls script 05 `all` so Python, pip site config, and PATH are ready before pip packages install
+- **Uninstall now cleans User + Machine scope path/env entries** -- direct installs remove stale Python variables and PATH entries from both scopes
+
+---
 
 ## [v0.20.0] -- 2026-04-12
 

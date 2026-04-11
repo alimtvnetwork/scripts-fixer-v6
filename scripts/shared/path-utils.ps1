@@ -137,7 +137,41 @@ function Remove-FromUserPath {
         Write-Log "Removed from user PATH: $Directory" -Level "success"
         return $true
     } catch {
+        Write-FileError -FilePath $Directory -Operation "write" -Reason "Failed to remove from user PATH: $_" -Module "Remove-FromUserPath"
         Write-Log "Failed to remove from user PATH: $_" -Level "error"
+        return $false
+    }
+}
+
+function Remove-FromMachinePath {
+    <#
+    .SYNOPSIS
+        Removes a directory from the machine PATH if present. Requires admin.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Directory
+    )
+
+    $isInPath = Test-InPath -Directory $Directory -Scope "Machine"
+    if (-not $isInPath) {
+        Write-Log "PATH does not contain: $Directory -- nothing to remove" -Level "info"
+        return $true
+    }
+
+    try {
+        $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+        $entries = $currentPath.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
+        $filtered = $entries | Where-Object { $_ -ne $Directory }
+        $newPath = ($filtered -join ";")
+
+        [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
+        $env:Path = $newPath + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+        Write-Log "Removed from machine PATH: $Directory" -Level "success"
+        return $true
+    } catch {
+        Write-FileError -FilePath $Directory -Operation "write" -Reason "Failed to remove from machine PATH: $_" -Module "Remove-FromMachinePath"
+        Write-Log "Failed to remove from machine PATH: $_" -Level "error"
         return $false
     }
 }
