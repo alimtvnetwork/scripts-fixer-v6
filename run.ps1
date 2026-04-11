@@ -37,7 +37,11 @@
     .\run.ps1 -Install python        # install Python + pip
     .\run.ps1 -Install go,git,cpp    # install Go, Git, and C++
     .\run.ps1 -Install all-dev       # interactive dev tools menu
-    .\run.ps1 update                 # upgrade all Chocolatey packages
+    .\run.ps1 update                 # show outdated, confirm, upgrade all
+    .\run.ps1 update nodejs,git        # upgrade specific packages only
+    .\run.ps1 update --check           # list outdated packages (no upgrade)
+    .\run.ps1 update -y                # upgrade all, skip confirmation
+    .\run.ps1 update --exclude=choco   # upgrade all except listed
     .\run.ps1 path D:\devtools       # set default dev directory
     .\run.ps1 path                   # show current dev directory
     .\run.ps1 path --reset           # clear saved path, use smart detection
@@ -123,7 +127,11 @@ function Show-RootHelp {
     $col = 42
     Write-Host "    $(".\run.ps1 install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (bare command)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (named parameter)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Upgrade all Chocolatey packages" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Show outdated, confirm, upgrade all" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update nodejs,git".PadRight($col))" -NoNewline; Write-Host "Upgrade specific packages only" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update --check".PadRight($col))" -NoNewline; Write-Host "List outdated packages (no upgrade)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update -y".PadRight($col))" -NoNewline; Write-Host "Upgrade all, skip confirmation" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update --exclude=pkg1,pkg2".PadRight($col))" -NoNewline; Write-Host "Upgrade all except listed" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path <dir>".PadRight($col))" -NoNewline; Write-Host "Set default dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path".PadRight($col))" -NoNewline; Write-Host "Show current dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path --reset".PadRight($col))" -NoNewline; Write-Host "Clear saved path, use smart detection" -ForegroundColor DarkGray
