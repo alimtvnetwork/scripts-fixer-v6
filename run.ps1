@@ -487,14 +487,16 @@ function Resolve-InstallKeywords {
     }
 
     # Mode priority: install+settings > install-only / settings-only > null
-    # When multiple keywords target the same script, merge to the highest mode.
+    # When multiple keywords target the same script WITH THE SAME mode, merge to the highest.
+    # When modes DIFFER (e.g. "group ml" vs "group jupyter"), keep both as separate runs.
     $modePriority = @{
         "install+settings" = 3
         "install-only"     = 2
         "settings-only"    = 1
     }
 
-    $entries = [ordered]@{}   # key = script ID, value = best mode string (or $null)
+    # Build a list of {Id, Mode} entries -- allow same script ID with different modes
+    $entries = [System.Collections.Generic.List[hashtable]]::new()
     $hasError = $false
 
     foreach ($token in $tokens) {
@@ -520,18 +522,32 @@ function Resolve-InstallKeywords {
                 $mode = $tokenModes."$id"
             }
 
-            $key = "$id"
-            $isNewEntry = -not $entries.Contains($key)
+            # Check if an entry with the same ID already exists
+            $existingEntry = $null
+            foreach ($e in $entries) {
+                $isSameId = $e.Id -eq [int]$id
+                if ($isSameId) {
+                    # Same ID: check if mode is identical or mergeable
+                    $isSameMode = $e.Mode -eq $mode
+                    $isBothNull = ($null -eq $e.Mode) -and ($null -eq $mode)
+                    $isBothMergePriority = ($null -ne $e.Mode -and $modePriority.ContainsKey($e.Mode)) -and ($null -ne $mode -and $modePriority.ContainsKey($mode))
+                    if ($isSameMode -or $isBothNull -or $isBothMergePriority) {
+                        $existingEntry = $e
+                        break
+                    }
+                }
+            }
+
+            $isNewEntry = $null -eq $existingEntry
             if ($isNewEntry) {
-                $entries[$key] = $mode
+                $entries.Add(@{ Id = [int]$id; Mode = $mode })
             } else {
-                # Merge: keep the higher-priority mode
-                $existingMode = $entries[$key]
-                $existingPri  = if ($null -ne $existingMode -and $modePriority.ContainsKey($existingMode)) { $modePriority[$existingMode] } else { 0 }
-                $newPri       = if ($null -ne $mode -and $modePriority.ContainsKey($mode)) { $modePriority[$mode] } else { 0 }
-                $isNewHigher  = $newPri -gt $existingPri
+                # Merge: keep the higher-priority mode (only for install+settings / install-only / settings-only)
+                $existingPri = if ($null -ne $existingEntry.Mode -and $modePriority.ContainsKey($existingEntry.Mode)) { $modePriority[$existingEntry.Mode] } else { 0 }
+                $newPri      = if ($null -ne $mode -and $modePriority.ContainsKey($mode)) { $modePriority[$mode] } else { 0 }
+                $isNewHigher = $newPri -gt $existingPri
                 if ($isNewHigher) {
-                    $entries[$key] = $mode
+                    $existingEntry.Mode = $mode
                 }
             }
         }
@@ -543,10 +559,8 @@ function Resolve-InstallKeywords {
         return $null
     }
 
-    # Convert to list of {Id, Mode} sorted by ID
-    $sorted = $entries.GetEnumerator() | ForEach-Object {
-        @{ Id = [int]$_.Key; Mode = $_.Value }
-    } | Sort-Object { [int]$_.Id }
+    # Sort by ID, preserving order for duplicate IDs
+    $sorted = $entries | Sort-Object { [int]$_.Id }
     return $sorted
 }
 
