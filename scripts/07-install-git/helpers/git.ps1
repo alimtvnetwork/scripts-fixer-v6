@@ -20,13 +20,16 @@ function Install-Git {
 
     $existing = Get-Command git -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & git --version 2>$null
+        $currentVersion = try { & git --version 2>$null } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "git" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "git" -CurrentVersion $currentVersion
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.gitAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
@@ -78,13 +81,16 @@ function Install-GitLfs {
 
     $existing = Get-Command git-lfs -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & git lfs version 2>$null
+        $currentVersion = try { & git lfs version 2>$null } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "git-lfs" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "git-lfs" -CurrentVersion $currentVersion
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.lfsAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
@@ -140,13 +146,16 @@ function Install-GitHubCli {
 
     $existing = Get-Command gh -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & gh --version 2>$null | Select-Object -First 1
+        $currentVersion = try { & gh --version 2>$null | Select-Object -First 1 } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "github-cli" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "github-cli" -CurrentVersion $currentVersion
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.ghAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"

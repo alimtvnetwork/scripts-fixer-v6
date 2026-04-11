@@ -20,14 +20,17 @@ function Install-Flutter {
 
     $existing = Get-Command flutter -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & flutter --version --machine 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
-        $versionStr = if ($currentVersion) { $currentVersion.frameworkVersion } else { (& flutter --version 2>$null | Select-Object -First 1) }
+        $currentVersion = try { & flutter --version --machine 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue } catch { $null }
+        $versionStr = if ($currentVersion) { $currentVersion.frameworkVersion } else { try { & flutter --version 2>$null | Select-Object -First 1 } catch { $null } }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($versionStr)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "flutter" -CurrentVersion $versionStr
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.flutterAlreadyInstalled -replace '\{version\}', $versionStr) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "flutter" -CurrentVersion $versionStr
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.flutterAlreadyInstalled -replace '\{version\}', $versionStr) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.flutterAlreadyInstalled -replace '\{version\}', $versionStr) -Level "info"

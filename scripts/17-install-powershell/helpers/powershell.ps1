@@ -29,14 +29,17 @@ function Install-PowerShellLatest {
     $pwshCmd = Get-Command $Config.verifyCommand -ErrorAction SilentlyContinue
 
     if ($pwshCmd) {
-        $version = & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1
-        $versionStr = "$version".Trim()
+        $version = try { & $Config.verifyCommand $Config.versionFlag 2>&1 | Select-Object -First 1 } catch { $null }
+        $versionStr = if ($version) { "$version".Trim() } else { "" }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($versionStr)
 
         # Check .installed/ tracking
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "powershell" -CurrentVersion $versionStr
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.pwshFound -replace '\{version\}', $version) -Level "info"
-            return $true
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "powershell" -CurrentVersion $versionStr
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.pwshFound -replace '\{version\}', $version) -Level "info"
+                return $true
+            }
         }
 
         Write-Log ($LogMessages.messages.pwshFound -replace '\{version\}', $version) -Level "success"

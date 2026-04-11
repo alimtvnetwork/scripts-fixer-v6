@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.16.1] -- 2026-04-11
+
+### Added
+
+- **Status command** -- `.\run.ps1 status`
+  - Dashboard-style table showing all tracked tools with version, status, and install source
+  - Reads from `.installed/` tracking files
+  - Flags tools with recorded errors (`error`) or unverified versions (`unverified`)
+  - Optional `choco outdated` check shows available upgrades
+  - `.\run.ps1 status --no-choco` skips the outdated check for faster output
+- **Defensive empty-version guards** across all install helpers
+  - Wraps `--version` calls in `try/catch` with `$hasVersion` guard before `Test-AlreadyInstalled`
+  - Prevents empty strings from being passed to tracking functions
+  - Applied to: nodejs, pnpm, yarn, bun, git, git-lfs, gh CLI, golang, mingw, php, powershell, flutter
+
+---
+
 ## [v0.16.0] -- 2026-04-11
 
 ### Added
