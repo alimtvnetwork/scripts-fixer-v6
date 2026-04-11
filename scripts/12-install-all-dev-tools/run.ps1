@@ -145,9 +145,13 @@ while ($true) {
     }
 
     # ── Step 2: Front-load all questions ──────────────────────────────────────
+    $hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
+    if ($hasPathParam) {
+        $env:DEV_DIR = $Path
+    }
     Invoke-Questionnaire -Mode $mode -Config $config -LogMessages $logMessages -UseDefaults:$Defaults
 
-    # Dev dir is now set in $env:DEV_DIR by the questionnaire
+    # Dev dir is now set in $env:DEV_DIR by the questionnaire (or -Path override)
     $devDir = $env:DEV_DIR
     Initialize-DevDir -Path $devDir
 
