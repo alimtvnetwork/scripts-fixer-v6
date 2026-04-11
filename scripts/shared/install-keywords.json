@@ -160,7 +160,13 @@
     "jdk":               [40],
     "jre":               [40],
     "jdk-17":            [40],
-    "jdk-21":            [40]
+    "jdk-21":            [40],
+    "data-science":      [5, 41],
+    "datascience":       [5, 41],
+    "ai-dev":            [5, 41],
+    "aidev":             [5, 41],
+    "deep-learning":     [5, 41],
+    "ml-full":           [5, 41]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },
@@ -203,6 +209,12 @@
     "dotnet-9":          { "39": "install 9" },
     "jdk-17":            { "40": "install 17" },
     "jdk-21":            { "40": "install 21" },
-    "jupyter+libs":      { "41": "group jupyter" }
+    "jupyter+libs":      { "41": "group jupyter" },
+    "data-science":      { "41": "group data" },
+    "datascience":       { "41": "group data" },
+    "ai-dev":            { "41": "group ml" },
+    "aidev":             { "41": "group ml" },
+    "deep-learning":     { "41": "group ml" },
+    "ml-full":           { "41": "group ml" }
   }
 }
