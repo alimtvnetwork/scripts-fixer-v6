@@ -125,6 +125,7 @@
     "vms":               [1, 10, 11],
     "git+desktop":       [7, 8],
     "git+gh":            [7, 8],
+    "pylibs":            [5, 41],
     "python-libs":       [41],
     "pip-libs":          [41],
     "ml-libs":           [41],

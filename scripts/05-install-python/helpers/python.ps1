@@ -88,7 +88,8 @@ function Set-PythonRuntimeEnvironment {
 
 function Get-PythonInstallerConfig {
     param(
-        $Config
+        $Config,
+        [string]$DevDir
     )
 
     $configFilePath = Join-Path (Split-Path -Parent $PSScriptRoot) "config.json"
@@ -103,13 +104,13 @@ function Get-PythonInstallerConfig {
     $version = "$($installerConfig.version)".Trim()
     $downloadUrl = "$($installerConfig.downloadUrl)".Trim()
     $fileName = "$($installerConfig.fileName)".Trim()
-    $installDir = "$($installerConfig.installDir)".Trim()
+    $installDirSubfolder = "$($installerConfig.installDirSubfolder)".Trim()
 
     foreach ($field in @(
         @{ Name = "version"; Value = $version },
         @{ Name = "downloadUrl"; Value = $downloadUrl },
         @{ Name = "fileName"; Value = $fileName },
-        @{ Name = "installDir"; Value = $installDir }
+        @{ Name = "installDirSubfolder"; Value = $installDirSubfolder }
     )) {
         $hasValue = -not [string]::IsNullOrWhiteSpace($field.Value)
         if (-not $hasValue) {
@@ -118,6 +119,16 @@ function Get-PythonInstallerConfig {
             throw $reason
         }
     }
+
+    # Resolve installDir dynamically: DevDir\python\Python313
+    $hasDevDir = -not [string]::IsNullOrWhiteSpace($DevDir)
+    if (-not $hasDevDir) {
+        # Use smart drive detection to find best dev directory
+        $DevDir = Resolve-SmartDevDir
+    }
+
+    $devDirSubfolder = if ($Config.devDirSubfolder) { $Config.devDirSubfolder } else { "python" }
+    $installDir = Join-Path (Join-Path $DevDir $devDirSubfolder) $installDirSubfolder
 
     return @{
         Version        = $version
@@ -274,10 +285,11 @@ function Resolve-InstalledPython {
 function Install-Python {
     param(
         $Config,
-        $LogMessages
+        $LogMessages,
+        [string]$DevDir
     )
 
-    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
     $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
     $desiredVersion = "Python $($installerConfig.Version)"
 
@@ -438,7 +450,8 @@ function Update-PythonPath {
     param(
         $Config,
         $LogMessages,
-        [string]$SitePath
+        [string]$SitePath,
+        [string]$DevDir
     )
 
     $isPathUpdateDisabled = -not $Config.path.updateUserPath
@@ -468,7 +481,7 @@ function Update-PythonPath {
     $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
     $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
     if ($hasPythonInfo) {
-        $installerConfig = Get-PythonInstallerConfig -Config $Config
+        $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
         $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
         $pythonDir = Split-Path -Parent $pythonInfo.Path
         $pythonScriptsDir = Join-Path $pythonDir "Scripts"
@@ -490,7 +503,7 @@ function Uninstall-Python {
     )
 
     $packageName = $Config.chocoPackageName
-    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
     $installDir = $installerConfig.InstallDir
     $installScriptsDir = Join-Path $installDir "Scripts"
 

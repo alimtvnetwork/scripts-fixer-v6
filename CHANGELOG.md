@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
-## [v0.21.1] -- 2026-04-12
+## [v0.22.0] -- 2026-04-12
+
+### Added
+
+- **`pylibs` install keyword** -- `.\run.ps1 install pylibs` installs Python (script 05) + all pip libraries (script 41) in one command
+- **Smart drive detection for Python install** -- when no `-Path` is provided, the installer automatically picks the drive with the most free space (E: > D: > best non-system drive > user prompt) instead of hardcoding `E:\dev-tool`
+
+### Changed
+
+- **config.json uses `installDirSubfolder`** -- replaced hardcoded `installDir` with a relative subfolder name (`Python313`); the full path is resolved dynamically at runtime from the dev directory
+
+---
 
 ### Fixed
 

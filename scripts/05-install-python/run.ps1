@@ -74,22 +74,24 @@ if ($hasPathParam) {
 } elseif ($env:DEV_DIR) {
     $devDir = $env:DEV_DIR
 } else {
-    $devDir = $null
+    # Smart drive detection: pick drive with most free space
+    $devDir = Resolve-SmartDevDir
+    Write-Log "Resolved dev directory via smart detection: $devDir" -Level "info"
 }
 
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
     "all" {
-        Install-Python -Config $config -LogMessages $logMessages
+        Install-Python -Config $config -LogMessages $logMessages -DevDir $devDir
         $sitePath = Configure-PipSite -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
+        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath -DevDir $devDir
     }
     "install" {
-        Install-Python -Config $config -LogMessages $logMessages
+        Install-Python -Config $config -LogMessages $logMessages -DevDir $devDir
     }
     "configure" {
         $sitePath = Configure-PipSite -Config $config -LogMessages $logMessages -DevDir $devDir
-        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
+        Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath -DevDir $devDir
     }
     "uninstall" {
         Uninstall-Python -Config $config -LogMessages $logMessages -DevDir $devDir

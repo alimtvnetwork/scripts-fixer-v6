@@ -8,13 +8,12 @@
     "version": "3.13.5",
     "downloadUrl": "https://www.python.org/ftp/python/3.13.5/python-3.13.5-amd64.exe",
     "fileName": "python-3.13.5-amd64.exe",
-    "installDir": "E:\\dev-tool\\python\\Python313",
+    "installDirSubfolder": "Python313",
     "allUsers": true,
     "includePip": true
   },
   "pip": {
-    "setUserSite": true,
-    "userSitePath": "E:\\dev-tool\\python"
+    "setUserSite": true
   },
   "path": {
     "updateUserPath": true,
