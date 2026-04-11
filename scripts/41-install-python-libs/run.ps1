@@ -38,6 +38,23 @@ if ($Help -or $Command -eq "--help") {
     return
 }
 
+# -- Resolve mode: param > env var > default -----------------------------------
+$hasDefaultCommand = $Command.ToLower() -eq "all"
+if ($hasDefaultCommand) {
+    $envMode = $env:PYTHON_LIBS_MODE
+    $hasEnvMode = -not [string]::IsNullOrWhiteSpace($envMode)
+    if ($hasEnvMode) {
+        $modeParts = $envMode -split '\s+', 2
+        $Command = $modeParts[0]
+        $hasModeArg = $modeParts.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($modeParts[1])
+        $hasArgs = $null -ne $Args -and $Args.Count -gt 0
+        $isArgsMissing = -not $hasArgs
+        if ($hasModeArg -and $isArgsMissing) {
+            $Args = @($modeParts[1])
+        }
+    }
+}
+
 # -- Banner --------------------------------------------------------------------
 Write-Banner -Title $logMessages.scriptName
 
