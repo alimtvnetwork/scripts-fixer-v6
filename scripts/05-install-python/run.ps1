@@ -6,6 +6,9 @@ param(
     [Parameter(Position = 0)]
     [string]$Command = "all",
 
+    [Parameter(Position = 1)]
+    [string]$Path,
+
     [switch]$Help
 )
 
