@@ -4,9 +4,11 @@
 
 Orchestrator that front-loads all configuration questions, then runs
 selected scripts unattended. Supports three interactive modes plus
-flag-based CLI modes.
+flag-based CLI modes. Also supports batch uninstall of installed tools.
 
 ## Usage
+
+### Install (default)
 
 ```powershell
 .\run.ps1                    # Interactive: quick menu + questionnaire
@@ -17,7 +19,17 @@ flag-based CLI modes.
 .\run.ps1 -Skip "06,08"     # Skip specific scripts
 .\run.ps1 -Only "03,05"     # Run only specific scripts
 .\run.ps1 -DryRun            # Preview what would run
+.\run.ps1 -Path F:\dev-tool  # Override dev directory
 .\run.ps1 -Help             # Show usage
+```
+
+### Uninstall
+
+```powershell
+.\run.ps1 -Uninstall                    # Interactive: pick tools to uninstall
+.\run.ps1 -Uninstall -All               # Uninstall ALL tools (with YES confirmation)
+.\run.ps1 -Uninstall -Only "03,05,07"   # Uninstall specific tools by number
+.\run.ps1 -Uninstall -DryRun            # Preview what would be uninstalled
 ```
 
 ## Interactive Flow
@@ -25,22 +37,27 @@ flag-based CLI modes.
 ### Step 1: Quick Menu
 
 ```
-  What would you like to install?
-  ================================
+  What would you like to do?
+  ===========================
 
     [1] All Dev Tools (VS Code, Node.js, Python, Go, Git, C++, PHP, PowerShell)
     [2] All Dev Tools + All Databases (everything above + MySQL, PostgreSQL, MongoDB, etc.)
-    [3] Custom (pick individual tools from the full list)
+    [3] All Databases Only (MySQL, MariaDB, PostgreSQL, SQLite, MongoDB, Redis, etc.)
+    [4] Custom (pick individual tools from the full list)
+
+    [U] Uninstall (remove installed tools -- pick from list)
     [Q] Quit
 
-  Choose [1/2/3/Q] (default: 1):
+  Choose [1/2/3/4/U/Q] (default: 1):
 ```
 
 | Choice | Mode | Scripts |
 |--------|------|---------|
 | 1 | `alldev` | 01-11, 16-17, 31 (all dev tools, no databases) |
 | 2 | `alldev+db` | 01-11, 16-17, 18-29, 31 (everything) |
-| 3 | `custom` | Full interactive checkbox menu (same as before) |
+| 3 | `alldb` | 18-29 (all databases only) |
+| 4 | `custom` | Full interactive checkbox menu (same as before) |
+| U | `uninstall` | Interactive picker to select tools to remove |
 | Q | `quit` | Exit |
 
 ### Step 2: Questionnaire (front-loaded)
@@ -50,7 +67,7 @@ are stored in environment variables so child scripts skip their own prompts.
 
 | Question | Env Var | Options |
 |----------|---------|---------|
-| Dev directory path | `$env:DEV_DIR` | Custom path or default (E:\dev) |
+| Dev directory path | `$env:DEV_DIR` | Custom path or default (E:\dev-tool) |
 | VS Code editions | `$env:VSCODE_EDITIONS` | stable / insiders / stable,insiders |
 | VS Code settings sync | `$env:VSCODE_SYNC_MODE` | overwrite / merge / skip |
 | Git user.name | `$env:GIT_USER_NAME` | Full name (auto-detected if already set) |
@@ -84,7 +101,7 @@ configuration from the environment variables set in Step 2.
 After all scripts complete, the summary is displayed and the quick menu
 re-appears so the user can install more or quit.
 
-## Custom Menu (Option 3)
+## Custom Menu (Option 4)
 
 When "Custom" is selected, the full interactive checkbox menu appears:
 
@@ -93,6 +110,74 @@ When "Custom" is selected, the full interactive checkbox menu appears:
 - Type `A` to select all, `N` to deselect all
 - Press **Enter** to run selected items
 - Type `Q` to quit
+
+---
+
+## Uninstall Mode
+
+### Interactive (menu option U)
+
+1. User selects `[U] Uninstall` from the quick menu
+2. Full interactive checkbox menu appears (same as custom install)
+3. User picks which tools to uninstall
+4. Confirmation prompt lists selected tools and requires typing `YES`
+5. Scripts execute `uninstall` subcommand in **reverse order** (last installed first)
+6. Summary displayed, then menu re-appears
+
+### Flag-based
+
+| Flag Combination | Behaviour |
+|-----------------|-----------|
+| `-Uninstall` | Interactive picker |
+| `-Uninstall -All` | Uninstall all tools (with YES confirmation) |
+| `-Uninstall -Only "03,05,07"` | Uninstall specific scripts by ID |
+| `-Uninstall -Skip "02"` | Uninstall all except specified scripts |
+| `-Uninstall -DryRun` | Preview what would be uninstalled (no changes) |
+
+### Safety Features
+
+| Feature | Description |
+|---------|-------------|
+| Reverse order | Scripts uninstall in reverse sequence (last installed = first removed) |
+| Chocolatey protected | Script 02 (Chocolatey) is always skipped -- removing it would break the uninstall chain |
+| YES confirmation | User must type `YES` (exact match) to proceed; anything else cancels |
+| Dry run support | `-DryRun` shows `[WOULD UNINSTALL]` for each script without making changes |
+
+### Uninstall Execution Flow
+
+```
+run.ps1 -Uninstall [-All|-Only "03,05"]
+  |
+  +-- Assert admin
+  +-- Build script list (from -All, -Only, or interactive picker)
+  +-- If -DryRun: show preview and exit
+  +-- Show confirmation prompt with tool list
+  +-- Require user to type YES
+  +-- Invoke-UninstallSequence (reverse order):
+  |     +-- Skip script 02 (Chocolatey)
+  |     +-- For each script: & <folder>/run.ps1 uninstall
+  |     +-- Record result (success / failed / skipped)
+  |
+  +-- Show summary ([OK] / [FAIL] / [SKIP] per tool)
+  +-- Save resolved state (action = "uninstall")
+```
+
+### What Each Script's Uninstall Does
+
+Each individual script's `uninstall` subcommand handles:
+
+1. **Chocolatey removal** -- `choco uninstall <package>` via `Uninstall-ChocoPackage`
+2. **Environment cleanup** -- removes script-specific env vars
+3. **PATH cleanup** -- removes entries from User PATH via `Remove-FromUserPath`
+4. **Data cleanup** -- deletes tool-specific subfolders in the dev directory
+5. **Tracking cleanup** -- purges `.installed/<name>.json` and `.resolved/<folder>/`
+
+Special cases:
+- Scripts 10, 31: Registry key removal (context menu entries)
+- Script 29 (LiteDB): `dotnet tool uninstall` instead of Chocolatey
+- Scripts 14, 15: Tracking-only cleanup (system components)
+
+---
 
 ## Database Installation
 
@@ -167,9 +252,9 @@ directory post-install.
 | `orchestrator.ps1` | (loader) | Dot-sources all helper files |
 | `resolve.ps1` | `Resolve-ScriptList` | Builds script list from config with skip/only filters |
 | `menu.ps1` | `Show-InteractiveMenu`, `Show-DryRun` | Full checkbox menu for custom mode |
-| `execution.ps1` | `Invoke-ScriptSequence` | Runs scripts in sequence, captures results |
+| `execution.ps1` | `Invoke-ScriptSequence`, `Invoke-UninstallSequence` | Runs scripts in sequence or uninstalls in reverse order |
 | `summary.ps1` | `Show-Summary` | Displays formatted summary table |
-| `questionnaire.ps1` | `Show-QuickMenu`, `Invoke-Questionnaire`, `Get-ScriptListForMode` | Quick 3-option menu and front-loaded questions |
+| `questionnaire.ps1` | `Show-QuickMenu`, `Invoke-Questionnaire`, `Get-ScriptListForMode` | Quick menu (with uninstall option) and front-loaded questions |
 
 ## Install Keywords
 
