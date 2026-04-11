@@ -37,8 +37,19 @@ function Install-Python {
         if ($Config.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersion = & python --version 2>$null
-                Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+
+                # Refresh PATH so upgraded python is discoverable
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+                $newVersion = try { & python --version 2>$null } catch { $null }
+                $hasNewVersion = -not [string]::IsNullOrWhiteSpace($newVersion)
+                if ($hasNewVersion) {
+                    Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
+                    Save-InstalledRecord -Name "python" -Version $newVersion
+                } else {
+                    Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', "(version pending)") -Level "success"
+                    Save-InstalledRecord -Name "python" -Version "installed"
+                }
                 Save-InstalledRecord -Name "python" -Version $newVersion
             } catch {
                 Write-Log "Python upgrade failed: $_" -Level "error"
