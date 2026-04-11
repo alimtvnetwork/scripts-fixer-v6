@@ -21,13 +21,16 @@ function Install-NodeJs {
     # Check if Node.js is already installed
     $existing = Get-Command node -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & node --version 2>$null
+        $currentVersion = try { & node --version 2>$null } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "nodejs" -CurrentVersion $currentVersion
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "nodejs" -CurrentVersion $currentVersion
         if ($isAlreadyTracked) {
             Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
             return
+        }
         }
 
         Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
