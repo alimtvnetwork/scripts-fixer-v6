@@ -94,6 +94,10 @@ switch ($Command.ToLower()) {
         $sitePath = Configure-PipSite -Config $config -LogMessages $logMessages -DevDir $devDir
         Update-PythonPath -Config $config -LogMessages $logMessages -SitePath $sitePath
     }
+    "uninstall" {
+        Uninstall-Python -Config $config -LogMessages $logMessages -DevDir $devDir
+        return
+    }
     default {
         Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"
         return
