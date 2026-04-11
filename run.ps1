@@ -171,6 +171,19 @@ function Show-RootHelp {
     Write-Host "    $("install settingssync".PadRight($kc))" -NoNewline; Write-Host "Sync VSCode settings + extensions" -ForegroundColor DarkGray
     Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
     Write-Host ""
+    Write-Host "    Python & pip libraries:" -ForegroundColor Magenta
+    Write-Host "    $("install python-libs".PadRight($kc))" -NoNewline; Write-Host "Install all Python/ML libraries (numpy, pandas, etc.)" -ForegroundColor DarkGray
+    Write-Host "    $("install python+libs".PadRight($kc))" -NoNewline; Write-Host "Install Python + all libraries in one go" -ForegroundColor DarkGray
+    Write-Host "    $("install ml-libs".PadRight($kc))" -NoNewline; Write-Host "Install ML libraries (same as python-libs)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group ml".PadRight($kc))" -NoNewline; Write-Host "Install ML group only (numpy, scipy, scikit-learn...)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group jupyter".PadRight($kc))" -NoNewline; Write-Host "Install Jupyter Notebook (jupyterlab, notebook...)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group viz".PadRight($kc))" -NoNewline; Write-Host "Install visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group web".PadRight($kc))" -NoNewline; Write-Host "Install web frameworks (django, flask, fastapi)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group data".PadRight($kc))" -NoNewline; Write-Host "Install data tools (pandas, polars)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- add <pkg1> <pkg2>".PadRight($kc))" -NoNewline; Write-Host "Install specific packages by name" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- list".PadRight($kc))" -NoNewline; Write-Host "Show all available library groups" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- installed".PadRight($kc))" -NoNewline; Write-Host "Show currently installed pip packages" -ForegroundColor DarkGray
+    Write-Host ""
     Write-Host "    Database installs:" -ForegroundColor Magenta
     Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Open the interactive database installer menu" -ForegroundColor DarkGray
     Write-Host "    $("install mysql".PadRight($kc))" -NoNewline; Write-Host "Install MySQL database" -ForegroundColor DarkGray
@@ -195,6 +208,9 @@ function Show-RootHelp {
     Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
     Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
     Write-Host "    python, pip          Python + pip                    05"
+    Write-Host "    python-libs, pip-libs Python libraries (all groups)   41"
+    Write-Host "    ml-libs              ML/Data libraries               41"
+    Write-Host "    python+libs, ml-dev  Python + all libraries          05, 41"
     Write-Host "    go, golang           Go                              06"
     Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
     Write-Host "    github-desktop       GitHub Desktop                  08"
@@ -247,6 +263,7 @@ function Show-RootHelp {
     Write-Host "    backend                     Python + Go + PHP + Postgres  05, 06, 16, 20"
     Write-Host "    web-dev, webdev             VSCode + Node + pnpm + Git    01, 03, 04, 07, 11"
     Write-Host "    essentials                  VSCode + Choco + Node + Git   01, 02, 03, 07, 11"
+    Write-Host "    python+libs, ml-dev         Python + all libraries         05, 41"
     Write-Host "    full-stack, fullstack       Everything for full-stack dev 01-09, 11, 16"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
@@ -260,6 +277,7 @@ function Show-RootHelp {
     Write-Host "    03  Node.js + Yarn + Bun          " -NoNewline; Write-Host "Install Node.js LTS, Yarn, Bun, verify npx" -ForegroundColor DarkGray
     Write-Host "    04  pnpm                          " -NoNewline; Write-Host "Install pnpm, configure global store" -ForegroundColor DarkGray
     Write-Host "    05  Python                        " -NoNewline; Write-Host "Install Python, configure pip user site" -ForegroundColor DarkGray
+    Write-Host "    41  Python Libraries              " -NoNewline; Write-Host "Install pip packages: ML, viz, web, jupyter (by group)" -ForegroundColor DarkGray
     Write-Host "    06  Golang                        " -NoNewline; Write-Host "Install Go, configure GOPATH and go env" -ForegroundColor DarkGray
     Write-Host "    07  Git + LFS + gh                " -NoNewline; Write-Host "Install Git, Git LFS, GitHub CLI, configure settings" -ForegroundColor DarkGray
     Write-Host "    08  GitHub Desktop                " -NoNewline; Write-Host "Install GitHub Desktop via Chocolatey" -ForegroundColor DarkGray
