@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.19.2] -- 2026-04-11
+
+### Fixed
+
+- **Python resolution now resets `$LASTEXITCODE` before probing** -- stale exit codes from choco install caused `Test-PythonExecutable` to reject valid Python executables
+- **Added Chocolatey lib/tools fallback paths** -- `lib\python3\tools\python.exe` and variants are now probed when PATH-based resolution fails
+- **Post-install retry loop (3 attempts, 2s delay)** -- choco shims may not be immediately available; resolver now retries with PATH refresh between attempts
+- **Install summary now shows mode labels** -- duplicate script IDs display as e.g. `41[jupyter]` instead of raw `41`
+
+---
+
 ## [v0.19.1] -- 2026-04-11
 
 ### Fixed
