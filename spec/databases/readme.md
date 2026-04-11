@@ -6,12 +6,13 @@ Interactive database installer supporting SQL, NoSQL (document, key-value,
 column, graph), file-based/embedded, and search engine databases. Databases
 are installed via Chocolatey (or dotnet tool for LiteDB). Supports three
 install location modes: dev directory, custom path, or system default.
+Also supports batch uninstall of installed databases.
 
 ---
 
 ## Usage
 
-### From script folder (scripts/databases/)
+### Install (from script folder: scripts/databases/)
 
 ```powershell
 .\run.ps1                          # Interactive menu: pick databases to install
@@ -19,7 +20,17 @@ install location modes: dev directory, custom path, or system default.
 .\run.ps1 -Only mysql,redis        # Install specific databases only
 .\run.ps1 -Skip cassandra,neo4j    # Skip specific databases
 .\run.ps1 -DryRun                  # Preview what would be installed
+.\run.ps1 -Path F:\dev-tool        # Override dev directory
 .\run.ps1 -Help                    # Show usage
+```
+
+### Uninstall (from script folder: scripts/databases/)
+
+```powershell
+.\run.ps1 -Uninstall               # Interactive menu: pick databases to uninstall
+.\run.ps1 -Uninstall -All          # Uninstall ALL databases (with YES confirmation)
+.\run.ps1 -Uninstall -Only mysql,redis   # Uninstall specific databases
+.\run.ps1 -Uninstall -DryRun       # Preview what would be uninstalled
 ```
 
 ### From root dispatcher (project root)
@@ -126,21 +137,86 @@ This gives users both a guided DB menu and quick one-line installs.
 | duckdb | DuckDB | 28        | Choco: `duckdb` | Analytical columnar file database |
 | litedb | LiteDB | 29        | dotnet tool: `LiteDB.Shell` | .NET embedded NoSQL file database |
 
+### Tools
+
+| Key     | Name              | Script ID | Choco Package | Description |
+|---------|-------------------|-----------|---------------|-------------|
+| dbeaver | DBeaver Community | 32        | dbeaver       | Universal database management tool |
+
 ---
 
 ## Install Path Options
 
 When running interactively, the user is prompted to choose:
 
-1. **Dev directory** (default) -- installs to `E:\dev\databases\<db>`
+1. **Dev directory** (default) -- installs to `E:\dev-tool\databases\<db>`
 2. **Custom path** -- user enters any path, databases go into `<path>\databases\<db>`
 3. **System default** -- installs to the default system location (e.g. `C:\Program Files`)
 
 If the configured default drive is invalid or missing, the shared dev-dir
-helper falls back to a safe local path such as `C:\dev`.
+helper falls back to a safe local path such as `C:\dev-tool`.
 
-The dev directory path (`E:\dev`) is configurable in `config.json` under
-`devDir.default` and `devDir.override`.
+The dev directory path (`E:\dev-tool`) is configurable in `config.json` under
+`devDir.default` and `devDir.override`, or via the `-Path` parameter.
+
+---
+
+## Uninstall Mode
+
+### Interactive
+
+1. Run `.\run.ps1 -Uninstall` from the databases folder
+2. The same interactive checkbox menu appears (pick databases to remove)
+3. User selects databases and presses Enter
+4. Confirmation prompt lists selected databases and requires typing `YES`
+5. Scripts execute `uninstall` subcommand in **reverse order**
+6. Summary displayed
+
+### Flag-based
+
+| Flag Combination | Behaviour |
+|-----------------|-----------|
+| `-Uninstall` | Interactive picker |
+| `-Uninstall -All` | Uninstall all databases (with YES confirmation) |
+| `-Uninstall -Only mysql,redis` | Uninstall specific databases by key |
+| `-Uninstall -DryRun` | Preview what would be uninstalled (no changes) |
+
+### Safety Features
+
+| Feature | Description |
+|---------|-------------|
+| Reverse order | Databases uninstall in reverse sequence order |
+| YES confirmation | User must type `YES` (exact match) to proceed |
+| Dry run | `-DryRun` shows `[WOULD UNINSTALL]` without making changes |
+
+### Uninstall Execution Flow
+
+```
+run.ps1 -Uninstall [-All|-Only mysql,redis]
+  |
+  +-- Assert admin
+  +-- Resolve dev directory
+  +-- Build database list (from -All, -Only, or interactive picker)
+  +-- If -DryRun: show preview and exit
+  +-- Show confirmation prompt with database list
+  +-- Require user to type YES
+  +-- For each database in reverse order:
+  |     +-- Invoke-DbUninstall -> <folder>/run.ps1 uninstall
+  |     +-- Record result (ok / fail / skip)
+  |
+  +-- Show uninstall summary ([OK] / [FAIL] / [SKIP] per DB)
+  +-- Save resolved state (action = "uninstall")
+```
+
+### What Each Script's Uninstall Does
+
+Each individual database script's `uninstall` subcommand handles:
+
+1. **Chocolatey removal** -- `choco uninstall <package>` (or `dotnet tool uninstall` for LiteDB)
+2. **Service cleanup** -- stops and removes Windows services where applicable
+3. **Data cleanup** -- deletes database data subfolders in the dev directory
+4. **Symlink cleanup** -- removes database directory junctions
+5. **Tracking cleanup** -- purges `.installed/<name>.json` and `.resolved/<folder>/`
 
 ---
 
@@ -148,8 +224,8 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
 
 | Key | Type | Purpose |
 |-----|------|---------|
-| `devDir.mode` | string | Resolution mode (`json-or-prompt`) |
-| `devDir.default` | string | Default dev directory path |
+| `devDir.mode` | string | Resolution mode (`smart`) |
+| `devDir.default` | string | Default dev directory path (`auto` for smart detection) |
 | `devDir.override` | string | Hard override (skips prompt) |
 | `installMode.default` | string | Default install mode (`devDir` / `custom` / `system`) |
 | `databases.<key>.enabled` | bool | Toggle per database |
@@ -157,7 +233,7 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
 | `databases.<key>.folder` | string | Individual script folder name |
 | `databases.<key>.name` | string | Display name |
 | `databases.<key>.desc` | string | Short description |
-| `databases.<key>.type` | string | Category (`sql`, `nosql-document`, `file-based`, etc.) |
+| `databases.<key>.type` | string | Category (`sql`, `nosql-document`, `file-based`, `tool`, etc.) |
 | `groups[].letter` | string | Shortcut letter |
 | `groups[].label` | string | Group display name |
 | `groups[].ids` | array | Database keys in this group |
@@ -197,12 +273,16 @@ The dev directory path (`E:\dev`) is configurable in `config.json` under
     [ ] 11. DuckDB                  Analytical file-based columnar database
     [ ] 12. LiteDB                  .NET embedded NoSQL file-based database
 
+    Tools
+    [ ] 13. DBeaver Community       Universal database management tool
+
   Quick groups:
     a. All SQL                          b. All NoSQL
     c. File-Based                       d. Popular Stack
-    e. Search + Analytics
+    e. Search + Analytics               f. Popular + DBeaver
+    g. All + DBeaver
 
-  Enter numbers (1,2,5), group letter (a-e), A=all, N=none, Q=quit, Enter=run:
+  Enter numbers (1,2,5), group letter (a-g), A=all, N=none, Q=quit, Enter=run:
 ```
 
 ---
@@ -221,9 +301,9 @@ run.ps1 (no flags)
   |     +-- User picks numbers, groups, or A=all
   |     +-- User presses Enter to confirm
   |
-  +-- Prompt for install path (dev dir / custom / system)
   +-- For each selected DB in sequence order:
   |     +-- Invoke-DbScript -> <folder>/run.ps1
+  |     +-- Verify post-install symlink
   |     +-- Record result (ok / fail / skip)
   |
   +-- Show summary ([OK] / [FAIL] / [SKIP] per DB)
@@ -260,11 +340,10 @@ run.ps1 -DryRun
 ## Loop-Back Flow
 
 1. User selects databases and presses Enter
-2. User chooses install path (dev dir / custom / system)
-3. Selected databases install in sequence
-4. Summary is displayed
-5. Menu re-appears for more installations
-6. Press Q to exit
+2. Selected databases install in sequence
+3. Summary is displayed
+4. Menu re-appears for more installations
+5. Press Q to exit
 
 ---
 
