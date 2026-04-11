@@ -57,13 +57,16 @@ function Install-Go {
             return $false
         }
     } else {
-        $version = & go.exe version 2>&1
+        $version = try { & go.exe version 2>&1 } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($version)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "golang" -CurrentVersion "$version".Trim()
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.goAlreadyInstalled -replace '\{version\}', $version) -Level "info"
-            return $true
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "golang" -CurrentVersion "$version".Trim()
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.goAlreadyInstalled -replace '\{version\}', $version) -Level "info"
+                return $true
+            }
         }
 
         Write-Log $LogMessages.messages.goAlreadyInstalled -Level "success"

@@ -27,10 +27,10 @@ function Install-NodeJs {
         # Check .installed/ tracking -- skip if version matches
         if ($hasVersion) {
             $isAlreadyTracked = Test-AlreadyInstalled -Name "nodejs" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
-        }
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.nodeAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
@@ -156,11 +156,14 @@ function Install-NodeExtras {
     if ($isYarnEnabled) {
         $yarnCmd = Get-Command yarn -ErrorAction SilentlyContinue
         if ($yarnCmd) {
-            $yarnVersion = & yarn --version 2>$null
+            $yarnVersion = try { & yarn --version 2>$null } catch { $null }
+            $hasYarnVersion = -not [string]::IsNullOrWhiteSpace($yarnVersion)
 
+            if ($hasYarnVersion) {
             $isYarnTracked = Test-AlreadyInstalled -Name "yarn" -CurrentVersion $yarnVersion
             if ($isYarnTracked) {
                 Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
+            }
             }
             else {
                 Write-Log ($LogMessages.messages.yarnAlreadyInstalled -replace '\{version\}', $yarnVersion) -Level "info"
@@ -188,8 +191,10 @@ function Install-NodeExtras {
     if ($isBunEnabled) {
         $bunCmd = Get-Command bun -ErrorAction SilentlyContinue
         if ($bunCmd) {
-            $bunVersion = & bun --version 2>$null
+            $bunVersion = try { & bun --version 2>$null } catch { $null }
+            $hasBunVersion = -not [string]::IsNullOrWhiteSpace($bunVersion)
 
+            if ($hasBunVersion) {
             $isBunTracked = Test-AlreadyInstalled -Name "bun" -CurrentVersion $bunVersion
             if ($isBunTracked) {
                 Write-Log ($LogMessages.messages.bunAlreadyInstalled -replace '\{version\}', $bunVersion) -Level "info"

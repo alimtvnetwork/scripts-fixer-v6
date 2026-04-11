@@ -26,13 +26,16 @@ function Install-Pnpm {
 
     $existing = Get-Command pnpm -ErrorAction SilentlyContinue
     if ($existing) {
-        $currentVersion = & pnpm --version 2>$null
+        $currentVersion = try { & pnpm --version 2>$null } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "pnpm" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "pnpm" -CurrentVersion $currentVersion
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.pnpmAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"

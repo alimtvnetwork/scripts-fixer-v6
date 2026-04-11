@@ -100,13 +100,16 @@ function Install-Mingw {
             return $false
         }
     } else {
-        $version = & g++.exe --version 2>&1 | Select-Object -First 1
+        $version = try { & g++.exe --version 2>&1 | Select-Object -First 1 } catch { $null }
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($version)
 
         # Check .installed/ tracking
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "mingw" -CurrentVersion "$version".Trim()
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.mingwAlreadyInstalled -replace '\{version\}', $version) -Level "info"
-            return $true
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "mingw" -CurrentVersion "$version".Trim()
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.mingwAlreadyInstalled -replace '\{version\}', $version) -Level "info"
+                return $true
+            }
         }
 
         Write-Log $LogMessages.messages.mingwAlreadyInstalled -Level "success"
