@@ -25,6 +25,10 @@ Chocolatey packages.
 .\run.ps1 -Install python             # Install Python + pip
 .\run.ps1 -Install go,git,cpp         # Install Go, Git, and C++
 .\run.ps1 -Install all-dev            # Interactive dev tools menu
+.\run.ps1 update                      # Upgrade all Chocolatey packages
+.\run.ps1 path D:\devtools            # Set default dev directory
+.\run.ps1 path                        # Show current dev directory
+.\run.ps1 path --reset                # Clear saved path, use smart detection
 .\run.ps1 -d                          # Shortcut for -I 12 (interactive menu)
 .\run.ps1 -I <number>                 # Run a script by ID
 .\run.ps1 -I <number> -Merge          # Run with -Merge passed through
