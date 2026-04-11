@@ -12,11 +12,15 @@ Common files to include:
 - data-sources.json     -- Connection profiles (exported from DBeaver)
 - credentials-config.json -- Encrypted credential store
 
-To export your current DBeaver connections:
-  DBeaver > File > Export > DBeaver Project
-  Or manually copy files from %APPDATA%\DBeaverData\workspace6\General\.dbeaver\
+To export your current DBeaver settings to this folder:
+  .\run.ps1 -I 32 -- export
+
+This copies all .json config files and subdirectories from
+%APPDATA%\DBeaverData\workspace6\General\.dbeaver\ into this folder.
+Files larger than 512 KB are skipped (likely cache, not config).
 
 Usage:
   .\run.ps1 install dbeaver            # Install DBeaver + sync settings
   .\run.ps1 install dbeaver-settings   # Sync settings only
   .\run.ps1 install install-dbeaver    # Install DBeaver only (no settings)
+  .\run.ps1 -I 32 -- export           # Export settings from machine to repo

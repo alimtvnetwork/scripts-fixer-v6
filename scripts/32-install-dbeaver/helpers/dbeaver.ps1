@@ -234,6 +234,103 @@ function Sync-DbeaverSettings {
     return $true
 }
 
+function Export-DbeaverSettings {
+    <#
+    .SYNOPSIS
+        Exports DBeaver settings FROM the machine back INTO the repo's
+        settings/04 - dbeaver/ folder for backup/version control.
+    #>
+    param(
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+
+    # Source: %APPDATA%\DBeaverData\workspace6\General\.dbeaver\
+    $dbeaverDataDir = Join-Path $env:APPDATA "DBeaverData"
+    $sourceDir = Join-Path $dbeaverDataDir "workspace6\General\.dbeaver"
+
+    # Target: repo/settings/04 - dbeaver/
+    $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    $targetDir = Join-Path $repoRoot "settings\04 - dbeaver"
+
+    Write-Log ($msgs.exportStarting -replace '\{source\}', $sourceDir) -Level "info"
+
+    # -- Validate source exists ----------------------------------------
+    $isSourceMissing = -not (Test-Path $sourceDir)
+    if ($isSourceMissing) {
+        Write-FileError -FilePath $sourceDir -Operation "read" -Reason "DBeaver data directory does not exist. Is DBeaver installed and has been launched at least once?" -Module "Export-DbeaverSettings"
+        Write-Log $msgs.exportNoSource -Level "error"
+        return $false
+    }
+
+    # -- Enumerate exportable files ------------------------------------
+    $exportFiles = @(
+        "data-sources.json",
+        "credentials-config.json",
+        "dbeaver-data-sources.json"
+    )
+
+    # Also grab any .json config files that exist
+    $sourceFiles = Get-ChildItem -Path $sourceDir -File -Filter "*.json" -ErrorAction SilentlyContinue
+    $hasNoFiles = $null -eq $sourceFiles -or $sourceFiles.Count -eq 0
+    if ($hasNoFiles) {
+        Write-Log $msgs.exportNoFiles -Level "warn"
+        return $false
+    }
+
+    # -- Ensure target directory exists --------------------------------
+    $isTargetMissing = -not (Test-Path $targetDir)
+    if ($isTargetMissing) {
+        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+        Write-Log "Created settings directory: $targetDir" -Level "info"
+    }
+
+    # -- Copy files ----------------------------------------------------
+    $copiedCount = 0
+    foreach ($file in $sourceFiles) {
+        # Skip very large files (logs, cache) -- only export config files
+        $isReadme = $file.Name -eq "readme.txt"
+        if ($isReadme) { continue }
+
+        $fileSizeKB = [math]::Round($file.Length / 1024, 1)
+        $isTooBig = $fileSizeKB -gt 512
+        if ($isTooBig) {
+            Write-Log "Skipped: $($file.Name) ($fileSizeKB KB -- too large, likely cache)" -Level "info"
+            continue
+        }
+
+        try {
+            $dest = Join-Path $targetDir $file.Name
+            Copy-Item -Path $file.FullName -Destination $dest -Force
+            Write-Log "Exported: $($file.Name) ($fileSizeKB KB)" -Level "success"
+            $copiedCount++
+        } catch {
+            Write-FileError -FilePath $file.FullName -Operation "copy" -Reason "Failed to export $($file.Name): $_" -Module "Export-DbeaverSettings"
+            Write-Log "Failed to export $($file.Name): $_" -Level "error"
+        }
+    }
+
+    # -- Also export subdirectories (drivers, templates) ---------------
+    $sourceDirs = Get-ChildItem -Path $sourceDir -Directory -ErrorAction SilentlyContinue
+    foreach ($dir in $sourceDirs) {
+        try {
+            $dest = Join-Path $targetDir $dir.Name
+            Copy-Item -Path $dir.FullName -Destination $dest -Recurse -Force
+            $subCount = (Get-ChildItem $dir.FullName -Recurse -File).Count
+            Write-Log "Exported folder: $($dir.Name) ($subCount files)" -Level "success"
+            $copiedCount++
+        } catch {
+            Write-FileError -FilePath $dir.FullName -Operation "copy" -Reason "Failed to export folder $($dir.Name): $_" -Module "Export-DbeaverSettings"
+            Write-Log "Failed to export folder $($dir.Name): $_" -Level "error"
+        }
+    }
+
+    $summary = $msgs.exportComplete -replace '\{count\}', $copiedCount -replace '\{path\}', $targetDir
+    Write-Log $summary -Level "success"
+    return $true
+}
+
 function Uninstall-Dbeaver {
     <#
     .SYNOPSIS
@@ -244,7 +341,7 @@ function Uninstall-Dbeaver {
         $LogMessages
     )
 
-    $packageName = $$DbConfig.chocoPackage
+    $packageName = $DbConfig.chocoPackage
 
     # 1. Uninstall via Chocolatey
     Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "DBeaver Community") -Level "info"
