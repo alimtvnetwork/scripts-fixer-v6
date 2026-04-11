@@ -30,6 +30,7 @@ be installed individually or all at once.
 | `scraping` | Scraping & HTTP | requests, beautifulsoup4 |
 | `cv` | Computer Vision | opencv-python |
 | `db` | Database | sqlalchemy |
+| `jupyter` | Jupyter Notebook | jupyterlab, notebook, ipykernel, ipywidgets |
 
 ## Parameters
 

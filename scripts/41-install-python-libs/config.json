@@ -30,6 +30,10 @@
     "db": {
       "label": "Database",
       "packages": ["sqlalchemy"]
+    },
+    "jupyter": {
+      "label": "Jupyter Notebook",
+      "packages": ["jupyterlab", "notebook", "ipykernel", "ipywidgets"]
     }
   },
   "allPackages": [
@@ -39,6 +43,7 @@
     "matplotlib", "seaborn", "plotly",
     "requests", "beautifulsoup4",
     "opencv-python",
-    "sqlalchemy"
+    "sqlalchemy",
+    "jupyterlab", "notebook", "ipykernel", "ipywidgets"
   ]
 }
