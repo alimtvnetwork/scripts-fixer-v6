@@ -1341,6 +1341,9 @@ if ($hasInstallKeywords) {
             Remove-Item "Env:\$envVarName" -ErrorAction SilentlyContinue
         }
         if ($result) { $successCount++ } else { $failCount++ }
+
+        # Refresh PATH between chained scripts so newly installed tools are discoverable
+        Refresh-EnvPath
     }
 
     Write-Host ""
