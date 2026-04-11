@@ -499,7 +499,7 @@ His published writings on clean function design and meaningful naming directly i
 |---|---|
 | **Website** | [alimkarim.com](https://alimkarim.com) · [my.alimkarim.com](https://my.alimkarim.com) |
 | **LinkedIn** | [linkedin.com/in/alimkarim](https://linkedin.com/in/alimkarim) |
-| **Role** | Chief Software Engineer, Riseup Asia LLC |
+| **Role** | Chief Software Engineer, [Riseup Asia LLC](https://riseup-asia.com) |
 
 ---
 
