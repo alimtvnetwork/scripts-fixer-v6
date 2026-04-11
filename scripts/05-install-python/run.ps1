@@ -108,15 +108,25 @@ switch ($Command.ToLower()) {
 Write-Log $logMessages.messages.savingResolved -Level "info"
 
 # Refresh PATH so python/pip are discoverable after install/upgrade
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+Refresh-EnvPath
 
-$pythonVersion = try { & python --version 2>$null } catch { $null }
-$pipVersion    = try { & pip --version 2>$null } catch { $null }
+$pythonInfo = Resolve-PythonExe -ReturnInfo
+$hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
+
+$pythonVersion = if ($hasPythonInfo) { $pythonInfo.Version } else { "unknown" }
+$pipVersion    = if ($hasPythonInfo -and $pythonInfo.HasPip) { $pythonInfo.PipVersion } else { "unknown" }
+$pythonExePath = if ($hasPythonInfo) { $pythonInfo.Path } else { $env:PYTHON_EXE }
+$pythonUserBase = if (-not [string]::IsNullOrWhiteSpace($env:PYTHONUSERBASE)) {
+    $env:PYTHONUSERBASE
+} else {
+    [System.Environment]::GetEnvironmentVariable("PYTHONUSERBASE", "User")
+}
 
 Save-ResolvedData -ScriptFolder "05-install-python" -Data @{
     pythonVersion  = if ($pythonVersion) { $pythonVersion } else { "unknown" }
     pipVersion     = if ($pipVersion) { $pipVersion } else { "unknown" }
-    pythonUserBase = $env:PYTHONUSERBASE
+    pythonExe      = $pythonExePath
+    pythonUserBase = $pythonUserBase
     timestamp      = (Get-Date -Format "o")
 }
 
