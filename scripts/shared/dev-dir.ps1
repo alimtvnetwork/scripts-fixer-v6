@@ -24,6 +24,34 @@ if (-not (Get-Variable -Name SharedLogMessages -Scope Script -ErrorAction Silent
 # -- Constants -----------------------------------------------------------------
 $script:MinFreeSpaceGB = 10
 
+function Get-DevPathFile {
+    return Join-Path (Split-Path $PSScriptRoot -Parent) "dev-path.json"
+}
+
+function Get-SavedDevPath {
+    $devPathFile = Get-DevPathFile
+    $isFilePresent = Test-Path $devPathFile
+    if (-not $isFilePresent) { return $null }
+    try {
+        $data = Get-Content $devPathFile -Raw | ConvertFrom-Json
+        $hasPath = -not [string]::IsNullOrWhiteSpace($data.path)
+        if ($hasPath) { return $data.path }
+    } catch {}
+    return $null
+}
+
+function Set-SavedDevPath {
+    param([string]$Path)
+    $devPathFile = Get-DevPathFile
+    @{ path = $Path } | ConvertTo-Json -Depth 1 | Set-Content -Path $devPathFile -Encoding UTF8
+}
+
+function Remove-SavedDevPath {
+    $devPathFile = Get-DevPathFile
+    $isFilePresent = Test-Path $devPathFile
+    if ($isFilePresent) { Remove-Item $devPathFile -Force }
+}
+
 function Get-SafeDevDirFallback {
     $systemDrive = if ([string]::IsNullOrWhiteSpace($env:SystemDrive)) { "C:" } else { $env:SystemDrive.TrimEnd('\') }
     return "$systemDrive\dev-tool"
