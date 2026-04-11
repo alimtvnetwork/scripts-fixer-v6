@@ -1325,6 +1325,11 @@ if ($hasInstallKeywords) {
         16 = "PHP_MODE"
         36 = "OBS_MODE"
         37 = "WT_MODE"
+        32 = "DBEAVER_MODE"
+        38 = "FLUTTER_MODE"
+        39 = "DOTNET_MODE"
+        40 = "JAVA_MODE"
+        41 = "PYTHON_LIBS_MODE"
     }
 
     foreach ($entry in $resolvedEntries) {
