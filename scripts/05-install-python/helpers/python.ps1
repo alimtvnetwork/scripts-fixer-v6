@@ -21,12 +21,15 @@ function Install-Python {
     $existing = Get-Command python -ErrorAction SilentlyContinue
     if ($existing) {
         $currentVersion = & python --version 2>$null
+        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
 
         # Check .installed/ tracking -- skip if version matches
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
-        if ($isAlreadyTracked) {
-            Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-            return
+        if ($hasVersion) {
+            $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
+            if ($isAlreadyTracked) {
+                Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
+                return
+            }
         }
 
         Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
