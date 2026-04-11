@@ -62,8 +62,12 @@ if ($isNotAdmin) {
 }
 
 # -- Resolve dev directory -----------------------------------------------------
+$hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
 $hasDriveOverride = -not [string]::IsNullOrWhiteSpace($Drive)
-if ($hasDriveOverride) {
+if ($hasPathParam) {
+    $devDir = $Path
+    Write-Log "Using user-specified dev directory: $devDir" -Level "info"
+} elseif ($hasDriveOverride) {
     $driveLetter = $Drive.TrimEnd(':', '\').Substring(0, 1).ToUpper()
     $devDir = "${driveLetter}:\dev"
     Write-Log ($logMessages.messages.driveOverride -replace '\{drive\}', "${driveLetter}:") -Level "info"

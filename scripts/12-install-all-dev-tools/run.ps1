@@ -64,7 +64,12 @@ if ($isNotAdmin) {
 $hasFilter = $Skip -or $Only
 if ($hasFilter -or $All -or $DryRun -or $Defaults) {
     # With -Defaults, use all defaults for dev dir and env vars
-    if ($Defaults) {
+    $hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
+    if ($hasPathParam) {
+        $env:DEV_DIR = $Path
+        $devDir = $Path
+        Write-Log "Using user-specified dev directory: $devDir" -Level "info"
+    } elseif ($Defaults) {
         Invoke-Questionnaire -Mode "alldev" -Config $config -LogMessages $logMessages -UseDefaults
         $devDir = $env:DEV_DIR
     } else {
