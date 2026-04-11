@@ -105,6 +105,10 @@ if ($checks.verifySymlinks) {
     [void]$allResults.Add((Test-VerifySymlinks -RepoRoot $repoRoot -LogMessages $logMessages -Fix:$Fix -DryRun:$DryRun))
 }
 
+if ($checks.uninstallCoverage) {
+    [void]$allResults.Add((Test-UninstallCoverage -RepoRoot $repoRoot -Registry $registry -LogMessages $logMessages))
+}
+
 # -- Summary ------------------------------------------------------------------
 Write-Host ""
 Write-Log $logMessages.messages.summaryHeader -Level "info"
