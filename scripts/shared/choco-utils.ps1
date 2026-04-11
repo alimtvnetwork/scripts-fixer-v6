@@ -151,3 +151,38 @@ function Upgrade-ChocoPackage {
         return $false
     }
 }
+
+function Uninstall-ChocoPackage {
+    <#
+    .SYNOPSIS
+        Uninstalls a Chocolatey package.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$PackageName
+    )
+
+    $slm = $script:SharedLogMessages
+
+    $isChocoReady = Assert-Choco
+    $hasNoChoco = -not $isChocoReady
+    if ($hasNoChoco) {
+        return $false
+    }
+
+    Write-Log "Uninstalling Chocolatey package: $PackageName" -Level "info"
+    try {
+        $output = & choco.exe uninstall $PackageName -y --remove-dependencies 2>&1
+        $hasUninstallFailed = $LASTEXITCODE -ne 0
+        if ($hasUninstallFailed) {
+            Write-Log "Chocolatey uninstall failed for $PackageName : $output" -Level "error"
+            return $false
+        }
+
+        Write-Log "Chocolatey package uninstalled: $PackageName" -Level "success"
+        return $true
+    } catch {
+        Write-Log "Chocolatey uninstall error for $PackageName : $_" -Level "error"
+        return $false
+    }
+}
