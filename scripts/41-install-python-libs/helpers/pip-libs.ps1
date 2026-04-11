@@ -10,6 +10,26 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
 }
 
 
+# -- Resolve python executable -------------------------------------------------
+$script:_PythonExe = $null
+
+function Resolve-PythonExe {
+    <#
+    .SYNOPSIS
+        Finds python or python3 in PATH and caches the result.
+    #>
+    if ($script:_PythonExe) { return $script:_PythonExe }
+
+    foreach ($candidate in @("python", "python3", "py")) {
+        $found = Get-Command $candidate -ErrorAction SilentlyContinue
+        if ($found) {
+            $script:_PythonExe = $found.Source
+            return $script:_PythonExe
+        }
+    }
+    return $null
+}
+
 function Assert-PythonAvailable {
     <#
     .SYNOPSIS
@@ -17,20 +37,31 @@ function Assert-PythonAvailable {
     #>
     param($LogMessages)
 
-    $hasPython = Get-Command python -ErrorAction SilentlyContinue
+    $pyExe = Resolve-PythonExe
+    $hasPython = $null -ne $pyExe
     if (-not $hasPython) {
         Write-Log $LogMessages.messages.pythonNotFound -Level "error"
         return $false
     }
 
+    Write-Log ("Found Python executable: $pyExe") -Level "info"
+
     $hasPip = $null
-    try { $hasPip = & python -m pip --version 2>$null } catch {}
+    try { $hasPip = & $pyExe -m pip --version 2>$null } catch {}
     $isPipMissing = [string]::IsNullOrWhiteSpace($hasPip)
     if ($isPipMissing) {
-        Write-Log $LogMessages.messages.pipNotFound -Level "error"
-        return $false
+        # Try ensurepip as last resort
+        Write-Log "pip not found, attempting ensurepip..." -Level "warn"
+        try { & $pyExe -m ensurepip --upgrade 2>$null } catch {}
+        try { $hasPip = & $pyExe -m pip --version 2>$null } catch {}
+        $isPipMissing = [string]::IsNullOrWhiteSpace($hasPip)
+        if ($isPipMissing) {
+            Write-Log $LogMessages.messages.pipNotFound -Level "error"
+            return $false
+        }
     }
 
+    Write-Log ("pip version: $hasPip") -Level "info"
     return $true
 }
 
