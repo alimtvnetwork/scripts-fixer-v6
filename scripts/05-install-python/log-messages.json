@@ -1,6 +1,6 @@
 {
   "scriptName": "Install Python",
-  "description": "Installs Python via Chocolatey and configures pip user site.",
+  "description": "Installs Python from the official python.org installer and configures pip user site.",
   "messages": {
     "pythonAlreadyInstalled": "Python is already installed: {version}",
     "pythonInstallSuccess": "Python installed successfully: {version}",
@@ -11,13 +11,13 @@
     "addingToPath": "Adding Python scripts to PATH: {path}",
     "pathAlreadyContains": "PATH already contains: {path}",
     "scriptDisabled": "Python installation is disabled in config.",
-    "pythonNotFound": "Python not found, installing via Chocolatey...",
+    "pythonNotFound": "Python not found, installing from the official python.org installer...",
     "savingResolved": "Saving resolved state...",
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
     "devDirFromParam": "Using user-specified dev directory: {path}",
     "pythonSetupComplete": "Python setup complete.",
-    "uninstallingPython": "Uninstalling Python via Chocolatey...",
+    "uninstallingPython": "Removing Python install and environment settings...",
     "pythonUninstallSuccess": "Python uninstalled successfully.",
     "pythonUninstallFailed": "Python uninstall failed -- package may need manual removal.",
     "pythonUninstallComplete": "Python uninstall complete. Package removed, env vars cleaned, tracking purged."

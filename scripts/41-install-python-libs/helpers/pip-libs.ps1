@@ -21,6 +21,34 @@ if ($isPythonResolverMissing) {
     . $_toolVersionPath
 }
 
+function Ensure-PythonInstalledForLibraries {
+    param($LogMessages)
+
+    $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
+    $hasPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
+    if ($hasPython) {
+        return $pythonInfo
+    }
+
+    $scriptsRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $pythonInstallerScript = Join-Path $scriptsRoot "05-install-python\run.ps1"
+    $hasInstallerScript = Test-Path $pythonInstallerScript -PathType Leaf
+    if (-not $hasInstallerScript) {
+        Write-FileError -FilePath $pythonInstallerScript -Operation "load" -Reason "Python installer script was not found for library bootstrap" -Module "Ensure-PythonInstalledForLibraries"
+        return $null
+    }
+
+    Write-Log "Python not found -- bootstrapping script 05 installer before pip work..." -Level "warn"
+    try {
+        & $pythonInstallerScript install
+    } catch {
+        Write-Log "Automatic Python bootstrap failed: $_" -Level "error"
+    }
+
+    Set-PythonResolverCache -PythonInfo $null
+    return (Resolve-PythonExe -ReturnInfo -RefreshPath)
+}
+
 
 function Assert-PythonAvailable {
     <#
@@ -29,7 +57,7 @@ function Assert-PythonAvailable {
     #>
     param($LogMessages)
 
-    $pythonInfo = Resolve-PythonExe -ReturnInfo
+    $pythonInfo = Ensure-PythonInstalledForLibraries -LogMessages $LogMessages
     $hasPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
     $isPythonMissing = -not $hasPython
     if ($isPythonMissing) {
@@ -41,7 +69,6 @@ function Assert-PythonAvailable {
     Write-Log ("Found Python executable: $($pythonInfo.Path)") -Level "info"
     Write-Log ("Python version: $($pythonInfo.Version)") -Level "info"
 
-    $hasPip = $pythonInfo.PipVersion
     $isPipMissing = -not $pythonInfo.HasPip
     if ($isPipMissing) {
         Write-Log "pip not found for '$($pythonInfo.Path)', attempting ensurepip..." -Level "warn"
@@ -56,7 +83,6 @@ function Assert-PythonAvailable {
         }
 
         $env:PYTHON_EXE = $pythonInfo.Path
-        $hasPip = $pythonInfo.PipVersion
         $isPipMissing = -not $pythonInfo.HasPip
         if ($isPipMissing) {
             Write-Log $LogMessages.messages.pipNotFound -Level "error"
@@ -64,7 +90,7 @@ function Assert-PythonAvailable {
         }
     }
 
-    Write-Log ("pip version: $hasPip") -Level "info"
+    Write-Log ("pip version: $($pythonInfo.PipVersion)") -Level "info"
     return $true
 }
 

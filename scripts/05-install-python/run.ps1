@@ -66,9 +66,6 @@ if ($isNotAdmin) {
     return
 }
 
-# -- Assert Chocolatey ---------------------------------------------------------
-Assert-Choco
-
 # -- Resolve dev directory -----------------------------------------------------
 $hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
 if ($hasPathParam) {
