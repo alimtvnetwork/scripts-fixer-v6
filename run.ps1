@@ -1365,7 +1365,15 @@ if ($hasInstallKeywords) {
     if ($isResolveFailed) { exit 1 }
 
     $totalSteps = @($resolvedEntries).Count
-    $idList = ($resolvedEntries | ForEach-Object { $_.Id }) -join ', '
+    $idList = ($resolvedEntries | ForEach-Object {
+        $label = "$($_.Id)"
+        $hasMode = -not [string]::IsNullOrWhiteSpace($_.Mode)
+        if ($hasMode) {
+            $shortMode = ($_.Mode -replace '^group ', '')
+            $label = "$label[$shortMode]"
+        }
+        $label
+    }) -join ', '
     Write-Host ""
     Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
     Write-Host "Installing $totalSteps tool(s): $idList"
