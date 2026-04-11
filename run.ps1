@@ -134,11 +134,13 @@ function Get-VersionMap {
     $map = @{}
     $tools = @(
         @{ Id = "01"; Cmd = "code";      Parse = { param($r) ($r -split '\s+')[1] } },
+        @{ Id = "02"; Cmd = "choco";     Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "03"; Cmd = "node";      Parse = { param($r) $r -replace 'v','' } },
         @{ Id = "04"; Cmd = "pnpm";      Parse = { param($r) $r.Trim() } },
         @{ Id = "05"; Cmd = "python";    Parse = { param($r) ($r -replace 'Python\s*','').Trim() } },
         @{ Id = "06"; Cmd = "go";        Flag = "version"; Parse = { param($r) if ($r -match 'go(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "07"; Cmd = "git";       Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
+        @{ Id = "08"; Cmd = "github";    Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "09"; Cmd = "g++";       Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "16"; Cmd = "php";       Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "17"; Cmd = "pwsh";      Parse = { param($r) ($r -replace 'PowerShell\s*','').Trim() } },
@@ -152,6 +154,69 @@ function Get-VersionMap {
         $hasVer = -not [string]::IsNullOrWhiteSpace($ver)
         if ($hasVer) { $map[$t.Id] = $ver }
     }
+
+    # Registry/file-based detection for GUI apps without CLI --version
+    $regApps = @(
+        @{ Id = "08"; Name = "GitHub Desktop";   Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\GitHubDesktop",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\GitHubDesktop",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\GitHubDesktop"
+        )},
+        @{ Id = "32"; Name = "DBeaver";          Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DBeaver*",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DBeaver*",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DBeaver*"
+        )},
+        @{ Id = "33"; Name = "Notepad++";        Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Notepad++",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Notepad++",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Notepad++"
+        )},
+        @{ Id = "36"; Name = "OBS Studio";       Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio"
+        )}
+    )
+
+    foreach ($app in $regApps) {
+        $isAlreadyDetected = $map.ContainsKey($app.Id)
+        if ($isAlreadyDetected) { continue }
+
+        foreach ($regPath in $app.Paths) {
+            $keys = Get-Item $regPath -ErrorAction SilentlyContinue
+            $hasKeys = $null -ne $keys
+            if (-not $hasKeys) { continue }
+
+            foreach ($key in $keys) {
+                $displayVersion = $key.GetValue("DisplayVersion")
+                $hasDisplayVersion = -not [string]::IsNullOrWhiteSpace($displayVersion)
+                if ($hasDisplayVersion) {
+                    $map[$app.Id] = "$displayVersion".Trim()
+                    break
+                }
+            }
+
+            $isNowDetected = $map.ContainsKey($app.Id)
+            if ($isNowDetected) { break }
+        }
+    }
+
+    # Winget detection
+    $isWingetMissing = -not $map.ContainsKey("14")
+    if ($isWingetMissing) {
+        $wingetCmd = Get-Command "winget" -ErrorAction SilentlyContinue
+        $hasWinget = $null -ne $wingetCmd
+        if ($hasWinget) {
+            try {
+                $wingetRaw = & winget --version 2>$null
+                $wingetVer = "$wingetRaw".Trim() -replace '^v',''
+                $hasWingetVer = -not [string]::IsNullOrWhiteSpace($wingetVer)
+                if ($hasWingetVer) { $map["14"] = $wingetVer }
+            } catch {}
+        }
+    }
+
     return $map
 }
 
