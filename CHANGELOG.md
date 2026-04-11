@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.6] -- 2026-04-11
+
+### Fixed
+
+- **Python/pip detection in chained installs** -- script 41 now finds pip after script 05 installs Python
+  - Root dispatcher calls `Refresh-EnvPath` after each chained script so PATH updates propagate
+  - `Resolve-PythonExe` tries `py`, `python3`, `python` in order, validates each with `--version`
+  - Falls back to `ensurepip` if pip missing, then retries with `RequirePip` flag
+  - All hardcoded `& python` calls replaced with resolved `$pyExe` variable
+
+### Added
+
+- **Mode env var wiring** for scripts 32, 38, 39, 40, 41 in root dispatcher
+  - `PYTHON_LIBS_MODE` -- enables `jupyter+libs`, `data-science`, `ai-dev` keyword modes
+  - `DBEAVER_MODE`, `FLUTTER_MODE`, `DOTNET_MODE`, `JAVA_MODE` now also wired
+- **`jupyter` keyword** -- standalone keyword to install Jupyter group via script 41
+- Script 41 `run.ps1` reads `PYTHON_LIBS_MODE` env var for mode override (e.g. `group jupyter`)
+
+---
+
 ## [v0.17.5] -- 2026-04-11
 
 ### Changed
