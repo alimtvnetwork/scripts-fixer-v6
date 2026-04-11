@@ -13,13 +13,18 @@
     "settingsSynced": "OBS settings synced to {path}",
     "settingsSkipped": "No OBS settings bundle found in script folder -- skipping sync",
     "setupComplete": "OBS Studio setup complete",
-    "disabled": "OBS Studio install is disabled in config"
+    "disabled": "OBS Studio install is disabled in config",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "install+settings": "Install OBS Studio and sync settings (default)",
       "settings-only": "Sync settings only (no install)",
-      "install-only": "Install OBS Studio only (no settings sync)"
+      "install-only": "Install OBS Studio only (no settings sync)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 install obs",
@@ -28,7 +33,8 @@
       ".\\run.ps1 install install-obs",
       ".\\run.ps1 -I 36",
       ".\\run.ps1 -I 36 -- -Mode settings-only",
-      ".\\run.ps1 -I 36 -- -Mode install-only"
+      ".\\run.ps1 -I 36 -- -Mode install-only",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

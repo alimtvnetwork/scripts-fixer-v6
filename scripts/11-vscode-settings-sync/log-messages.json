@@ -58,17 +58,23 @@
     "settingsMissing": "settings.json NOT found at {path}",
     "keybindingsPresent": "keybindings.json present at {path}",
     "editionBorderLine": "  +----------------------------------------------",
-    "editionLabel": "  |  Edition: {label}"
+    "editionLabel": "  |  Edition: {label}",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "(default)": "Replace mode -- back up and overwrite settings",
-      "-Merge": "Deep-merge incoming settings into existing settings.json"
+      "-Merge": "Deep-merge incoming settings into existing settings.json",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -Merge",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

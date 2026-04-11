@@ -192,3 +192,31 @@ function Sync-WindowsTerminalSettings {
 
     return $true
 }
+
+function Uninstall-WindowsTerminal {
+    <#
+    .SYNOPSIS
+        Full Windows Terminal uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $WtConfig,
+        $LogMessages
+    )
+
+    $packageName = $$WtConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Windows Terminal") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Windows Terminal") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Windows Terminal") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "windows-terminal"
+    Remove-ResolvedData -ScriptFolder "37-install-windows-terminal"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

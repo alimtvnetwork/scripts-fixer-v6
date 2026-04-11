@@ -15,13 +15,20 @@
     "pwshNotInPath": "PowerShell installed but pwsh not found in PATH -- restart your terminal.",
     "done": "PowerShell (latest) is installed and ready.",
     "completedWithWarnings": "Completed with some warnings -- check output above.",
-    "setupComplete": "PowerShell setup complete."
+    "setupComplete": "PowerShell setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
-    "commands": {},
+    "commands": {
+      "uninstall": "Uninstall completely, remove tracking, clean up"
+    },
     "examples": [
       ".\\run.ps1",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

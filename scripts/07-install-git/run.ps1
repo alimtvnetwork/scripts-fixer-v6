@@ -24,6 +24,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "path-utils.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\git.ps1")
@@ -85,6 +86,10 @@ switch ($Command.ToLower()) {
     "configure" {
         Configure-GitGlobal -Config $config -LogMessages $logMessages
         Update-GitPath -Config $config -LogMessages $logMessages
+    }
+    "uninstall" {
+        Uninstall-Git -Config $config -LogMessages $logMessages
+        return
     }
     default {
         Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"

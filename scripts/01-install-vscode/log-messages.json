@@ -15,19 +15,25 @@
     "editionInstallSuccess": "{label} installed successfully.",
     "editionUpgradeSuccess": "{label} upgraded successfully.",
     "editionNotFound": "{label} not found, installing via Chocolatey...",
-    "vscodeSetupComplete": "VS Code setup complete."
+    "vscodeSetupComplete": "VS Code setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install VS Code (default, with edition prompt)",
       "stable": "Install only VS Code Stable",
-      "insiders": "Install only VS Code Insiders"
+      "insiders": "Install only VS Code Insiders",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 stable",
       ".\\run.ps1 insiders",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

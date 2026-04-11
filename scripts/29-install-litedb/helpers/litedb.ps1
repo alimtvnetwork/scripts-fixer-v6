@@ -105,3 +105,29 @@ function Install-Litedb {
         return $false
     }
 }
+
+function Uninstall-Litedb {
+    <#
+    .SYNOPSIS
+        Full LiteDB uninstall: dotnet uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    # 1. Uninstall via dotnet tool
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "LiteDB") -Level "info"
+    try {
+        $output = & dotnet tool uninstall -g $DbConfig.dotnetPackage 2>&1
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "LiteDB") -Level "success"
+    } catch {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "LiteDB") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "litedb"
+    Remove-ResolvedData -ScriptFolder "29-install-litedb"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

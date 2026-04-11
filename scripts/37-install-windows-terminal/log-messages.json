@@ -13,13 +13,18 @@
     "settingsSynced": "Windows Terminal settings synced to {path}",
     "settingsSkipped": "No Windows Terminal settings bundle found -- skipping sync",
     "setupComplete": "Windows Terminal setup complete",
-    "disabled": "Windows Terminal install is disabled in config"
+    "disabled": "Windows Terminal install is disabled in config",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "install+settings": "Install Windows Terminal and sync settings (default)",
       "settings-only": "Sync settings only (no install)",
-      "install-only": "Install Windows Terminal only (no settings sync)"
+      "install-only": "Install Windows Terminal only (no settings sync)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 install wt",
@@ -28,7 +33,8 @@
       ".\\run.ps1 install install-wt",
       ".\\run.ps1 -I 37",
       ".\\run.ps1 -I 37 -- -Mode settings-only",
-      ".\\run.ps1 -I 37 -- -Mode install-only"
+      ".\\run.ps1 -I 37 -- -Mode install-only",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

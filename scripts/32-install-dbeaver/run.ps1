@@ -5,6 +5,9 @@
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [Parameter(Position = 1)]
     [string]$Path,
 
     [switch]$Help,
@@ -33,7 +36,7 @@ $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help) {
+if ($Help -or $Command -eq "--help") {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -49,6 +52,13 @@ try {
 
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
+
+# -- Uninstall check -----------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-Dbeaver -DbConfig $config.database -LogMessages $logMessages
+    return
+}
 
 # -- Resolve mode --------------------------------------------------------------
 $isModePassed = $Mode -ne ""

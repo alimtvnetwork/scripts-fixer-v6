@@ -23,6 +23,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\vscode.ps1")
@@ -67,6 +68,13 @@ if ($isNotAdmin) {
 
 # -- Assert Chocolatey ---------------------------------------------------------
 Assert-Choco
+
+# -- Execute subcommand --------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-VsCode -Config $config -LogMessages $logMessages
+    return
+}
 
 # -- Install -------------------------------------------------------------------
 Invoke-VsCodeSetup -Config $config -LogMessages $logMessages -Command $Command.ToLower()

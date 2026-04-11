@@ -219,3 +219,40 @@ function Invoke-FlutterDoctor {
     & flutter doctor 2>$null
     Write-Log $LogMessages.messages.flutterDoctorComplete -Level "success"
 }
+
+function Uninstall-Flutter {
+    <#
+    .SYNOPSIS
+        Full Flutter uninstall: choco uninstall Flutter, Android Studio, Chrome, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    # 1. Uninstall Flutter SDK
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Flutter SDK") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $Config.flutter.chocoPackageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Flutter SDK") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Flutter SDK") -Level "error"
+    }
+
+    # 2. Uninstall Android Studio
+    $hasAndroid = $Config.androidStudio.enabled
+    if ($hasAndroid) {
+        Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Android Studio") -Level "info"
+        Uninstall-ChocoPackage -PackageName $Config.androidStudio.chocoPackageName
+    }
+
+    # 3. Uninstall Chrome (optional -- skip since it may be user-installed)
+    # Write-Log "Skipping Chrome uninstall (may be user-installed)" -Level "info"
+
+    # 4. Remove tracking records
+    Remove-InstalledRecord -Name "flutter"
+    Remove-InstalledRecord -Name "androidstudio"
+    Remove-ResolvedData -ScriptFolder "38-install-flutter"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -20,17 +20,23 @@
     "scanRepoAdded": "Added repo to GitHub Desktop: {path}",
     "scanSummary": "Scan complete -- {found} repos found, {added} newly added, {skipped} already tracked",
     "scanNoRepos": "No Git repositories found in configured folders",
-    "scanWriteError": "Failed to write GitHub Desktop repo list: {error}"
+    "scanWriteError": "Failed to write GitHub Desktop repo list: {error}",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
-      "all": "Install/upgrade GitHub Desktop + scan folders for repos (default)"
+      "all": "Install/upgrade GitHub Desktop + scan folders for repos (default)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 install github-desktop",
       ".\\run.ps1 install gh",
       ".\\run.ps1 -I 8",
-      ".\\run.ps1 -I 8 -- -Help"
+      ".\\run.ps1 -I 8 -- -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

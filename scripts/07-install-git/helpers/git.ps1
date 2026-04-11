@@ -338,3 +338,45 @@ function Update-GitPath {
         Add-ToUserPath -Directory $gitDir
     }
 }
+
+function Uninstall-Git {
+    <#
+    .SYNOPSIS
+        Full Git uninstall: choco uninstall git, git-lfs, gh, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    # 1. Uninstall Git
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Git") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $Config.chocoPackageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Git") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Git") -Level "error"
+    }
+
+    # 2. Uninstall Git LFS
+    $hasLfs = $Config.gitLfs.enabled
+    if ($hasLfs) {
+        Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Git LFS") -Level "info"
+        Uninstall-ChocoPackage -PackageName $Config.gitLfs.chocoPackageName
+    }
+
+    # 3. Uninstall GitHub CLI
+    $hasGhCli = $Config.githubCli.enabled
+    if ($hasGhCli) {
+        Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "GitHub CLI") -Level "info"
+        Uninstall-ChocoPackage -PackageName $Config.githubCli.chocoPackageName
+    }
+
+    # 4. Remove tracking records
+    Remove-InstalledRecord -Name "git"
+    Remove-InstalledRecord -Name "git-lfs"
+    Remove-InstalledRecord -Name "gh"
+    Remove-ResolvedData -ScriptFolder "07-install-git"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

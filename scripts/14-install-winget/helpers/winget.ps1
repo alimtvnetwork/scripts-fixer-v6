@@ -102,3 +102,22 @@ function Install-Winget {
         }
     }
 }
+
+function Uninstall-Winget {
+    <#
+    .SYNOPSIS
+        Winget uninstall: removes tracking records only (Winget is a system component).
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    Write-Log "Winget is a system component -- removing tracking records only" -Level "warn"
+
+    # Remove tracking records
+    Remove-InstalledRecord -Name "winget"
+    Remove-ResolvedData -ScriptFolder "14-install-winget"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

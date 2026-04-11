@@ -92,3 +92,31 @@ function Install-Cassandra {
         return $false
     }
 }
+
+function Uninstall-Cassandra {
+    <#
+    .SYNOPSIS
+        Full Apache Cassandra uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Apache Cassandra") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Apache Cassandra") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Apache Cassandra") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "cassandra"
+    Remove-ResolvedData -ScriptFolder "25-install-cassandra"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

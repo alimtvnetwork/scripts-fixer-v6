@@ -23,19 +23,25 @@
     "verifySuccess": "{command} is available",
     "verifyFailed": "{command} not found in PATH",
     "installFailed": "MinGW install failed -- cannot continue",
-    "mingwSetupComplete": "C++ toolchain setup complete."
+    "mingwSetupComplete": "C++ toolchain setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install + configure PATH (default)",
       "install": "Install/upgrade MinGW only (skip PATH config)",
-      "configure": "Configure PATH only (skip install)"
+      "configure": "Configure PATH only (skip install)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

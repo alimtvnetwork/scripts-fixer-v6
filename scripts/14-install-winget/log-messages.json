@@ -17,13 +17,20 @@
     "wingetManualStore": "Try installing manually from the Microsoft Store",
     "wingetInstallFailed": "Failed to install Winget: {error}",
     "wingetManualHint": "Install manually: Microsoft Store -> 'App Installer'",
-    "setupComplete": "Winget setup complete."
+    "setupComplete": "Winget setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
-    "commands": {},
+    "commands": {
+      "uninstall": "Uninstall completely, remove tracking, clean up"
+    },
     "examples": [
       ".\\run.ps1",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

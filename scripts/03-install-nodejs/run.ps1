@@ -95,6 +95,10 @@ switch ($Command.ToLower()) {
         $prefixPath = Configure-NpmPrefix -Config $config -LogMessages $logMessages -DevDir $devDir
         Update-NodePath -Config $config -LogMessages $logMessages -PrefixPath $prefixPath
     }
+    "uninstall" {
+        Uninstall-NodeJs -Config $config -LogMessages $logMessages -DevDir $devDir
+        return
+    }
     "extras" {
         Install-NodeExtras -Config $config -LogMessages $logMessages
     }

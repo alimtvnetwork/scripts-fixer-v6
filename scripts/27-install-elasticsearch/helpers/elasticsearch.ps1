@@ -92,3 +92,31 @@ function Install-Elasticsearch {
         return $false
     }
 }
+
+function Uninstall-Elasticsearch {
+    <#
+    .SYNOPSIS
+        Full Elasticsearch uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Elasticsearch") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Elasticsearch") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Elasticsearch") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "elasticsearch"
+    Remove-ResolvedData -ScriptFolder "27-install-elasticsearch"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -217,3 +217,65 @@ function Install-NodeExtras {
         }
     }
 }
+
+function Uninstall-NodeJs {
+    <#
+    .SYNOPSIS
+        Full Node.js uninstall: choco uninstall, remove npm prefix env var,
+        remove from PATH, clean dev dir subfolder, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages,
+        [string]$DevDir
+    )
+
+    $packageName = $Config.chocoPackageName
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Node.js") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Node.js") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Node.js") -Level "error"
+    }
+
+    # 2. Also uninstall extras (bun)
+    $hasBun = $Config.extras.bun.enabled
+    if ($hasBun) {
+        Uninstall-ChocoPackage -PackageName $Config.extras.bun.chocoPackageName
+    }
+
+    # 3. Remove NPM_CONFIG_PREFIX environment variable
+    $currentPrefix = [System.Environment]::GetEnvironmentVariable("NPM_CONFIG_PREFIX", "User")
+    $hasPrefix = -not [string]::IsNullOrWhiteSpace($currentPrefix)
+    if ($hasPrefix) {
+        Write-Log "Removing NPM_CONFIG_PREFIX env var: $currentPrefix" -Level "info"
+        [System.Environment]::SetEnvironmentVariable("NPM_CONFIG_PREFIX", $null, "User")
+        $env:NPM_CONFIG_PREFIX = $null
+    }
+
+    # 4. Remove from PATH
+    $devDirSub = if ($DevDir) { Join-Path $DevDir $Config.devDirSubfolder } else { $Config.npm.globalPrefix }
+    $hasValidPath = -not [string]::IsNullOrWhiteSpace($devDirSub)
+    if ($hasValidPath) {
+        Remove-FromUserPath -Directory $devDirSub
+
+        # 5. Clean dev directory subfolder
+        $isDirPresent = Test-Path $devDirSub
+        if ($isDirPresent) {
+            Write-Log "Removing dev directory subfolder: $devDirSub" -Level "info"
+            Remove-Item -Path $devDirSub -Recurse -Force
+            Write-Log "Dev directory subfolder removed: $devDirSub" -Level "success"
+        }
+    }
+
+    # 6. Remove tracking records
+    Remove-InstalledRecord -Name "nodejs"
+    Remove-InstalledRecord -Name "yarn"
+    Remove-InstalledRecord -Name "bun"
+    Remove-ResolvedData -ScriptFolder "03-install-nodejs"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

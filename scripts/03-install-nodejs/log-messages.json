@@ -25,21 +25,27 @@
     "bunInstallSuccess": "Bun installed successfully: {version}",
     "npxVerifying": "Verifying npx is available...",
     "npxAvailable": "npx is available: {version}",
-    "npxMissing": "npx not found -- it should ship with npm. Check your Node.js installation."
+    "npxMissing": "npx not found -- it should ship with npm. Check your Node.js installation.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install Node.js, configure npm, install extras (default)",
       "install": "Install/upgrade Node.js only",
       "configure": "Configure npm prefix and PATH only",
-      "extras": "Install Yarn, Bun, and verify npx only"
+      "extras": "Install Yarn, Bun, and verify npx only",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
       ".\\run.ps1 extras",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

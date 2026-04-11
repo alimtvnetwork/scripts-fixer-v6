@@ -264,3 +264,31 @@ function Find-GitRepos {
 
     return $results
 }
+
+function Uninstall-GitHubDesktop {
+    <#
+    .SYNOPSIS
+        Full GitHub Desktop uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    $packageName = $$Config.chocoPackageName
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "GitHub Desktop") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "GitHub Desktop") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "GitHub Desktop") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "github-desktop"
+    Remove-ResolvedData -ScriptFolder "08-install-github-desktop"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

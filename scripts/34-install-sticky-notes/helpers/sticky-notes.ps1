@@ -190,3 +190,31 @@ function Set-StickyNotesDataFolder {
         return $false
     }
 }
+
+function Uninstall-StickyNotes {
+    <#
+    .SYNOPSIS
+        Full Sticky Notes uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $StickyConfig,
+        $LogMessages
+    )
+
+    $packageName = $StickyConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Simple Sticky Notes") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Simple Sticky Notes") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Simple Sticky Notes") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "sticky-notes"
+    Remove-ResolvedData -ScriptFolder "34-install-sticky-notes"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

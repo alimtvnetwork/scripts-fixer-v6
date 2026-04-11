@@ -421,3 +421,55 @@ function Invoke-GoSetup {
 
     return $isAllOk
 }
+
+function Uninstall-Go {
+    <#
+    .SYNOPSIS
+        Full Go uninstall: choco uninstall, remove GOPATH/GOROOT env vars,
+        remove from PATH, clean dev dir subfolder, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages,
+        [string]$DevDir
+    )
+
+    $packageName = $Config.chocoPackageName
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Go") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Go") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Go") -Level "error"
+    }
+
+    # 2. Remove GOPATH environment variable
+    $currentGopath = [System.Environment]::GetEnvironmentVariable("GOPATH", "User")
+    $hasGopath = -not [string]::IsNullOrWhiteSpace($currentGopath)
+    if ($hasGopath) {
+        Write-Log "Removing GOPATH env var: $currentGopath" -Level "info"
+        [System.Environment]::SetEnvironmentVariable("GOPATH", $null, "User")
+        $env:GOPATH = $null
+
+        # Remove GOPATH/bin from PATH
+        $goBin = Join-Path $currentGopath "bin"
+        Remove-FromUserPath -Directory $goBin
+    }
+
+    # 3. Clean dev directory subfolder
+    $devDirSub = if ($DevDir) { Join-Path $DevDir $Config.devDirSubfolder } else { $Config.gopath.default }
+    $hasValidPath = -not [string]::IsNullOrWhiteSpace($devDirSub)
+    if ($hasValidPath -and (Test-Path $devDirSub)) {
+        Write-Log "Removing dev directory subfolder: $devDirSub" -Level "info"
+        Remove-Item -Path $devDirSub -Recurse -Force
+        Write-Log "Dev directory subfolder removed: $devDirSub" -Level "success"
+    }
+
+    # 4. Remove tracking records
+    Remove-InstalledRecord -Name "golang"
+    Remove-ResolvedData -ScriptFolder "06-install-golang"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

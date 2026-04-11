@@ -41,19 +41,25 @@
     "savingResolved": "Saving resolved state...",
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
-    "gitSetupComplete": "Git, Git LFS, and GitHub CLI setup complete."
+    "gitSetupComplete": "Git, Git LFS, and GitHub CLI setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install Git + Git LFS + GitHub CLI and configure settings (default)",
       "install": "Install/upgrade Git, Git LFS, and GitHub CLI only",
-      "configure": "Configure global git settings only"
+      "configure": "Configure global git settings only",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

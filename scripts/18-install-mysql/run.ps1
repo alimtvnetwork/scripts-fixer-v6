@@ -4,6 +4,9 @@
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [Parameter(Position = 1)]
     [string]$Path,
 
     [switch]$Help
@@ -19,6 +22,7 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
 . (Join-Path $sharedDir "symlink-utils.ps1")
@@ -31,7 +35,7 @@ $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help) {
+if ($Help -or $Command -eq "--help") {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -66,6 +70,13 @@ if ($hasPathParam) {
 }
 Initialize-DevDir -Path $devDir
 $env:DEV_DIR = $devDir
+
+# -- Uninstall check -----------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-Mysql -DbConfig $config.database -LogMessages $logMessages
+    return
+}
 
 # -- Install -------------------------------------------------------------------
 $ok = Install-Mysql -DbConfig $config.database -LogMessages $logMessages 

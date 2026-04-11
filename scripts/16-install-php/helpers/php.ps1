@@ -161,3 +161,34 @@ function Install-PhpMyAdmin {
     Save-InstalledRecord -Name "phpmyadmin" -Version "latest" -Method "chocolatey"
     return $true
 }
+
+function Uninstall-Php {
+    <#
+    .SYNOPSIS
+        Full PHP + phpMyAdmin uninstall: choco uninstall both, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    # 1. Uninstall PHP
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "PHP") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $Config.php.chocoPackage
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "PHP") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "PHP") -Level "error"
+    }
+
+    # 2. Uninstall phpMyAdmin
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "phpMyAdmin") -Level "info"
+    Uninstall-ChocoPackage -PackageName $Config.phpmyadmin.chocoPackage
+
+    # 3. Remove tracking records
+    Remove-InstalledRecord -Name "php"
+    Remove-InstalledRecord -Name "phpmyadmin"
+    Remove-ResolvedData -ScriptFolder "16-install-php"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

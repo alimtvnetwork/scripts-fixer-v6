@@ -228,3 +228,46 @@ function Invoke-MingwSetup {
 
     return $isAllOk
 }
+
+function Uninstall-Mingw {
+    <#
+    .SYNOPSIS
+        Full MinGW uninstall: choco uninstall, remove from PATH, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    $packageName = $Config.chocoPackageName
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "MinGW") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "MinGW") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "MinGW") -Level "error"
+    }
+
+    # 2. Remove install directory from PATH
+    $installDir = $Config.installDir.default
+    $hasInstallDir = -not [string]::IsNullOrWhiteSpace($installDir)
+    if ($hasInstallDir) {
+        $binDir = Join-Path $installDir "bin"
+        Remove-FromUserPath -Directory $binDir
+    }
+
+    # 3. Clean install directory
+    if ($hasInstallDir -and (Test-Path $installDir)) {
+        Write-Log "Removing install directory: $installDir" -Level "info"
+        Remove-Item -Path $installDir -Recurse -Force
+        Write-Log "Install directory removed: $installDir" -Level "success"
+    }
+
+    # 4. Remove tracking records
+    Remove-InstalledRecord -Name "mingw"
+    Remove-ResolvedData -ScriptFolder "09-install-cpp"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

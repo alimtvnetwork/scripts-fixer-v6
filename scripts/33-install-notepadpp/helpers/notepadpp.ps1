@@ -171,3 +171,31 @@ function Sync-NotepadPPSettings {
     Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
     return $true
 }
+
+function Uninstall-NotepadPP {
+    <#
+    .SYNOPSIS
+        Full Notepad++ uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $NppConfig,
+        $LogMessages
+    )
+
+    $packageName = $$NppConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Notepad++") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Notepad++") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Notepad++") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "notepadpp"
+    Remove-ResolvedData -ScriptFolder "33-install-notepadpp"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -4,6 +4,9 @@
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [Parameter(Position = 1)]
     [string]$Path,
 
     [switch]$Help
@@ -19,6 +22,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\registry.ps1")
@@ -28,7 +32,7 @@ $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help) {
+if ($Help -or $Command -eq "--help") {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -58,6 +62,13 @@ $isNotAdmin = -not $hasAdminRights
 if ($isNotAdmin) {
     Write-Log $logMessages.messages.notAdmin -Level "error"
     Write-Host $script:SharedLogMessages.messages.adminTip -ForegroundColor Yellow
+    return
+}
+
+# -- Uninstall check -----------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-VsCodeContextMenu -Config $config -LogMessages $logMessages
     return
 }
 

@@ -14,20 +14,26 @@
     "disabled": "DBeaver install is disabled in config",
     "syncingSettings": "Syncing DBeaver settings from {source}...",
     "settingsSynced": "DBeaver settings synced -- {count} item(s) copied to {path}",
-    "settingsSkipped": "DBeaver settings sync skipped -- no source files found"
+    "settingsSkipped": "DBeaver settings sync skipped -- no source files found",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "install": "Install DBeaver Community Edition + sync settings (default)",
       "settings-only": "Sync DBeaver settings only (skip install)",
-      "install-only": "Install DBeaver only (skip settings sync)"
+      "install-only": "Install DBeaver only (skip settings sync)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 -I 32",
       ".\\run.ps1 install dbeaver",
       ".\\run.ps1 install dbeaver-settings",
       ".\\run.ps1 install install-dbeaver",
-      ".\\run.ps1 -I 32 -- -Help"
+      ".\\run.ps1 -I 32 -- -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

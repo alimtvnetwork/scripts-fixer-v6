@@ -12,6 +12,10 @@
     "syncingSettings": "Extracting Notepad++ settings to AppData...",
     "settingsSynced": "Settings synced to {path}",
     "settingsSkipped": "No settings files found in script folder -- skipping sync",
-    "setupComplete": "Notepad++ setup complete"
+    "setupComplete": "Notepad++ setup complete",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   }
 }

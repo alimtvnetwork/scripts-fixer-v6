@@ -16,19 +16,25 @@
     "nodeRequired": "Node.js (npm) is required to install pnpm. Run script 06 first.",
     "savingResolved": "Saving resolved state...",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
-    "pnpmSetupComplete": "pnpm setup complete."
+    "pnpmSetupComplete": "pnpm setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install pnpm and configure store (default)",
       "install": "Install/upgrade pnpm only",
-      "configure": "Configure store path and PATH only"
+      "configure": "Configure store path and PATH only",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

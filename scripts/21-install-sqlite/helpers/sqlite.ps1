@@ -135,3 +135,31 @@ function Install-Sqlite {
 
     return $true
 }
+
+function Uninstall-Sqlite {
+    <#
+    .SYNOPSIS
+        Full SQLite uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "SQLite") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "SQLite") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "SQLite") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "sqlite"
+    Remove-ResolvedData -ScriptFolder "21-install-sqlite"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

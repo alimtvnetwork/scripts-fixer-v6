@@ -6,25 +6,30 @@
     "checking": "Checking for GitMap...",
     "found": "GitMap already installed",
     "notFound": "GitMap not found -- will install now",
-    "installDir": "Install target: {path}",
+    "installDir": "GitMap install directory: {path}",
     "installing": "Installing GitMap via remote installer...",
     "installSuccess": "GitMap installed successfully",
     "installFailed": "GitMap install failed: {error}",
     "notInPath": "GitMap installed but not found in PATH (may need shell restart)",
     "setupComplete": "GitMap setup complete",
     "disabled": "GitMap install is disabled in config",
-    "installDir": "GitMap install directory: {path}",
     "downloadingInstaller": "Downloading GitMap installer from GitHub...",
-    "runningInstaller": "Running GitMap installer..."
+    "runningInstaller": "Running GitMap installer...",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
-      "install": "Install GitMap CLI (default)"
+      "install": "Install GitMap CLI (default)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 -I 35",
       ".\\run.ps1 install gitmap",
-      ".\\run.ps1 -I 35 -- -Help"
+      ".\\run.ps1 -I 35 -- -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

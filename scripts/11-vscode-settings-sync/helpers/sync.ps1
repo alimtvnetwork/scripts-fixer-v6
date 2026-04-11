@@ -313,3 +313,23 @@ function Invoke-Edition {
 
     return $isAllOk
 }
+
+function Uninstall-VsCodeSync {
+    <#
+    .SYNOPSIS
+        VS Code settings sync uninstall: removes tracking records only
+        (settings files are user data and not removed).
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    Write-Log "Settings sync uninstall: removing tracking records only (user settings preserved)" -Level "info"
+
+    # Remove tracking records
+    Remove-InstalledRecord -Name "vscode-settings-sync"
+    Remove-ResolvedData -ScriptFolder "11-vscode-settings-sync"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -89,6 +89,10 @@ switch ($Command.ToLower()) {
     "extensions" {
         Install-FlutterVscodeExtensions -Config $config -LogMessages $logMessages
     }
+    "uninstall" {
+        Uninstall-Flutter -Config $config -LogMessages $logMessages
+        return
+    }
     "doctor" {
         Invoke-FlutterDoctor -Config $config -LogMessages $logMessages
     }

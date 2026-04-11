@@ -92,3 +92,31 @@ function Install-Neo4J {
         return $false
     }
 }
+
+function Uninstall-Neo4J {
+    <#
+    .SYNOPSIS
+        Full Neo4j uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Neo4j") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "Neo4j") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "Neo4j") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "neo4j"
+    Remove-ResolvedData -ScriptFolder "26-install-neo4j"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}
