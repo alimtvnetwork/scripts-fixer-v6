@@ -285,10 +285,11 @@ function Resolve-InstalledPython {
 function Install-Python {
     param(
         $Config,
-        $LogMessages
+        $LogMessages,
+        [string]$DevDir
     )
 
-    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
     $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
     $desiredVersion = "Python $($installerConfig.Version)"
 
@@ -479,7 +480,7 @@ function Update-PythonPath {
     $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
     $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
     if ($hasPythonInfo) {
-        $installerConfig = Get-PythonInstallerConfig -Config $Config
+        $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
         $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
         $pythonDir = Split-Path -Parent $pythonInfo.Path
         $pythonScriptsDir = Join-Path $pythonDir "Scripts"
@@ -501,7 +502,7 @@ function Uninstall-Python {
     )
 
     $packageName = $Config.chocoPackageName
-    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $installerConfig = Get-PythonInstallerConfig -Config $Config -DevDir $DevDir
     $installDir = $installerConfig.InstallDir
     $installScriptsDir = Join-Path $installDir "Scripts"
 
