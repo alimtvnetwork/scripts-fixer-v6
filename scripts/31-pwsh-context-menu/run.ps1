@@ -3,6 +3,9 @@
 #  Adds "Open PowerShell Here" (normal + admin) to the right-click menu.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

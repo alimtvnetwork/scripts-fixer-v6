@@ -3,6 +3,9 @@
 #  Installs and verifies the Winget (App Installer) package manager.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

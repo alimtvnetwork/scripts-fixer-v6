@@ -6,6 +6,9 @@
 #    install-only                -- Install OBS
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help,
     [ValidateSet("install+settings", "settings-only", "install-only")]
     [string]$Mode = ""

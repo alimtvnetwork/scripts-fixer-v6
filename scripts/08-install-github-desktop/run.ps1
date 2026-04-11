@@ -3,6 +3,9 @@
 #  Installs GitHub Desktop via Chocolatey.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

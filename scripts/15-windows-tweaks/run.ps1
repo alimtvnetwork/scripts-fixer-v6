@@ -3,6 +3,9 @@
 #  Launches the Chris Titus Windows Utility for system tweaks and debloating.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

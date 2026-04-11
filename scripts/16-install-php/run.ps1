@@ -6,6 +6,9 @@
 #    phpmyadmin-only           -- phpMyAdmin only
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help,
     [ValidateSet("php+phpmyadmin", "php-only", "phpmyadmin-only")]
     [string]$Mode = ""

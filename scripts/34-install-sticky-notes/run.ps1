@@ -3,6 +3,9 @@
 #  Lightweight desktop sticky notes for Windows
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 
