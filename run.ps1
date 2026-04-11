@@ -38,6 +38,9 @@
     .\run.ps1 -Install go,git,cpp    # install Go, Git, and C++
     .\run.ps1 -Install all-dev       # interactive dev tools menu
     .\run.ps1 update                 # upgrade all Chocolatey packages
+    .\run.ps1 path D:\devtools       # set default dev directory
+    .\run.ps1 path                   # show current dev directory
+    .\run.ps1 path --reset           # clear saved path, use smart detection
     .\run.ps1 -d                     # shortcut for -I 12 (interactive menu)
     .\run.ps1 -I 1                   # run scripts/01-*/run.ps1
     .\run.ps1 -I 1 -Clean           # wipe .resolved/, then run script 01
