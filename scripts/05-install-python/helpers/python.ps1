@@ -145,11 +145,28 @@ function Install-Python {
             Install-ChocoPackage -PackageName $packageName
         }
 
-        $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
-        $hasResolvedPython = $null -ne $resolvedPython
-        $isResolvedPythonMissing = -not $hasResolvedPython
+        # Retry resolution up to 3 times with PATH refresh -- choco shims may need a moment
+        $resolvedPython = $null
+        $maxRetries = 3
+        for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+            # Clear stale resolver cache so each attempt re-probes
+            Set-PythonResolverCache -PythonInfo $null
+            Refresh-EnvPath
+
+            $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
+            $hasResolvedPython = $null -ne $resolvedPython
+            if ($hasResolvedPython) { break }
+
+            $isLastAttempt = $attempt -eq $maxRetries
+            if (-not $isLastAttempt) {
+                Write-Log "Python not found on attempt $attempt/$maxRetries, retrying in 2s..." -Level "warn"
+                Start-Sleep -Seconds 2
+            }
+        }
+
+        $isResolvedPythonMissing = $null -eq $resolvedPython
         if ($isResolvedPythonMissing) {
-            $failureMessage = "Chocolatey completed, but no working python executable could be resolved after install."
+            $failureMessage = "Chocolatey completed, but no working python executable could be resolved after install ($maxRetries attempts). Check that python3 is in PATH."
             Write-Log $failureMessage -Level "error"
             Save-InstalledError -Name "python" -ErrorMessage $failureMessage
             throw $failureMessage
