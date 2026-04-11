@@ -64,6 +64,7 @@ be installed individually or all at once.
 |---------|-------------|
 | `python-libs` | Install all pip libraries |
 | `pip-libs` | Install all pip libraries |
+| `pylibs` | Python + all pip libraries (combo with script 05) |
 | `ml-libs` | ML/Data libraries |
 | `ml-full` | ML libraries |
 | `python-packages` | Install all pip libraries |

@@ -57,10 +57,28 @@ The `uninstall` subcommand performs a full cleanup:
 | `chocoPackageName` | string | Chocolatey package (`python3`) |
 | `alwaysUpgradeToLatest` | bool | Upgrade on every run |
 | `devDirSubfolder` | string | Subfolder under dev dir |
+| `installer.version` | string | Python version to install (e.g. `3.13.5`) |
+| `installer.downloadUrl` | string | Official python.org installer URL |
+| `installer.fileName` | string | Installer exe filename |
+| `installer.installDirSubfolder` | string | Subfolder under `<devDir>/python/` (e.g. `Python313`) |
+| `installer.allUsers` | bool | Install for all users |
+| `installer.includePip` | bool | Include pip in installation |
 | `pip.setUserSite` | bool | Whether to set PYTHONUSERBASE |
-| `pip.userSitePath` | string | Fallback site path |
 | `path.updateUserPath` | bool | Add Scripts dir to PATH |
 | `path.ensurePipInPath` | bool | Ensure pip is reachable |
+
+## Smart Drive Detection
+
+When no `-Path` is provided and `$env:DEV_DIR` is not set, the script
+automatically selects the best drive for the Python install directory:
+
+1. **E: drive** (preferred)
+2. **D: drive** (secondary)
+3. **Any other non-system fixed drive** with the most free space (minimum 10 GB)
+4. **Prompt the user** if no drive qualifies
+
+The install directory becomes `<bestDrive>:\dev-tool\python\Python313`.
+Users can always override with `-Path`.
 
 ## Flow
 
