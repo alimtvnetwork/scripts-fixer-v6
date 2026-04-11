@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.1] -- 2026-04-11
+
+### Added
+
+- **Doctor command** -- `.\run.ps1 doctor`
+  - Quick health-check of project setup (runs in < 2 seconds)
+  - 10 checks: scripts dir, version.json, registry.json, folder existence, .logs/, .installed/, Chocolatey, admin rights, shared helpers, install-keywords.json
+  - Color-coded PASS/FAIL/WARN output with summary
+- **Shared `Assert-ToolVersion` helper** (`scripts/shared/tool-version.ps1`)
+  - Reusable function: run `--version`, guard empty, check .installed/ tracking
+  - Returns structured result: `Exists`, `Version`, `HasVersion`, `IsTracked`, `Raw`
+  - Optional `ParseScript` parameter for custom version parsing
+  - Auto-loaded by logging.ps1 (available in all scripts)
+- **Shared `Refresh-EnvPath` helper** -- refreshes `$env:Path` from registry
+
+---
+
 ## [v0.17.0] -- 2026-04-11
 
 ### Added
