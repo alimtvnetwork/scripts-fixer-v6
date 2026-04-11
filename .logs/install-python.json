@@ -1,0 +1,92 @@
+{
+  "eventCount": 16,
+  "warnCount": 0,
+  "errorCount": 0,
+  "events": [
+    {
+      "timestamp": "2026-04-11T20:37:29.8777400+08:00",
+      "level": "info",
+      "message": "Logging initialised -- events will be saved to: D:\\wp-work\\riseup-asia\\scripts-fixer-v6\\.logs\\install-python.json"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:29.8783923+08:00",
+      "level": "skip",
+      "message": "git pull -- already run by root dispatcher"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:29.8789473+08:00",
+      "level": "info",
+      "message": "Checking for Chocolatey..."
+    },
+    {
+      "timestamp": "2026-04-11T20:37:30.3880070+08:00",
+      "level": "ok",
+      "message": "Chocolatey found: v2.6.0"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:30.4370248+08:00",
+      "level": "info",
+      "message": "Python is already installed: "
+    },
+    {
+      "timestamp": "2026-04-11T20:37:30.4380986+08:00",
+      "level": "info",
+      "message": "Checking for Chocolatey..."
+    },
+    {
+      "timestamp": "2026-04-11T20:37:30.9435827+08:00",
+      "level": "ok",
+      "message": "Chocolatey found: v2.6.0"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:30.9445755+08:00",
+      "level": "info",
+      "message": "Upgrading 'python3' via Chocolatey..."
+    },
+    {
+      "timestamp": "2026-04-11T20:37:31.9905257+08:00",
+      "level": "ok",
+      "message": "'python3' upgraded successfully"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.0359323+08:00",
+      "level": "ok",
+      "message": "Python upgraded successfully: (version pending)"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.0379157+08:00",
+      "level": "info",
+      "message": "Saved install record: .installed/python.json (installed)"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.0396061+08:00",
+      "level": "info",
+      "message": "pip user site already configured: E:\\dev-tool\\python"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.0410018+08:00",
+      "level": "info",
+      "message": "PATH already contains: E:\\dev-tool\\python\\Scripts"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.0420864+08:00",
+      "level": "info",
+      "message": "Saving resolved state..."
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.1038743+08:00",
+      "level": "ok",
+      "message": "Resolved data saved: D:\\wp-work\\riseup-asia\\scripts-fixer-v6\\.resolved\\05-install-python\\resolved.json"
+    },
+    {
+      "timestamp": "2026-04-11T20:37:32.1045653+08:00",
+      "level": "ok",
+      "message": "Python setup complete."
+    }
+  ],
+  "status": "ok",
+  "startTime": "2026-04-11T20:37:29.8771168+08:00",
+  "scriptName": "install-python",
+  "duration": 2.23,
+  "endTime": "2026-04-11T20:37:32.1046151+08:00"
+}

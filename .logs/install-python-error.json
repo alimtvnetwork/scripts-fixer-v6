@@ -1,0 +1,17 @@
+{
+  "warnings": [
+    {
+      "timestamp": "2026-04-11T20:32:58.1550750+08:00",
+      "level": "warn",
+      "message": "Warning: empty version for 'python' -- recording as 'unknown'"
+    }
+  ],
+  "overallStatus": "ok",
+  "warnCount": 1,
+  "errorCount": 0,
+  "errors": [],
+  "startTime": "2026-04-11T20:32:55.9743574+08:00",
+  "scriptName": "install-python",
+  "duration": 2.25,
+  "endTime": "2026-04-11T20:32:58.2293379+08:00"
+}
