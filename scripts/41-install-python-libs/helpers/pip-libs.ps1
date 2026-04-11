@@ -9,6 +9,18 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
     . $_loggingPath
 }
 
+$_toolVersionPath = Join-Path $_sharedDir "tool-version.ps1"
+$isToolVersionMissing = -not (Test-Path $_toolVersionPath)
+if ($isToolVersionMissing) {
+    Write-FileError -FilePath $_toolVersionPath -Operation "load" -Reason "Shared helper file does not exist" -Module "41-install-python-libs/helpers/pip-libs.ps1"
+    throw "Missing shared helper: $_toolVersionPath"
+}
+
+$isPythonResolverMissing = -not (Get-Command Resolve-PythonExe -ErrorAction SilentlyContinue)
+if ($isPythonResolverMissing) {
+    . $_toolVersionPath
+}
+
 
 function Assert-PythonAvailable {
     <#

@@ -124,7 +124,23 @@ function Refresh-EnvPath {
 }
 
 
-$script:_ResolvedPythonInfo = $null
+function Get-PythonResolverCache {
+    $cacheVariable = Get-Variable -Name "_ScriptsFixerResolvedPythonInfo" -Scope Global -ErrorAction SilentlyContinue
+    $hasCacheVariable = $null -ne $cacheVariable
+    if ($hasCacheVariable) {
+        return $cacheVariable.Value
+    }
+
+    return $null
+}
+
+function Set-PythonResolverCache {
+    param(
+        $PythonInfo
+    )
+
+    Set-Variable -Name "_ScriptsFixerResolvedPythonInfo" -Scope Global -Value $PythonInfo -Force
+}
 
 function Add-UniquePath {
     param(
@@ -328,13 +344,13 @@ function Resolve-PythonExe {
         Refresh-EnvPath
     }
 
-    $cachedInfo = $script:_ResolvedPythonInfo
+    $cachedInfo = Get-PythonResolverCache
     $hasCachedInfo = $null -ne $cachedInfo -and $cachedInfo.IsValid
     if ($hasCachedInfo) {
         $validatedCachedInfo = Test-PythonExecutable -ExecutablePath $cachedInfo.Path -RequirePip:$RequirePip
         $hasValidatedCachedInfo = $null -ne $validatedCachedInfo -and $validatedCachedInfo.IsValid
         if ($hasValidatedCachedInfo) {
-            $script:_ResolvedPythonInfo = $validatedCachedInfo
+            Set-PythonResolverCache -PythonInfo $validatedCachedInfo
             $env:PYTHON_EXE = $validatedCachedInfo.Path
             if ($ReturnInfo) {
                 return $validatedCachedInfo
@@ -397,7 +413,7 @@ function Resolve-PythonExe {
         $pythonInfo = Test-PythonExecutable -ExecutablePath $candidatePath -RequirePip:$RequirePip
         $hasValidPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
         if ($hasValidPython) {
-            $script:_ResolvedPythonInfo = $pythonInfo
+            Set-PythonResolverCache -PythonInfo $pythonInfo
             $env:PYTHON_EXE = $pythonInfo.Path
             if ($ReturnInfo) {
                 return $pythonInfo

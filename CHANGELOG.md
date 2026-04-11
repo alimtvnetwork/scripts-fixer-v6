@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.19.0] -- 2026-04-11
+
+### Fixed
+
+- **Shared Python resolver now loads reliably under StrictMode**
+  - Script 05 and script 41 explicitly dot-source `scripts/shared/tool-version.ps1` before calling `Resolve-PythonExe`
+  - Added exact-path file error logging if the shared helper is missing
+  - Replaced the StrictMode-fragile `$script:_ResolvedPythonInfo` cache with a global resolver cache helper so chained scripts can reuse the verified Python executable without unbound variable errors
+
+---
+
 ## [v0.18.2] -- 2026-04-11
 
 ### Added
