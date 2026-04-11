@@ -13,9 +13,34 @@
     "settingsSynced": "Settings synced to {path}",
     "settingsSkipped": "No settings files found in script folder -- skipping sync",
     "setupComplete": "Notepad++ setup complete",
+    "exportStarting": "Exporting Notepad++ settings from {source}...",
+    "exportNoSource": "Notepad++ AppData directory not found -- has Notepad++ been launched at least once?",
+    "exportNoFiles": "No config files found in Notepad++ AppData -- nothing to export",
+    "exportComplete": "Notepad++ settings exported -- {count} item(s) saved to {path}",
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} uninstalled successfully.",
     "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
     "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
+  },
+  "help": {
+    "commands": {
+      "install+settings": "Install Notepad++ and sync settings (default)",
+      "settings-only": "Sync settings only (no install)",
+      "install-only": "Install Notepad++ only (no settings sync)",
+      "export": "Export Notepad++ settings from machine to repo for backup",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
+    },
+    "examples": [
+      ".\\run.ps1 install npp",
+      ".\\run.ps1 install npp+settings",
+      ".\\run.ps1 install npp-settings",
+      ".\\run.ps1 install install-npp",
+      ".\\run.ps1 -I 33 -- export",
+      ".\\run.ps1 -I 33",
+      ".\\run.ps1 -I 33 -- -Mode settings-only",
+      ".\\run.ps1 -I 33 -- -Mode install-only",
+      ".\\run.ps1 -I 33 -- -Help",
+      ".\\run.ps1 uninstall"
+    ]
   }
 }
