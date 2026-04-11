@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.21.1] -- 2026-04-12
+
+### Fixed
+
+- **Script 05 parse error resolved** -- replaced invalid PowerShell quoting in the Python installer `TargetDir` argument so `install python` no longer fails with `Unexpected token '$('`
+
+---
+
 ## [v0.21.0] -- 2026-04-12
 
 ### Fixed
