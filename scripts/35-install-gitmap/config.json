@@ -1,7 +1,7 @@
 {
   "devDir": {
     "mode": "smart",
-    "default": "C:\\DevTools\\GitMap",
+    "default": "C:\\dev-tool\\GitMap",
     "override": ""
   },
   "gitmap": {
