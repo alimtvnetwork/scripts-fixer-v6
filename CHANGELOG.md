@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.18.0] -- 2026-04-11
+
+### Fixed
+
+- **Real Python executable resolution for scripts 05 and 41**
+  - Shared resolver now scans all command hits, skips `Microsoft\WindowsApps` aliases, and validates `python --version` before accepting a candidate
+  - Script 05 now exports a verified `PYTHON_EXE`, syncs the current session, and stops reporting success when Chocolatey finishes but no working interpreter can be resolved
+  - Script 41 now reuses the shared resolver, rechecks `ensurepip` against the verified executable, and works immediately after chained installs like `install pip+jupyter+libs`
+  - `PYTHONUSERBASE` is now pushed into the current session even when it was already configured in user scope
+
 ## [v0.17.7] -- 2026-04-11
 
 ### Changed

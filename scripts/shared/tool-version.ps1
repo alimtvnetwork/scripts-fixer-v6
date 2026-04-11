@@ -122,3 +122,290 @@ function Refresh-EnvPath {
     #>
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
+
+
+$script:_ResolvedPythonInfo = $null
+
+function Add-UniquePath {
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.Generic.List[string]]$Target,
+
+        [string]$Path
+    )
+
+    $hasPath = -not [string]::IsNullOrWhiteSpace($Path)
+    $isPathMissing = -not $hasPath
+    if ($isPathMissing) {
+        return
+    }
+
+    $isAlreadyPresent = $false
+    foreach ($existingPath in $Target) {
+        $isSamePath = $existingPath -ieq $Path
+        if ($isSamePath) {
+            $isAlreadyPresent = $true
+            break
+        }
+    }
+
+    if ($isAlreadyPresent) {
+        return
+    }
+
+    $Target.Add($Path)
+}
+
+function Get-CommandSourcePath {
+    param(
+        [Parameter(Mandatory)]
+        $CommandInfo
+    )
+
+    foreach ($propertyName in @("Source", "Path", "Definition")) {
+        $hasProperty = $CommandInfo.PSObject.Properties.Name -contains $propertyName
+        if ($hasProperty) {
+            $propertyValue = "$($CommandInfo.$propertyName)".Trim()
+            $hasValue = -not [string]::IsNullOrWhiteSpace($propertyValue)
+            if ($hasValue) {
+                return $propertyValue
+            }
+        }
+    }
+
+    return $null
+}
+
+function Test-IsWindowsAppsAliasPath {
+    param(
+        [string]$Path
+    )
+
+    $hasPath = -not [string]::IsNullOrWhiteSpace($Path)
+    $isPathMissing = -not $hasPath
+    if ($isPathMissing) {
+        return $false
+    }
+
+    $normalizedPath = $Path -replace '/', '\\'
+    $isWindowsAppsAlias = $normalizedPath -match '\\Microsoft\\WindowsApps\\'
+    return $isWindowsAppsAlias
+}
+
+function Get-ResolvedPathsFromPatterns {
+    param(
+        [string[]]$Patterns
+    )
+
+    $resolvedPaths = [System.Collections.Generic.List[string]]::new()
+    $hasPatterns = $null -ne $Patterns -and $Patterns.Count -gt 0
+    if (-not $hasPatterns) {
+        return @()
+    }
+
+    foreach ($pattern in $Patterns) {
+        $hasPattern = -not [string]::IsNullOrWhiteSpace($pattern)
+        $isPatternMissing = -not $hasPattern
+        if ($isPatternMissing) {
+            continue
+        }
+
+        $items = @(Resolve-Path $pattern -ErrorAction SilentlyContinue)
+        foreach ($item in $items) {
+            $resolvedPath = "$($item.Path)"
+            $isFile = Test-Path $resolvedPath -PathType Leaf
+            if ($isFile) {
+                Add-UniquePath -Target $resolvedPaths -Path $resolvedPath
+            }
+        }
+    }
+
+    return $resolvedPaths.ToArray()
+}
+
+function Test-PythonExecutable {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ExecutablePath,
+
+        [switch]$RequirePip
+    )
+
+    $result = @{
+        Path       = $ExecutablePath
+        Exists     = $false
+        Version    = $null
+        HasVersion = $false
+        PipVersion = $null
+        HasPip     = $false
+        IsValid    = $false
+    }
+
+    $hasExecutablePath = -not [string]::IsNullOrWhiteSpace($ExecutablePath)
+    $isExecutablePathMissing = -not $hasExecutablePath
+    if ($isExecutablePathMissing) {
+        return $result
+    }
+
+    $isWindowsAppsAlias = Test-IsWindowsAppsAliasPath -Path $ExecutablePath
+    if ($isWindowsAppsAlias) {
+        return $result
+    }
+
+    $existsOnDisk = Test-Path $ExecutablePath -PathType Leaf
+    $isMissingOnDisk = -not $existsOnDisk
+    if ($isMissingOnDisk) {
+        return $result
+    }
+
+    $result.Exists = $true
+
+    $versionOutput = $null
+    try {
+        $versionOutput = & $ExecutablePath --version 2>&1
+    } catch {
+    }
+
+    $versionText = "$versionOutput".Trim()
+    $hasVersionText = -not [string]::IsNullOrWhiteSpace($versionText)
+    $isVersionMatch = $versionText -match '^Python\s+\d'
+    $isVersionValid = $hasVersionText -and $LASTEXITCODE -eq 0 -and $isVersionMatch
+    if ($isVersionValid) {
+        $result.Version = $versionText
+        $result.HasVersion = $true
+    } else {
+        return $result
+    }
+
+    $pipOutput = $null
+    try {
+        $pipOutput = & $ExecutablePath -m pip --version 2>&1
+    } catch {
+    }
+
+    $pipText = "$pipOutput".Trim()
+    $hasPipText = -not [string]::IsNullOrWhiteSpace($pipText)
+    $isPipMatch = $pipText -match '^pip\s+\d'
+    $isPipValid = $hasPipText -and $LASTEXITCODE -eq 0 -and $isPipMatch
+    if ($isPipValid) {
+        $result.PipVersion = $pipText
+        $result.HasPip = $true
+    }
+
+    $isPipRequiredButMissing = $RequirePip -and -not $result.HasPip
+    if ($isPipRequiredButMissing) {
+        return $result
+    }
+
+    $result.IsValid = $true
+    return $result
+}
+
+function Resolve-PythonExe {
+    <#
+    .SYNOPSIS
+        Resolves a real Python executable, skipping Windows App aliases and
+        validating version output before accepting a candidate.
+
+    .PARAMETER RequirePip
+        Require `python -m pip --version` to succeed as well.
+
+    .PARAMETER ReturnInfo
+        Return the full info hashtable instead of just the executable path.
+
+    .PARAMETER RefreshPath
+        Refresh the current process PATH from registry before probing.
+    #>
+    param(
+        [switch]$RequirePip,
+
+        [switch]$ReturnInfo,
+
+        [switch]$RefreshPath
+    )
+
+    if ($RefreshPath) {
+        Refresh-EnvPath
+    }
+
+    $cachedInfo = $script:_ResolvedPythonInfo
+    $hasCachedInfo = $null -ne $cachedInfo -and $cachedInfo.IsValid
+    if ($hasCachedInfo) {
+        $validatedCachedInfo = Test-PythonExecutable -ExecutablePath $cachedInfo.Path -RequirePip:$RequirePip
+        $hasValidatedCachedInfo = $null -ne $validatedCachedInfo -and $validatedCachedInfo.IsValid
+        if ($hasValidatedCachedInfo) {
+            $script:_ResolvedPythonInfo = $validatedCachedInfo
+            $env:PYTHON_EXE = $validatedCachedInfo.Path
+            if ($ReturnInfo) {
+                return $validatedCachedInfo
+            }
+
+            return $validatedCachedInfo.Path
+        }
+    }
+
+    $candidatePaths = [System.Collections.Generic.List[string]]::new()
+
+    $envPythonExe = $env:PYTHON_EXE
+    $hasEnvPythonExe = -not [string]::IsNullOrWhiteSpace($envPythonExe)
+    if ($hasEnvPythonExe) {
+        Add-UniquePath -Target $candidatePaths -Path $envPythonExe
+    }
+
+    foreach ($commandName in @("python", "python3", "py")) {
+        $commandInfos = @(Get-Command $commandName -All -ErrorAction SilentlyContinue)
+        foreach ($commandInfo in $commandInfos) {
+            $candidatePath = Get-CommandSourcePath -CommandInfo $commandInfo
+            Add-UniquePath -Target $candidatePaths -Path $candidatePath
+        }
+    }
+
+    $fallbackPatterns = @(
+        "C:\ProgramData\chocolatey\bin\python.exe",
+        "C:\ProgramData\chocolatey\bin\python3.exe",
+        "C:\Python*\python.exe"
+    )
+
+    $hasChocolateyInstall = -not [string]::IsNullOrWhiteSpace($env:ChocolateyInstall)
+    if ($hasChocolateyInstall) {
+        $fallbackPatterns += (Join-Path $env:ChocolateyInstall "bin\python.exe")
+        $fallbackPatterns += (Join-Path $env:ChocolateyInstall "bin\python3.exe")
+    }
+
+    $hasLocalAppData = -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)
+    if ($hasLocalAppData) {
+        $fallbackPatterns += (Join-Path $env:LOCALAPPDATA "Programs\Python\Python*\python.exe")
+    }
+
+    $hasProgramFiles = -not [string]::IsNullOrWhiteSpace($env:ProgramFiles)
+    if ($hasProgramFiles) {
+        $fallbackPatterns += (Join-Path $env:ProgramFiles "Python*\python.exe")
+    }
+
+    $programFilesX86 = ${env:ProgramFiles(x86)}
+    $hasProgramFilesX86 = -not [string]::IsNullOrWhiteSpace($programFilesX86)
+    if ($hasProgramFilesX86) {
+        $fallbackPatterns += (Join-Path $programFilesX86 "Python*\python.exe")
+    }
+
+    $resolvedFallbackPaths = Get-ResolvedPathsFromPatterns -Patterns $fallbackPatterns
+    foreach ($resolvedFallbackPath in $resolvedFallbackPaths) {
+        Add-UniquePath -Target $candidatePaths -Path $resolvedFallbackPath
+    }
+
+    foreach ($candidatePath in $candidatePaths) {
+        $pythonInfo = Test-PythonExecutable -ExecutablePath $candidatePath -RequirePip:$RequirePip
+        $hasValidPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
+        if ($hasValidPython) {
+            $script:_ResolvedPythonInfo = $pythonInfo
+            $env:PYTHON_EXE = $pythonInfo.Path
+            if ($ReturnInfo) {
+                return $pythonInfo
+            }
+
+            return $pythonInfo.Path
+        }
+    }
+
+    return $null
+}

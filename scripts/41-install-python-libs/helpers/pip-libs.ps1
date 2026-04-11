@@ -10,62 +10,6 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
 }
 
 
-# -- Resolve python executable -------------------------------------------------
-$script:_PythonExe = $null
-
-function Resolve-PythonExe {
-    <#
-    .SYNOPSIS
-        Finds a working Python executable, preferring real installs over Windows aliases.
-    #>
-    param(
-        [switch]$RequirePip
-    )
-
-    $hasCachedExe = -not [string]::IsNullOrWhiteSpace($script:_PythonExe)
-    if ($hasCachedExe) {
-        $cachedVersion = $null
-        try { $cachedVersion = & $script:_PythonExe --version 2>&1 } catch {}
-        $isCachedValid = -not [string]::IsNullOrWhiteSpace("$cachedVersion") -and $LASTEXITCODE -eq 0
-        if ($isCachedValid) {
-            if (-not $RequirePip) {
-                return $script:_PythonExe
-            }
-
-            $cachedPip = $null
-            try { $cachedPip = & $script:_PythonExe -m pip --version 2>&1 } catch {}
-            $hasCachedPip = -not [string]::IsNullOrWhiteSpace("$cachedPip") -and $LASTEXITCODE -eq 0
-            if ($hasCachedPip) {
-                return $script:_PythonExe
-            }
-        }
-    }
-
-    foreach ($candidate in @("py", "python3", "python")) {
-        $candidateCommand = Get-Command $candidate -ErrorAction SilentlyContinue
-        $isCandidateMissing = $null -eq $candidateCommand
-        if ($isCandidateMissing) { continue }
-
-        $candidateExe = $candidateCommand.Source
-        $versionOutput = $null
-        try { $versionOutput = & $candidateExe --version 2>&1 } catch {}
-        $hasVersionOutput = -not [string]::IsNullOrWhiteSpace("$versionOutput") -and $LASTEXITCODE -eq 0
-        if (-not $hasVersionOutput) { continue }
-
-        if ($RequirePip) {
-            $pipOutput = $null
-            try { $pipOutput = & $candidateExe -m pip --version 2>&1 } catch {}
-            $hasPipOutput = -not [string]::IsNullOrWhiteSpace("$pipOutput") -and $LASTEXITCODE -eq 0
-            if (-not $hasPipOutput) { continue }
-        }
-
-        $script:_PythonExe = $candidateExe
-        return $script:_PythonExe
-    }
-
-    return $null
-}
-
 function Assert-PythonAvailable {
     <#
     .SYNOPSIS
@@ -73,32 +17,35 @@ function Assert-PythonAvailable {
     #>
     param($LogMessages)
 
-    $pyExe = Resolve-PythonExe
-    $hasPython = $null -ne $pyExe
-    if (-not $hasPython) {
+    $pythonInfo = Resolve-PythonExe -ReturnInfo
+    $hasPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
+    $isPythonMissing = -not $hasPython
+    if ($isPythonMissing) {
         Write-Log $LogMessages.messages.pythonNotFound -Level "error"
         return $false
     }
 
-    Write-Log ("Found Python executable: $pyExe") -Level "info"
+    $env:PYTHON_EXE = $pythonInfo.Path
+    Write-Log ("Found Python executable: $($pythonInfo.Path)") -Level "info"
+    Write-Log ("Python version: $($pythonInfo.Version)") -Level "info"
 
-    $hasPip = $null
-    try { $hasPip = & $pyExe -m pip --version 2>&1 } catch {}
-    $isPipMissing = [string]::IsNullOrWhiteSpace("$hasPip") -or $LASTEXITCODE -ne 0
+    $hasPip = $pythonInfo.PipVersion
+    $isPipMissing = -not $pythonInfo.HasPip
     if ($isPipMissing) {
-        Write-Log "pip not found for '$pyExe', attempting ensurepip..." -Level "warn"
-        try { & $pyExe -m ensurepip --upgrade 2>&1 | Out-Null } catch {}
-        try { $hasPip = & $pyExe -m pip --version 2>&1 } catch {}
-        $isPipMissing = [string]::IsNullOrWhiteSpace("$hasPip") -or $LASTEXITCODE -ne 0
-        if ($isPipMissing) {
-            $pipReadyExe = Resolve-PythonExe -RequirePip
-            $hasPipReadyExe = $null -ne $pipReadyExe
-            if ($hasPipReadyExe) {
-                $pyExe = $pipReadyExe
-                $hasPip = & $pyExe -m pip --version 2>&1
-                $isPipMissing = [string]::IsNullOrWhiteSpace("$hasPip") -or $LASTEXITCODE -ne 0
-            }
+        Write-Log "pip not found for '$($pythonInfo.Path)', attempting ensurepip..." -Level "warn"
+        try { & $pythonInfo.Path -m ensurepip --upgrade 2>&1 | Out-Null } catch {}
+
+        $pythonInfo = Resolve-PythonExe -RequirePip -ReturnInfo -RefreshPath
+        $hasPython = $null -ne $pythonInfo -and $pythonInfo.IsValid
+        $isPythonMissing = -not $hasPython
+        if ($isPythonMissing) {
+            Write-Log $LogMessages.messages.pipNotFound -Level "error"
+            return $false
         }
+
+        $env:PYTHON_EXE = $pythonInfo.Path
+        $hasPip = $pythonInfo.PipVersion
+        $isPipMissing = -not $pythonInfo.HasPip
         if ($isPipMissing) {
             Write-Log $LogMessages.messages.pipNotFound -Level "error"
             return $false

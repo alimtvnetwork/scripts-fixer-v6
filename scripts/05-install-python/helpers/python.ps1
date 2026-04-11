@@ -10,6 +10,97 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
 }
 
 
+function Add-DirectoryToProcessPath {
+    param(
+        [string]$Directory
+    )
+
+    $hasDirectory = -not [string]::IsNullOrWhiteSpace($Directory) -and (Test-Path $Directory -PathType Container)
+    $isDirectoryMissing = -not $hasDirectory
+    if ($isDirectoryMissing) {
+        return
+    }
+
+    $pathEntries = @($env:Path -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $isAlreadyInPath = $false
+    foreach ($pathEntry in $pathEntries) {
+        $isSameEntry = $pathEntry.TrimEnd('\\') -ieq $Directory.TrimEnd('\\')
+        if ($isSameEntry) {
+            $isAlreadyInPath = $true
+            break
+        }
+    }
+
+    if ($isAlreadyInPath) {
+        return
+    }
+
+    $hasExistingPath = -not [string]::IsNullOrWhiteSpace($env:Path)
+    if ($hasExistingPath) {
+        $env:Path = "$Directory;$env:Path"
+    } else {
+        $env:Path = $Directory
+    }
+}
+
+function Set-PythonRuntimeEnvironment {
+    param(
+        $PythonInfo
+    )
+
+    $hasPythonInfo = $null -ne $PythonInfo -and $PythonInfo.IsValid
+    $isPythonInfoMissing = -not $hasPythonInfo
+    if ($isPythonInfoMissing) {
+        return
+    }
+
+    $env:PYTHON_EXE = $PythonInfo.Path
+    [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonInfo.Path, "User")
+
+    $pythonDir = Split-Path -Parent $PythonInfo.Path
+    Add-DirectoryToProcessPath -Directory $pythonDir
+
+    $pythonScriptsDir = Join-Path $pythonDir "Scripts"
+    $hasPythonScriptsDir = Test-Path $pythonScriptsDir -PathType Container
+    if ($hasPythonScriptsDir) {
+        Add-DirectoryToProcessPath -Directory $pythonScriptsDir
+    }
+}
+
+function Resolve-InstalledPython {
+    param(
+        $LogMessages,
+        [switch]$RequirePip
+    )
+
+    $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
+    $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
+    $isPythonInfoMissing = -not $hasPythonInfo
+    if ($isPythonInfoMissing) {
+        return $null
+    }
+
+    $isPipRequiredButMissing = $RequirePip -and -not $pythonInfo.HasPip
+    if ($isPipRequiredButMissing) {
+        Write-Log "pip not detected for '$($pythonInfo.Path)'. Running ensurepip..." -Level "warn"
+        try {
+            & $pythonInfo.Path -m ensurepip --upgrade 2>&1 | Out-Null
+        } catch {
+        }
+
+        $pythonInfo = Resolve-PythonExe -RequirePip -ReturnInfo -RefreshPath
+        $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
+        $isPythonInfoMissing = -not $hasPythonInfo
+        if ($isPythonInfoMissing) {
+            return $null
+        }
+    }
+
+    Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo
+    return $pythonInfo
+}
+
+
 function Install-Python {
     param(
         $Config,
@@ -18,60 +109,63 @@ function Install-Python {
 
     $packageName = $Config.chocoPackageName
 
-    $existing = Get-Command python -ErrorAction SilentlyContinue
-    if ($existing) {
-        $currentVersion = & python --version 2>$null
-        $hasVersion = -not [string]::IsNullOrWhiteSpace($currentVersion)
-
-        # Check .installed/ tracking -- skip if version matches
-        if ($hasVersion) {
-            $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
-            if ($isAlreadyTracked) {
-                Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
-                return
-            }
-        }
-
+    $existingPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
+    $hasExistingPython = $null -ne $existingPython
+    if ($hasExistingPython) {
+        $currentVersion = $existingPython.Version
+        $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
         Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
-        if ($Config.alwaysUpgradeToLatest) {
-            try {
-                Upgrade-ChocoPackage -PackageName $packageName
-
-                # Refresh PATH so upgraded python is discoverable
-                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-                $newVersion = try { & python --version 2>$null } catch { $null }
-                $hasNewVersion = -not [string]::IsNullOrWhiteSpace($newVersion)
-                if ($hasNewVersion) {
-                    $newVersion = "$newVersion".Trim()
-                    Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-                    Save-InstalledRecord -Name "python" -Version $newVersion
-                } else {
-                    Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', "(version pending)") -Level "success"
-                    Save-InstalledRecord -Name "python" -Version "installed"
-                }
-            } catch {
-                Write-Log "Python upgrade failed: $_" -Level "error"
-                Save-InstalledError -Name "python" -ErrorMessage "$_"
-            }
+        $isUpgradeDisabled = -not $Config.alwaysUpgradeToLatest
+        if ($isAlreadyTracked -and $isUpgradeDisabled) {
+            return $existingPython
         }
-    }
-    else {
+    } else {
         Write-Log $LogMessages.messages.pythonNotFound -Level "info"
-        try {
+    }
+
+    $isUpgrade = $hasExistingPython
+
+    try {
+        if ($isUpgrade) {
+            Upgrade-ChocoPackage -PackageName $packageName
+        } else {
             Install-ChocoPackage -PackageName $packageName
-
-            # Refresh PATH
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-            $installedVersion = & python --version 2>$null
-            Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $installedVersion) -Level "success"
-            Save-InstalledRecord -Name "python" -Version $installedVersion
-        } catch {
-            Write-Log "Python install failed: $_" -Level "error"
-            Save-InstalledError -Name "python" -ErrorMessage "$_"
         }
+
+        $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
+        $hasResolvedPython = $null -ne $resolvedPython
+        $isResolvedPythonMissing = -not $hasResolvedPython
+        if ($isResolvedPythonMissing) {
+            $failureMessage = "Chocolatey completed, but no working python executable could be resolved after install."
+            Write-Log $failureMessage -Level "error"
+            Save-InstalledError -Name "python" -ErrorMessage $failureMessage
+            throw $failureMessage
+        }
+
+        $resolvedVersion = $resolvedPython.Version
+        if ($isUpgrade) {
+            Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $resolvedVersion) -Level "success"
+        } else {
+            Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $resolvedVersion) -Level "success"
+        }
+
+        Save-InstalledRecord -Name "python" -Version $resolvedVersion
+        return $resolvedPython
+    } catch {
+        $failureMessage = $_.Exception.Message
+        if ([string]::IsNullOrWhiteSpace($failureMessage)) {
+            $failureMessage = "$_"
+        }
+
+        if ($isUpgrade) {
+            Write-Log "Python upgrade failed: $failureMessage" -Level "error"
+        } else {
+            Write-Log "Python install failed: $failureMessage" -Level "error"
+        }
+
+        Save-InstalledError -Name "python" -ErrorMessage $failureMessage
+        throw
     }
 }
 
@@ -103,6 +197,7 @@ function Configure-PipSite {
     $currentBase = [System.Environment]::GetEnvironmentVariable("PYTHONUSERBASE", "User")
     if ($currentBase -eq $sitePath) {
         Write-Log ($LogMessages.messages.pipSiteAlreadySet -replace '\{path\}', $sitePath) -Level "info"
+        $env:PYTHONUSERBASE = $sitePath
     }
     else {
         Write-Log ($LogMessages.messages.configuringPipSite -replace '\{path\}', $sitePath) -Level "info"
@@ -136,12 +231,19 @@ function Update-PythonPath {
     }
 
     $isAlreadyInPath = Test-InPath -Directory $scriptsDir
+    Add-DirectoryToProcessPath -Directory $scriptsDir
     if ($isAlreadyInPath) {
         Write-Log ($LogMessages.messages.pathAlreadyContains -replace '\{path\}', $scriptsDir) -Level "info"
     }
     else {
         Write-Log ($LogMessages.messages.addingToPath -replace '\{path\}', $scriptsDir) -Level "info"
         Add-ToUserPath -Directory $scriptsDir
+    }
+
+    $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
+    $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
+    if ($hasPythonInfo) {
+        Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo
     }
 }
 
