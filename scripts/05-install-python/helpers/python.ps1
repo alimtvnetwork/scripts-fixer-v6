@@ -57,7 +57,10 @@ function Add-DirectoryToProcessPath {
 
 function Set-PythonRuntimeEnvironment {
     param(
-        $PythonInfo
+        $PythonInfo,
+
+        [ValidateSet("User", "Machine")]
+        [string]$EnvironmentScope = "User"
     )
 
     $hasPythonInfo = $null -ne $PythonInfo -and $PythonInfo.IsValid
@@ -69,8 +72,8 @@ function Set-PythonRuntimeEnvironment {
     $pythonDir = Split-Path -Parent $PythonInfo.Path
     $env:PYTHON_EXE = $PythonInfo.Path
     $env:PYTHON_HOME = $pythonDir
-    [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonInfo.Path, "User")
-    [System.Environment]::SetEnvironmentVariable("PYTHON_HOME", $pythonDir, "User")
+    [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonInfo.Path, $EnvironmentScope)
+    [System.Environment]::SetEnvironmentVariable("PYTHON_HOME", $pythonDir, $EnvironmentScope)
 
     Add-DirectoryToProcessPath -Directory $pythonDir
 
@@ -78,7 +81,7 @@ function Set-PythonRuntimeEnvironment {
     $hasPythonScriptsDir = Test-Path $pythonScriptsDir -PathType Container
     if ($hasPythonScriptsDir) {
         $env:PYTHON_SCRIPTS = $pythonScriptsDir
-        [System.Environment]::SetEnvironmentVariable("PYTHON_SCRIPTS", $pythonScriptsDir, "User")
+        [System.Environment]::SetEnvironmentVariable("PYTHON_SCRIPTS", $pythonScriptsDir, $EnvironmentScope)
         Add-DirectoryToProcessPath -Directory $pythonScriptsDir
     }
 }
@@ -126,6 +129,48 @@ function Get-PythonInstallerConfig {
     }
 }
 
+function Get-PythonEnvironmentScope {
+    param(
+        $InstallerConfig
+    )
+
+    $isMachineInstall = $null -ne $InstallerConfig -and $InstallerConfig.InstallAllUsers
+    if ($isMachineInstall) {
+        return "Machine"
+    }
+
+    return "User"
+}
+
+function Persist-PythonEnvironmentHints {
+    param(
+        [string]$PythonExe,
+        [string]$PythonDir,
+        [string]$PythonScriptsDir,
+
+        [ValidateSet("User", "Machine")]
+        [string]$EnvironmentScope = "User"
+    )
+
+    $hasPythonExe = -not [string]::IsNullOrWhiteSpace($PythonExe)
+    if ($hasPythonExe) {
+        $env:PYTHON_EXE = $PythonExe
+        [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonExe, $EnvironmentScope)
+    }
+
+    $hasPythonDir = -not [string]::IsNullOrWhiteSpace($PythonDir)
+    if ($hasPythonDir) {
+        $env:PYTHON_HOME = $PythonDir
+        [System.Environment]::SetEnvironmentVariable("PYTHON_HOME", $PythonDir, $EnvironmentScope)
+    }
+
+    $hasPythonScriptsDir = -not [string]::IsNullOrWhiteSpace($PythonScriptsDir)
+    if ($hasPythonScriptsDir) {
+        $env:PYTHON_SCRIPTS = $PythonScriptsDir
+        [System.Environment]::SetEnvironmentVariable("PYTHON_SCRIPTS", $PythonScriptsDir, $EnvironmentScope)
+    }
+}
+
 function Download-PythonInstaller {
     param(
         $InstallerConfig
@@ -143,13 +188,23 @@ function Download-PythonInstaller {
         throw "Failed to download Python installer: $installerPath"
     }
 
+    $hasInstallerPath = Test-Path $installerPath -PathType Leaf
+    if (-not $hasInstallerPath) {
+        $reason = "Python installer download completed but the installer file was not created"
+        Write-FileError -FilePath $installerPath -Operation "write" -Reason $reason -Module "Download-PythonInstaller"
+        throw "Failed to download Python installer: $installerPath"
+    }
+
     return $installerPath
 }
 
 function Sync-PythonRuntimePath {
     param(
         [string]$PythonDir,
-        [string]$PythonScriptsDir
+        [string]$PythonScriptsDir,
+
+        [ValidateSet("User", "Machine")]
+        [string]$EnvironmentScope = "User"
     )
 
     foreach ($pathEntry in @($PythonDir, $PythonScriptsDir)) {
@@ -160,14 +215,18 @@ function Sync-PythonRuntimePath {
 
         Add-DirectoryToProcessPath -Directory $pathEntry
 
-        $isAlreadyInUserPath = Test-InPath -Directory $pathEntry -Scope "User"
-        if ($isAlreadyInUserPath) {
+        $isAlreadyInSelectedPath = Test-InPath -Directory $pathEntry -Scope $EnvironmentScope
+        if ($isAlreadyInSelectedPath) {
             Write-Log "PATH already contains Python runtime: $pathEntry" -Level "info"
             continue
         }
 
-        Write-Log "Adding Python runtime to PATH: $pathEntry" -Level "info"
-        Add-ToUserPath -Directory $pathEntry | Out-Null
+        Write-Log "Adding Python runtime to $EnvironmentScope PATH: $pathEntry" -Level "info"
+        if ($EnvironmentScope -eq "Machine") {
+            Add-ToMachinePath -Directory $pathEntry | Out-Null
+        } else {
+            Add-ToUserPath -Directory $pathEntry | Out-Null
+        }
     }
 
     Refresh-EnvPath
@@ -178,7 +237,10 @@ function Sync-PythonRuntimePath {
 function Resolve-InstalledPython {
     param(
         $LogMessages,
-        [switch]$RequirePip
+        [switch]$RequirePip,
+
+        [ValidateSet("User", "Machine")]
+        [string]$EnvironmentScope = "User"
     )
 
     $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
@@ -204,7 +266,7 @@ function Resolve-InstalledPython {
         }
     }
 
-    Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo
+    Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo -EnvironmentScope $EnvironmentScope
     return $pythonInfo
 }
 
@@ -216,9 +278,10 @@ function Install-Python {
     )
 
     $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
     $desiredVersion = "Python $($installerConfig.Version)"
 
-    $existingPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
+    $existingPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip -EnvironmentScope $environmentScope
     $hasExistingPython = $null -ne $existingPython
     if ($hasExistingPython) {
         $currentVersion = $existingPython.Version
@@ -249,30 +312,34 @@ function Install-Python {
             "AssociateFiles=0",
             "Shortcuts=0",
             "Include_test=0",
-            "PrependPath=0",
+            "PrependPath=1",
             "TargetDir=\"$($installerConfig.InstallDir)\""
         )
 
         Write-Log "Installing Python $($installerConfig.Version) to $($installerConfig.InstallDir)" -Level "info"
 
         try {
-            $installProcess = Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -PassThru -NoNewWindow
+            $installProcess = Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -PassThru
         } catch {
             $reason = "Failed to launch Python installer: $_"
             Write-FileError -FilePath $installerPath -Operation "load" -Reason $reason -Module "Install-Python"
             throw "Failed to launch Python installer: $installerPath"
         }
 
-        $hasInstallerFailed = $installProcess.ExitCode -ne 0
+        $hasInstallerFailed = $installProcess.ExitCode -ne 0 -and $installProcess.ExitCode -ne 3010
         if ($hasInstallerFailed) {
             throw "Python installer exited with code $($installProcess.ExitCode)."
         }
 
-        $env:PYTHON_EXE = $expectedPythonExe
-        $env:PYTHON_HOME = $installerConfig.InstallDir
+        $isRestartRequested = $installProcess.ExitCode -eq 3010
+        if ($isRestartRequested) {
+            Write-Log "Python installer requested restart (3010) -- continuing after PATH/env refresh." -Level "warn"
+        }
+
+        Persist-PythonEnvironmentHints -PythonExe $expectedPythonExe -PythonDir $installerConfig.InstallDir -PythonScriptsDir $expectedScriptsDir -EnvironmentScope $environmentScope
         Add-DirectoryToProcessPath -Directory $installerConfig.InstallDir
         Add-DirectoryToProcessPath -Directory $expectedScriptsDir
-        Sync-PythonRuntimePath -PythonDir $installerConfig.InstallDir -PythonScriptsDir $expectedScriptsDir
+        Sync-PythonRuntimePath -PythonDir $installerConfig.InstallDir -PythonScriptsDir $expectedScriptsDir -EnvironmentScope $environmentScope
 
         # Retry resolution with explicit env + PATH sync so chained installs see python immediately
         $resolvedPython = $null
@@ -283,7 +350,7 @@ function Install-Python {
             Add-DirectoryToProcessPath -Directory $installerConfig.InstallDir
             Add-DirectoryToProcessPath -Directory $expectedScriptsDir
 
-            $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
+            $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip -EnvironmentScope $environmentScope
             $hasResolvedPython = $null -ne $resolvedPython
             if ($hasResolvedPython) { break }
 
@@ -401,10 +468,12 @@ function Update-PythonPath {
     $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
     $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
     if ($hasPythonInfo) {
+        $installerConfig = Get-PythonInstallerConfig -Config $Config
+        $environmentScope = Get-PythonEnvironmentScope -InstallerConfig $installerConfig
         $pythonDir = Split-Path -Parent $pythonInfo.Path
         $pythonScriptsDir = Join-Path $pythonDir "Scripts"
-        Sync-PythonRuntimePath -PythonDir $pythonDir -PythonScriptsDir $pythonScriptsDir
-        Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo
+        Sync-PythonRuntimePath -PythonDir $pythonDir -PythonScriptsDir $pythonScriptsDir -EnvironmentScope $environmentScope
+        Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo -EnvironmentScope $environmentScope
     }
 }
 
@@ -438,11 +507,13 @@ function Uninstall-Python {
 
     # 2. Remove Python-related environment variables
     foreach ($variableName in @("PYTHONUSERBASE", "PYTHON_EXE", "PYTHON_HOME", "PYTHON_SCRIPTS")) {
-        $currentValue = [System.Environment]::GetEnvironmentVariable($variableName, "User")
-        $hasCurrentValue = -not [string]::IsNullOrWhiteSpace($currentValue)
-        if ($hasCurrentValue) {
-            Write-Log "Removing $variableName env var: $currentValue" -Level "info"
-            [System.Environment]::SetEnvironmentVariable($variableName, $null, "User")
+        foreach ($environmentScope in @("User", "Machine")) {
+            $currentValue = [System.Environment]::GetEnvironmentVariable($variableName, $environmentScope)
+            $hasCurrentValue = -not [string]::IsNullOrWhiteSpace($currentValue)
+            if ($hasCurrentValue) {
+                Write-Log "Removing $variableName env var from $environmentScope scope: $currentValue" -Level "info"
+                [System.Environment]::SetEnvironmentVariable($variableName, $null, $environmentScope)
+            }
         }
 
         Remove-Item "Env:$variableName" -ErrorAction SilentlyContinue
@@ -451,6 +522,8 @@ function Uninstall-Python {
     # 3. Remove install/runtime paths from PATH
     Remove-FromUserPath -Directory $installScriptsDir
     Remove-FromUserPath -Directory $installDir
+    Remove-FromMachinePath -Directory $installScriptsDir
+    Remove-FromMachinePath -Directory $installDir
 
     # 4. Remove PYTHONUSERBASE Scripts dir from PATH
     $sitePath = if ($DevDir) {
@@ -463,6 +536,7 @@ function Uninstall-Python {
     if ($hasValidSitePath) {
         $scriptsDir = Join-Path $sitePath "Scripts"
         Remove-FromUserPath -Directory $scriptsDir
+        Remove-FromMachinePath -Directory $scriptsDir
     }
 
     # 5. Remove direct-install folder
@@ -487,6 +561,7 @@ function Uninstall-Python {
 
     # 7. Remove tracking records
     Set-PythonResolverCache -PythonInfo $null
+    Refresh-EnvPath
     Remove-InstalledRecord -Name "python"
     Remove-ResolvedData -ScriptFolder "05-install-python"
 

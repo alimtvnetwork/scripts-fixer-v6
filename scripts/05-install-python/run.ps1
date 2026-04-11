@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 #  Script 05 -- Install Python
-#  Installs Python via Chocolatey and configures pip user site.
+#  Installs Python from the official python.org installer and configures pip user site.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]

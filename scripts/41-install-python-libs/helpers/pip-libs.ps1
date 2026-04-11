@@ -38,9 +38,9 @@ function Ensure-PythonInstalledForLibraries {
         return $null
     }
 
-    Write-Log "Python not found -- bootstrapping script 05 installer before pip work..." -Level "warn"
+    Write-Log "Python not found -- bootstrapping script 05 full install before pip work..." -Level "warn"
     try {
-        & $pythonInstallerScript install
+        & $pythonInstallerScript all
     } catch {
         Write-Log "Automatic Python bootstrap failed: $_" -Level "error"
     }
