@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.15.2] -- 2026-04-11
+
+### Fixed
+
+- **Python install empty-version crash** (script 05) -- `Test-AlreadyInstalled` now only called when `python --version` returns a non-empty string, preventing `Cannot bind argument to parameter 'CurrentVersion'` error
+
+---
+
 ## [v0.15.1] -- 2026-04-11
 
 ### Added
