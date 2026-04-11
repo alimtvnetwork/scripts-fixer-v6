@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.4] -- 2026-04-11
+
+### Added
+
+- **Data-science & AI combo keywords** in `install-keywords.json` and help output
+  - `data-science` / `datascience` -- Python + data/viz group (05, 41)
+  - `ai-dev` / `aidev` -- Python + ML group (05, 41)
+  - `deep-learning` -- Python + ML group (05, 41)
+  - `ml-full` -- Python + ML group (05, 41)
+
+---
+
 ## [v0.17.3] -- 2026-04-11
 
 ### Added
