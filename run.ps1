@@ -850,6 +850,7 @@ if ($hasCommand) {
     $isBareUpdateCommand  = $normalizedCommand -eq "update" -or $normalizedCommand -eq "choco-update" -or $normalizedCommand -eq "upgrade"
     $isBarePathCommand    = $normalizedCommand -eq "path"
     $isBareExportCommand  = $normalizedCommand -eq "export"
+    $isBareStatusCommand  = $normalizedCommand -eq "status"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
     if ($isBareInstallCommand) {
@@ -866,6 +867,10 @@ if ($hasCommand) {
     } elseif ($isBareExportCommand) {
         Show-VersionHeader
         Invoke-ExportCommand -Args $Install
+        exit 0
+    } elseif ($isBareStatusCommand) {
+        Show-VersionHeader
+        Invoke-StatusCommand -Args $Install
         exit 0
     } elseif ($isBarePathCommand) {
         Show-VersionHeader
