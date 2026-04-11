@@ -14,7 +14,7 @@ type: feature
 | `helpers/menu.ps1` | `Show-DbMenu` interactive picker + `Get-InstallPath` (devDir/custom/system) |
 
 ## Install path options
-1. Dev directory (default): `E:\dev\databases\<db>`
+1. Dev directory (default): `E:\dev-tool\databases\<db>`
 2. Custom path: user-chosen
 3. System default: standard choco install location
 
