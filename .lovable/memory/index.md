@@ -8,6 +8,7 @@ Project includes PowerShell utility scripts alongside the React web app.
 User prefers structured script projects: external JSON configs, spec docs, suggestions folder, colorful logging.
 CODE RED: Every file/path error MUST log exact file path + failure reason. Use Write-FileError helper.
 All scripts must support -Path param to override dev directory.
+All scripts must support uninstall subcommand with full cleanup.
 
 ## Memories
 - [Script structure](mem://preferences/script-structure) — How the user wants scripts organized with configs, specs, and suggestions
@@ -23,3 +24,4 @@ All scripts must support -Path param to override dev directory.
 - [Resolved folder](mem://features/resolved-folder) — .resolved/ runtime state persistence
 - [Shared helpers](mem://features/shared-helpers) — Shared PowerShell helper modules
 - [Path parameter](mem://features/path-parameter) — Every run.ps1 should accept -Path to override dev directory
+- [Uninstall command](mem://features/uninstall-command) — Every run.ps1 must support uninstall subcommand with full cleanup

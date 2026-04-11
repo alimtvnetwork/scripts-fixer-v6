@@ -130,3 +130,62 @@ function Update-PythonPath {
         Add-ToUserPath -Directory $scriptsDir
     }
 }
+
+function Uninstall-Python {
+    <#
+    .SYNOPSIS
+        Full Python uninstall: choco uninstall, remove PYTHONUSERBASE env var,
+        remove Scripts dir from PATH, clean dev dir subfolder, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages,
+        [string]$DevDir
+    )
+
+    $packageName = $Config.chocoPackageName
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstallingPython) -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.pythonUninstallSuccess) -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.pythonUninstallFailed) -Level "error"
+    }
+
+    # 2. Remove PYTHONUSERBASE environment variable
+    $currentBase = [System.Environment]::GetEnvironmentVariable("PYTHONUSERBASE", "User")
+    $hasUserBase = -not [string]::IsNullOrWhiteSpace($currentBase)
+    if ($hasUserBase) {
+        Write-Log "Removing PYTHONUSERBASE env var: $currentBase" -Level "info"
+        [System.Environment]::SetEnvironmentVariable("PYTHONUSERBASE", $null, "User")
+        $env:PYTHONUSERBASE = $null
+    }
+
+    # 3. Remove Scripts dir from PATH
+    $sitePath = if ($DevDir) {
+        Join-Path $DevDir $Config.devDirSubfolder
+    } else {
+        $Config.pip.userSitePath
+    }
+
+    $hasValidSitePath = -not [string]::IsNullOrWhiteSpace($sitePath)
+    if ($hasValidSitePath) {
+        $scriptsDir = Join-Path $sitePath "Scripts"
+        Remove-FromUserPath -Directory $scriptsDir
+    }
+
+    # 4. Clean dev directory subfolder
+    if ($hasValidSitePath -and (Test-Path $sitePath)) {
+        Write-Log "Removing dev directory subfolder: $sitePath" -Level "info"
+        Remove-Item -Path $sitePath -Recurse -Force
+        Write-Log "Dev directory subfolder removed: $sitePath" -Level "success"
+    }
+
+    # 5. Remove tracking records
+    Remove-InstalledRecord -Name "python"
+    Remove-ResolvedData -ScriptFolder "05-install-python"
+
+    Write-Log ($LogMessages.messages.pythonUninstallComplete) -Level "success"
+}

@@ -16,13 +16,18 @@
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
     "devDirFromParam": "Using user-specified dev directory: {path}",
-    "pythonSetupComplete": "Python setup complete."
+    "pythonSetupComplete": "Python setup complete.",
+    "uninstallingPython": "Uninstalling Python via Chocolatey...",
+    "pythonUninstallSuccess": "Python uninstalled successfully.",
+    "pythonUninstallFailed": "Python uninstall failed -- package may need manual removal.",
+    "pythonUninstallComplete": "Python uninstall complete. Package removed, env vars cleaned, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install Python and configure pip (default)",
       "install": "Install/upgrade Python only",
-      "configure": "Configure pip user site and PATH only"
+      "configure": "Configure pip user site and PATH only",
+      "uninstall": "Uninstall Python, remove env vars, clean dev dir, purge tracking"
     },
     "parameters": {
       "-Path": "Custom dev directory path (overrides smart detection)"
@@ -31,6 +36,7 @@
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
+      ".\\run.ps1 uninstall",
       ".\\run.ps1 all F:\\dev",
       ".\\run.ps1 install D:\\projects",
       ".\\run.ps1 -Path E:\\dev",

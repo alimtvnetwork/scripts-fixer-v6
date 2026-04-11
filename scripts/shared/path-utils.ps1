@@ -108,3 +108,36 @@ function Add-ToMachinePath {
         return $false
     }
 }
+
+function Remove-FromUserPath {
+    <#
+    .SYNOPSIS
+        Removes a directory from the user PATH if present.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Directory
+    )
+
+    $slm = $script:SharedLogMessages
+    $isInPath = Test-InPath -Directory $Directory -Scope "User"
+    if (-not $isInPath) {
+        Write-Log "PATH does not contain: $Directory -- nothing to remove" -Level "info"
+        return $true
+    }
+
+    try {
+        $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+        $entries = $currentPath.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
+        $filtered = $entries | Where-Object { $_ -ne $Directory }
+        $newPath = ($filtered -join ";")
+
+        [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + $newPath
+        Write-Log "Removed from user PATH: $Directory" -Level "success"
+        return $true
+    } catch {
+        Write-Log "Failed to remove from user PATH: $_" -Level "error"
+        return $false
+    }
+}

@@ -152,3 +152,27 @@ function Save-InstalledError {
 
     Write-Log "Recorded error for '$Name': $ErrorMessage" -Level "warn"
 }
+
+function Remove-InstalledRecord {
+    <#
+    .SYNOPSIS
+        Deletes the .installed/<name>.json tracking file for a tool.
+        Returns $true if removed, $false if file did not exist.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name
+    )
+
+    $installedDir = Get-InstalledDir
+    $filePath = Join-Path $installedDir "$Name.json"
+    $isFilePresent = Test-Path $filePath
+    if ($isFilePresent) {
+        Remove-Item -Path $filePath -Force
+        Write-Log "Removed install record: .installed/$Name.json" -Level "info"
+        return $true
+    }
+
+    Write-Log "No install record found for '$Name' -- nothing to remove" -Level "info"
+    return $false
+}

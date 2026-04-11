@@ -114,3 +114,31 @@ function Save-ResolvedData {
         Write-Log ($slm.messages.resolvedSaveFailed -replace '\{error\}', $_) -Level "warn"
     }
 }
+
+function Remove-ResolvedData {
+    <#
+    .SYNOPSIS
+        Deletes the .resolved/<script-folder>/resolved.json file and its directory.
+        Returns $true if removed, $false if not found.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$ScriptFolder
+    )
+
+    $slm = $script:SharedLogMessages
+
+    # Derive repo root from shared dir location
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $resolvedDir = Join-Path $repoRoot ".resolved" | Join-Path -ChildPath $ScriptFolder
+
+    $isDirPresent = Test-Path $resolvedDir
+    if ($isDirPresent) {
+        Remove-Item -Path $resolvedDir -Recurse -Force
+        Write-Log "Removed resolved data: .resolved/$ScriptFolder" -Level "info"
+        return $true
+    }
+
+    Write-Log "No resolved data found for '$ScriptFolder' -- nothing to remove" -Level "info"
+    return $false
+}
