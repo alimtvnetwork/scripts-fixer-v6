@@ -174,6 +174,23 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 3. Run `Invoke-ChocoUpdate` (list packages, confirm, `choco upgrade all -y`)
 4. Exit
 
+### Path mode (`path`)
+1. Display version header (`Scripts Fixer vX.Y.Z`)
+2. If no argument: show current saved path (or "smart detection" message)
+3. If `--reset`: remove `scripts/dev-path.json`, confirm reset
+4. If path provided: validate format (`X:\...`), save to `scripts/dev-path.json`, confirm
+5. Exit
+
+**Storage:** The saved path is persisted in `scripts/dev-path.json` as `{"path": "D:\\devtools"}`.
+
+**Priority chain** for dev directory resolution (in `Resolve-DevDir`):
+1. `-Path` parameter (per-run override)
+2. `$env:DEV_DIR` (set by orchestrator)
+3. **Saved path** from `scripts/dev-path.json` (set via `.\run.ps1 path`)
+4. Config override value
+5. Smart drive detection (E: > D: > best drive > prompt)
+6. Config default value (legacy fallback)
+
 ### Keyword mode (`install` or `-Install`)
 1. Steps 1-7 same as standard mode
 2. Normalize input from either bare `install` or named `-Install`
