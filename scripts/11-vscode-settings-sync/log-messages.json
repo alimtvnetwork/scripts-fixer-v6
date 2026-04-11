@@ -62,7 +62,19 @@
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} uninstalled successfully.",
     "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
-    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged.",
+    "exportFromEdition": "Exporting settings from VS Code {edition}...",
+    "exportNoEdition": "No VS Code edition found in PATH -- cannot export.",
+    "exportSettingsDirMissing": "Settings directory not found: {path}",
+    "exportedSettings": "Exported settings.json to: {path}",
+    "exportSettingsNotFound": "No settings.json found at: {path}",
+    "exportedKeybindings": "Exported keybindings.json to: {path}",
+    "exportKeybindingsNotFound": "No keybindings.json found at: {path}",
+    "exportingExtensions": "Exporting installed extensions via '{cli}'...",
+    "exportedExtensions": "Exported {count} extension(s) to: {path}",
+    "exportNoExtensions": "No extensions found to export.",
+    "exportExtensionsFailed": "Failed to export extensions: {error}",
+    "exportComplete": "VS Code settings export complete. Files saved to script folder."
   },
   "help": {
     "commands": {
