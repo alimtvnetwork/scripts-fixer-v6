@@ -41,8 +41,6 @@ function Install-Php {
                 return $true
             }
         }
-            return $true
-        }
 
         Write-Log ($LogMessages.messages.phpFound -replace '\{version\}', $version) -Level "success"
         Save-InstalledRecord -Name "php" -Version $versionStr
