@@ -3,6 +3,9 @@
 #  Installs and updates the Chocolatey package manager.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 
