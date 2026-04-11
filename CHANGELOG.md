@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.16.1] -- 2026-04-11
+
+### Added
+
+- **Status command** -- `.\run.ps1 status`
+  - Dashboard-style table showing all tracked tools with version, status, and install source
+  - Reads from `.installed/` tracking files
+  - Flags tools with recorded errors (`error`) or unverified versions (`unverified`)
+  - Optional `choco outdated` check shows available upgrades
+  - `.\run.ps1 status --no-choco` skips the outdated check for faster output
+- **Defensive empty-version guards** across all install helpers
+  - Wraps `--version` calls in `try/catch` with `$hasVersion` guard before `Test-AlreadyInstalled`
+  - Prevents empty strings from being passed to tracking functions
+  - Applied to: nodejs, pnpm, yarn, bun, git, git-lfs, gh CLI, golang, mingw, php, powershell, flutter
+
+---
+
 ## [v0.16.0] -- 2026-04-11
 
 ### Added
@@ -32,6 +49,18 @@ All notable changes to this project are documented in this file.
 
 - `dotnet`, `.net`, `dotnet-sdk`, `csharp`, `c#`, `dotnet-6`, `dotnet-8`, `dotnet-9`
 - `java`, `openjdk`, `jdk`, `jre`, `jdk-17`, `jdk-21`
+
+---
+
+## [v0.15.4] -- 2026-04-11
+
+### Fixed
+
+- **PATH refresh after Chocolatey upgrades** -- all upgrade blocks now refresh `$env:Path` from Machine + User immediately after `Upgrade-ChocoPackage`
+  - Prevents stale PATH causing `--version` to return empty after an upgrade
+  - Applied to: VSCode (01), Node.js (03), Golang (06), Git + LFS + GH CLI (07), GitHub Desktop (08), MinGW/C++ (09), Flutter (38)
+- **Empty-version guard in upgrade blocks** -- version capture wrapped in `try/catch` with fallback to `"(version pending)"` when unresolvable
+- **Python installer duplicate save** -- removed second `Save-InstalledRecord` call that wrote empty `$newVersion`, causing the `"Warning: empty version"` warning
 
 ---
 
