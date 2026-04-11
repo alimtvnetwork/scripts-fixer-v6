@@ -623,6 +623,10 @@ if ($hasCommand) {
             Write-Host "  Run .\run.ps1 -Help to see all available keywords" -ForegroundColor Cyan
             exit 1
         }
+    } elseif ($isBareExportCommand) {
+        Show-VersionHeader
+        Invoke-ExportCommand -Args $Install
+        exit 0
     } elseif ($isBarePathCommand) {
         Show-VersionHeader
         Invoke-PathCommand -Args $Install
