@@ -23,7 +23,7 @@ internal repo list.
 | `chocoPackageName` | string | Chocolatey package (`github-desktop`) |
 | `alwaysUpgradeToLatest` | bool | Upgrade on every run |
 | `scanFolders.enabled` | bool | Enable post-install folder scanning |
-| `scanFolders.paths` | string[] | Folders to scan for Git repos (e.g. `["D:\\dev", "D:\\projects"]`) |
+| `scanFolders.paths` | string[] | Folders to scan for Git repos (e.g. `["D:\\dev-tool", "D:\\projects"]`) |
 | `scanFolders.maxDepth` | int | How deep to recurse (default `2`) |
 | `scanFolders.excludePatterns` | string[] | Folder names to skip (e.g. `node_modules`, `.archive`) |
 

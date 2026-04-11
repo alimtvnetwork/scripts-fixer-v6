@@ -27,7 +27,7 @@ Apache document database with REST API.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\couchdb`
+1. **Dev directory** (default): `E:\dev-tool\couchdb`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

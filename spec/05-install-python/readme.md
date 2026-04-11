@@ -46,7 +46,7 @@ The `uninstall` subcommand performs a full cleanup:
 
 ```powershell
 .\run.ps1 uninstall            # Full uninstall with smart dev dir detection
-.\run.ps1 uninstall E:\dev     # Uninstall, clean E:\dev\python specifically
+.\run.ps1 uninstall E:\dev     # Uninstall, clean E:\dev-tool\python specifically
 ```
 
 ## config.json

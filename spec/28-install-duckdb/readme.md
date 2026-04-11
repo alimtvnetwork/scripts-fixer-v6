@@ -27,7 +27,7 @@ Analytical file-based columnar database.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\duckdb`
+1. **Dev directory** (default): `E:\dev-tool\duckdb`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

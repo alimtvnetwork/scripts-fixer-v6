@@ -66,7 +66,7 @@ install location of a database.
 |-----------|------|----------|-------------|
 | `-Name` | string | Yes | Database identifier (typically the Chocolatey package name, e.g. `mysql`, `postgresql`) |
 | `-VerifyCommand` | string | Yes | CLI command to locate the install (e.g. `mysql`, `psql`) |
-| `-DevDir` | string | Yes | The resolved dev directory path (e.g. `E:\dev`) |
+| `-DevDir` | string | Yes | The resolved dev directory path (e.g. `E:\dev-tool`) |
 
 #### Returns
 
@@ -90,7 +90,7 @@ install location of a database.
 After running all database installers, the dev directory will contain:
 
 ```
-E:\dev\
+E:\dev-tool\
   databases\
     mysql\          -> C:\Program Files\MySQL\MySQL Server 8.0  (junction)
     postgresql\     -> C:\Program Files\PostgreSQL\16            (junction)
@@ -159,8 +159,8 @@ $mysqlDir = Resolve-DbInstallDir -VerifyCommand "mysql"
 # Returns: C:\Program Files\MySQL\MySQL Server 8.0
 
 # Create junction
-New-DbSymlink -Name "mysql" -VerifyCommand "mysql" -DevDir "E:\dev"
-# Creates: E:\dev\databases\mysql -> C:\Program Files\MySQL\MySQL Server 8.0
+New-DbSymlink -Name "mysql" -VerifyCommand "mysql" -DevDir "E:\dev-tool"
+# Creates: E:\dev-tool\databases\mysql -> C:\Program Files\MySQL\MySQL Server 8.0
 ```
 
 ---

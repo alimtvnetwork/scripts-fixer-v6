@@ -27,7 +27,7 @@ Graph database for connected data.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\neo4j`
+1. **Dev directory** (default): `E:\dev-tool\neo4j`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

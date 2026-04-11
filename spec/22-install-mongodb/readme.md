@@ -27,7 +27,7 @@ Document-oriented NoSQL database.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\mongodb`
+1. **Dev directory** (default): `E:\dev-tool\mongodb`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

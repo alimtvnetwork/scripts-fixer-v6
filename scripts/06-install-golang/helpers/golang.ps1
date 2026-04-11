@@ -99,12 +99,12 @@ function Resolve-Gopath {
 
     $hasNoConfig = -not $GopathConfig
     if ($hasNoConfig) {
-        $fallback = "E:\dev\go"
+        $fallback = "E:\dev-tool\go"
         Write-Log ($LogMessages.messages.gopathNoConfig -replace '\{path\}', $fallback) -Level "warn"
         return $fallback
     }
 
-    $default  = if ($GopathConfig.default)  { $GopathConfig.default }  else { "E:\dev\go" }
+    $default  = if ($GopathConfig.default)  { $GopathConfig.default }  else { "E:\dev-tool\go" }
     $override = if ($GopathConfig.override) { $GopathConfig.override } else { "" }
 
     $hasOverride = -not [string]::IsNullOrWhiteSpace($override)

@@ -27,7 +27,7 @@ Installs LiteDB with flexible installation path options.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\litedb`
+1. **Dev directory** (default): `E:\dev-tool\litedb`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 
