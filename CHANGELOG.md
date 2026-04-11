@@ -18,7 +18,15 @@ All notable changes to this project are documented in this file.
   - Sets JAVA_HOME environment variable automatically
   - Installs to dev directory (`<devDir>\java`)
   - Full uninstall support with JAVA_HOME cleanup and tracking purge
-- **Install location logging** -- all scripts now log the target install directory at startup
+- **Audit Check 12 -- Export Coverage** -- verifies settings-capable scripts (32, 33, 36, 37) have:
+  - `Export-*` function in helpers/
+  - `"export"` command handler in run.ps1
+  - Export-related messages in log-messages.json
+- **Root export command** -- `.\run.ps1 export`
+  - Batch-export all app settings (DBeaver, NPP, OBS, Windows Terminal)
+  - `.\run.ps1 export npp,obs` -- export specific apps only
+  - Keyword support: dbeaver, npp, obs, wt
+- **Install location logging** -- all new scripts log the target install directory at startup
 
 ### Keywords
 

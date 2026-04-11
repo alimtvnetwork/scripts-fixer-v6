@@ -132,6 +132,8 @@ function Show-RootHelp {
     Write-Host "    $(".\run.ps1 update --check".PadRight($col))" -NoNewline; Write-Host "List outdated packages (no upgrade)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 update -y".PadRight($col))" -NoNewline; Write-Host "Upgrade all, skip confirmation" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 update --exclude=pkg1,pkg2".PadRight($col))" -NoNewline; Write-Host "Upgrade all except listed" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 export".PadRight($col))" -NoNewline; Write-Host "Export all app settings to repo" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 export npp,obs".PadRight($col))" -NoNewline; Write-Host "Export specific app settings" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path <dir>".PadRight($col))" -NoNewline; Write-Host "Set default dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path".PadRight($col))" -NoNewline; Write-Host "Show current dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path --reset".PadRight($col))" -NoNewline; Write-Host "Clear saved path, use smart detection" -ForegroundColor DarkGray
