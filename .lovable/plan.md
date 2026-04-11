@@ -1,106 +1,126 @@
-# v0.14.0 Plan: Enhanced Choco Update Command
+# v0.16.x Release Cycle Plan
 
-## Current State
+## Overview
 
-The `.\run.ps1 update` command does one thing: lists all installed packages, confirms, then runs `choco upgrade all -y`. No selective updates, no outdated check, no skip/exclude support.
+The v0.15.x cycle completed: enhanced choco update, settings export for 4 apps (DBeaver, NPP, OBS, WT), and a Python empty-version bugfix. The v0.16.x cycle focuses on **robustness**, **developer experience**, and **new script capabilities**.
 
-## Proposed Enhancements
+---
 
-### 1. Outdated Check (`update` default behaviour change)
+## Feature 1: Audit Check 12 -- Export Coverage
+**Priority:** High | **Estimated version:** v0.16.0
 
-Instead of listing all packages, first run `choco outdated` to show only packages with available updates. This gives the user a clearer picture of what will actually change.
+Add a new audit check that verifies every settings-capable script (32, 33, 36, 37) has:
+- An `Export-*` function in helpers/
+- An `"export"` command handler in run.ps1
+- Export-related log messages in log-messages.json
 
-```
-  Outdated Packages
-  =================
+This mirrors the existing Check 11 (Uninstall Coverage) pattern.
 
-    Package              Current    Available
-    -------------------  ---------  ---------
-    nodejs.install       20.11.0    22.3.0
-    python3              3.12.1     3.13.0
-    git.install          2.43.0     2.45.0
+---
 
-  3 package(s) have updates available
-```
+## Feature 2: `.\run.ps1 export` Command
+**Priority:** High | **Estimated version:** v0.16.0
 
-### 2. Selective Update (`update <packages>`)
-
-Allow updating specific packages by name:
-
+Add a root-level `export` subcommand to batch-export all settings at once:
 ```powershell
-.\run.ps1 update nodejs           # Update only Node.js
-.\run.ps1 update nodejs,python3   # Update Node.js + Python
-.\run.ps1 update git              # Update Git
+.\run.ps1 export              # export all settings (NPP, OBS, WT, DBeaver)
+.\run.ps1 export npp,obs      # export specific apps only
 ```
 
-### 3. Check-Only Mode (`update --check`)
+Uses the same keyword mapping system. Iterates through settings-capable scripts and invokes their `export` subcommand.
 
-Show outdated packages without upgrading:
+---
 
+## Feature 3: `.\run.ps1 status` Command
+**Priority:** Medium | **Estimated version:** v0.16.1
+
+Show a dashboard-style summary of all installed tools:
+```
+  Tool             Version        Status     Source
+  ------------------------------------------------
+  VS Code          1.96.0         ok         choco
+  Node.js          22.12.0        outdated   choco
+  Python           (not found)    missing    --
+  Git              2.47.1         ok         choco
+```
+
+Reads from `.installed/` tracking files and optionally runs `choco outdated` for freshness. Flags tools with recorded errors.
+
+---
+
+## Feature 4: Defensive Empty-Version Guards
+**Priority:** Medium | **Estimated version:** v0.16.1
+
+The Python crash revealed a pattern: `--version` can return empty. Audit ALL install helpers for the same vulnerability:
+- Scripts that call `Test-AlreadyInstalled` with a version from `& tool --version`
+- Add `$hasVersion` guard before each call
+- Affected scripts: potentially 01, 03, 06, 07, 09, 16, 17 and all database scripts
+
+---
+
+## Feature 5: VSCode Settings Export (Script 11)
+**Priority:** Medium | **Estimated version:** v0.16.2
+
+Script 11 already syncs settings TO the machine. Add the reverse `export` command to copy FROM the machine:
+- Export `settings.json`, `keybindings.json` from `%APPDATA%\Code\User\`
+- Export installed extensions list via `code --list-extensions`
+- Export the active profile if available
+- Save to the script 11 folder
+
+---
+
+## Feature 6: `.\run.ps1 doctor` Command
+**Priority:** Low | **Estimated version:** v0.16.3
+
+A quick health-check that verifies the project setup itself:
+- Scripts root directory exists and has expected structure
+- `version.json` is readable and valid
+- `.logs/` and `.installed/` directories exist
+- Registry IDs match folder count
+- Chocolatey is reachable
+- Admin rights check
+
+Lighter than full audit -- runs in < 2 seconds for quick sanity checks.
+
+---
+
+## Feature 7: Shared `Assert-ToolVersion` Helper
+**Priority:** Low | **Estimated version:** v0.16.3
+
+Extract the repeated pattern of "run `--version`, guard empty, check tracking, log result" into a reusable shared helper:
 ```powershell
-.\run.ps1 update --check          # List outdated packages, no upgrade
+$result = Assert-ToolVersion -Name "python" -Command "python" -VersionFlag "--version"
+# Returns: @{ Exists = $true; Version = "Python 3.12.0"; IsTracked = $true }
 ```
 
-### 4. Force Mode (`update -y`)
+Reduces boilerplate across all 30+ install helpers and prevents future empty-version bugs.
 
-Skip the confirmation prompt:
+---
 
-```powershell
-.\run.ps1 update -y               # Upgrade all without confirmation
-.\run.ps1 update nodejs -y        # Upgrade nodejs without confirmation
-```
+## Release Sequence
 
-### 5. Exclude Packages (`update --exclude`)
+| Version  | Features                                        |
+|----------|-------------------------------------------------|
+| v0.16.0  | Audit Check 12 (export coverage) + root export command |
+| v0.16.1  | Status command + defensive version guards        |
+| v0.16.2  | VSCode settings export                           |
+| v0.16.3  | Doctor command + shared Assert-ToolVersion       |
 
-Upgrade all except specified packages:
+---
 
-```powershell
-.\run.ps1 update --exclude chocolatey,chocolatey-core.extension
-```
+## Not in Scope (Future)
 
-## Updated Command Summary
+- GUI/TUI for the interactive menu (consider for v0.17.x)
+- Cross-machine settings sync via cloud storage
+- Linux/macOS support
+- New tool scripts (Docker, Rust, Java -- track as separate proposals)
 
-| Command | Description |
-|---------|-------------|
-| `.\run.ps1 update` | Show outdated, confirm, upgrade all |
-| `.\run.ps1 update nodejs,git` | Upgrade specific packages only |
-| `.\run.ps1 update --check` | List outdated packages (no upgrade) |
-| `.\run.ps1 update -y` | Upgrade all, skip confirmation |
-| `.\run.ps1 update --exclude pkg1,pkg2` | Upgrade all except listed |
-
-## Implementation Tasks
-
-1. **Extract `Invoke-ChocoUpdate` to `scripts/shared/choco-update.ps1`** -- Move from inline function in `run.ps1` to a dedicated shared helper for maintainability
-2. **Add `choco outdated` parsing** -- Replace `choco list --local-only` with `choco outdated` to show only updatable packages
-3. **Add selective package support** -- Parse remaining positional args after `update` as package names
-4. **Add `--check` flag** -- Show outdated list and exit without upgrading
-5. **Add `-y` auto-confirm** -- Skip the `[Y/n]` prompt when `-y` is passed
-6. **Add `--exclude` support** -- Filter packages before running upgrade
-7. **Update help text** -- Add new update modes to `Show-RootHelp`
-8. **Update spec doc** -- Rewrite `spec/choco-update/readme.md` with new features
-9. **Add log messages** -- Add update-specific messages to shared log-messages.json
-10. **Bump version to v0.14.0**
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `scripts/shared/choco-update.ps1` | **NEW** -- Extracted + enhanced update logic |
-| `run.ps1` | Replace inline function with dot-source; parse `update` args |
-| `scripts/shared/log-messages.json` | Add update log messages |
-| `spec/choco-update/readme.md` | Full rewrite with new features |
-| `CHANGELOG.md` | v0.14.0 entry |
-| `scripts/version.json` | Bump to 0.14.0 |
-
-## Risk Assessment
-
-| Risk | Level | Mitigation |
-|------|-------|------------|
-| `choco outdated` output format changes | LOW | Parse defensively; fallback to `choco list` |
-| Selective update with wrong package name | LOW | Chocolatey itself reports "package not found" |
-| Breaking existing `update` flow | LOW | Default behaviour (update all) is preserved; enhancements are additive |
+---
 
 ## Status
 
-- [x] Plan approved
-- [x] Implementation complete (v0.15.0)
+- [ ] Plan approved
+- [ ] v0.16.0 implementation
+- [ ] v0.16.1 implementation
+- [ ] v0.16.2 implementation
+- [ ] v0.16.3 implementation
