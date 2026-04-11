@@ -147,6 +147,7 @@ Install tools by human-friendly name instead of script ID:
 .\run.ps1 -Install python,php        # Named parameter style
 .\run.ps1 install databases          # Interactive database menu
 .\run.ps1 install mysql,redis        # Install specific databases
+.\run.ps1 install pylibs             # Python + all pip libraries (numpy, pandas, jupyter, etc.)
 ```
 
 Keywords are case-insensitive, support comma/space separation, auto-deduplicate, and run in sorted order. See `scripts/shared/install-keywords.json` for the full keyword map.
