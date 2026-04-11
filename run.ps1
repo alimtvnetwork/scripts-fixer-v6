@@ -37,7 +37,11 @@
     .\run.ps1 -Install python        # install Python + pip
     .\run.ps1 -Install go,git,cpp    # install Go, Git, and C++
     .\run.ps1 -Install all-dev       # interactive dev tools menu
-    .\run.ps1 update                 # upgrade all Chocolatey packages
+    .\run.ps1 update                 # show outdated, confirm, upgrade all
+    .\run.ps1 update nodejs,git        # upgrade specific packages only
+    .\run.ps1 update --check           # list outdated packages (no upgrade)
+    .\run.ps1 update -y                # upgrade all, skip confirmation
+    .\run.ps1 update --exclude=choco   # upgrade all except listed
     .\run.ps1 path D:\devtools       # set default dev directory
     .\run.ps1 path                   # show current dev directory
     .\run.ps1 path --reset           # clear saved path, use smart detection
@@ -123,7 +127,11 @@ function Show-RootHelp {
     $col = 42
     Write-Host "    $(".\run.ps1 install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (bare command)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (named parameter)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Upgrade all Chocolatey packages" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Show outdated, confirm, upgrade all" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update nodejs,git".PadRight($col))" -NoNewline; Write-Host "Upgrade specific packages only" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update --check".PadRight($col))" -NoNewline; Write-Host "List outdated packages (no upgrade)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update -y".PadRight($col))" -NoNewline; Write-Host "Upgrade all, skip confirmation" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 update --exclude=pkg1,pkg2".PadRight($col))" -NoNewline; Write-Host "Upgrade all except listed" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path <dir>".PadRight($col))" -NoNewline; Write-Host "Set default dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path".PadRight($col))" -NoNewline; Write-Host "Show current dev directory" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 path --reset".PadRight($col))" -NoNewline; Write-Host "Clear saved path, use smart detection" -ForegroundColor DarkGray
@@ -519,95 +527,8 @@ function Invoke-ScriptById {
     return $true
 }
 
-# ── Choco Update function ────────────────────────────────────────────
-function Invoke-ChocoUpdate {
-    <#
-    .SYNOPSIS
-        Lists all installed Chocolatey packages, confirms with user, then
-        runs choco upgrade all.
-    #>
-
-    # Ensure Chocolatey is available
-    $chocoCmd = Get-Command choco.exe -ErrorAction SilentlyContinue
-    $isChocoMissing = -not $chocoCmd
-    if ($isChocoMissing) {
-        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
-        Write-Host "Chocolatey is not installed. Run .\run.ps1 install choco first."
-        return
-    }
-
-    Write-Host ""
-    Write-Host "  Chocolatey Package Update" -ForegroundColor Cyan
-    Write-Host "  =========================" -ForegroundColor DarkGray
-    Write-Host ""
-
-    # List installed packages
-    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-    Write-Host "Listing installed Chocolatey packages..."
-    Write-Host ""
-
-    $installedRaw = & choco.exe list --local-only 2>&1
-    $packageLines = @($installedRaw | Where-Object {
-        $line = $_.ToString().Trim()
-        $isNotEmpty = $line.Length -gt 0
-        $isNotSummary = $line -notmatch '^\d+ packages installed'
-        $isNotHeader = $line -notmatch '^Chocolatey v'
-        $isNotEmpty -and $isNotSummary -and $isNotHeader
-    })
-
-    $packageCount = $packageLines.Count
-    if ($packageCount -eq 0) {
-        Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-        Write-Host "No Chocolatey packages found."
-        return
-    }
-
-    Write-Host "    Package                              Version" -ForegroundColor DarkGray
-    Write-Host "    -------------------------------------  --------------------" -ForegroundColor DarkGray
-    foreach ($line in $packageLines) {
-        $parts = $line.ToString().Trim() -split '\s+'
-        $pkgName = if ($parts.Count -ge 1) { $parts[0] } else { $line }
-        $pkgVer  = if ($parts.Count -ge 2) { $parts[1] } else { "" }
-        Write-Host "    $($pkgName.PadRight(41))" -NoNewline
-        Write-Host "$pkgVer" -ForegroundColor Yellow
-    }
-
-    Write-Host ""
-    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-    Write-Host "$packageCount package(s) installed"
-    Write-Host ""
-
-    # Confirm
-    $confirm = Read-Host "  Do you want to upgrade ALL packages? [Y/n]"
-    $isAborted = $confirm.Trim().ToUpper() -eq "N"
-    if ($isAborted) {
-        Write-Host "  [ SKIP ] Update cancelled by user." -ForegroundColor Yellow
-        return
-    }
-
-    Write-Host ""
-    Write-Host "  [ INFO ] " -ForegroundColor Cyan -NoNewline
-    Write-Host "Running: choco upgrade all -y"
-    Write-Host ""
-
-    try {
-        & choco.exe upgrade all -y
-        $hasUpgradeFailed = $LASTEXITCODE -ne 0
-        if ($hasUpgradeFailed) {
-            Write-Host ""
-            Write-Host "  [ WARN ] " -ForegroundColor Yellow -NoNewline
-            Write-Host "Some packages may have failed to upgrade (exit code: $LASTEXITCODE)"
-        } else {
-            Write-Host ""
-            Write-Host "  [  OK  ] " -ForegroundColor Green -NoNewline
-            Write-Host "All packages upgraded successfully"
-        }
-    } catch {
-        Write-Host ""
-        Write-Host "  [ FAIL ] " -ForegroundColor Red -NoNewline
-        Write-Host "Upgrade failed: $_"
-    }
-}
+# ── Load choco-update helper ─────────────────────────────────────────
+. (Join-Path $RootDir "scripts\shared\choco-update.ps1")
 
 # ── Path command function ─────────────────────────────────────────────
 function Invoke-PathCommand {
@@ -717,8 +638,53 @@ if ($hasCommand) {
             Invoke-GitPull -RepoRoot $RootDir
         }
 
-        # Then update Chocolatey packages
-        Invoke-ChocoUpdate
+        # Parse update arguments from $Install (remaining positional args)
+        $updateArgs = @{}
+        $updatePackages = @()
+        $updateExclude  = @()
+        $isCheckOnly    = $false
+        $isAutoConfirm  = $false
+
+        if ($null -ne $Install -and $Install.Count -gt 0) {
+            foreach ($arg in $Install) {
+                $argLower = $arg.Trim().ToLower()
+
+                $isCheckFlag = $argLower -eq "--check" -or $argLower -eq "-check"
+                if ($isCheckFlag) { $isCheckOnly = $true; continue }
+
+                $isYesFlag = $argLower -eq "-y" -or $argLower -eq "--yes"
+                if ($isYesFlag) { $isAutoConfirm = $true; continue }
+
+                $isExcludeFlag = $argLower.StartsWith("--exclude")
+                if ($isExcludeFlag) {
+                    # Handle --exclude pkg1,pkg2 or --exclude=pkg1,pkg2
+                    $excludeValue = ""
+                    $hasEquals = $argLower.Contains("=")
+                    if ($hasEquals) {
+                        $excludeValue = $arg.Substring($arg.IndexOf("=") + 1)
+                    }
+                    $hasExcludeValue = $excludeValue.Length -gt 0
+                    if ($hasExcludeValue) {
+                        $updateExclude += $excludeValue -split ','
+                    }
+                    continue
+                }
+
+                # Otherwise treat as package name(s)
+                $pkgTokens = $arg -split '[,\s]+' | Where-Object { $_.Length -gt 0 }
+                $updatePackages += $pkgTokens
+            }
+        }
+
+        # Also check if -Y switch was passed at root level
+        if ($Y) { $isAutoConfirm = $true }
+
+        $updateArgs["Packages"]    = $updatePackages
+        $updateArgs["Exclude"]     = $updateExclude
+        if ($isCheckOnly)   { $updateArgs["CheckOnly"]   = $true }
+        if ($isAutoConfirm) { $updateArgs["AutoConfirm"] = $true }
+
+        Invoke-ChocoUpdate @updateArgs
         exit 0
     } elseif ($isBareScriptId) {
         $I = [int]$normalizedCommand

@@ -102,5 +102,5 @@ Upgrade all except specified packages:
 
 ## Status
 
-- [ ] Plan approved
-- [ ] Implementation started
+- [x] Plan approved
+- [x] Implementation complete (v0.15.0)

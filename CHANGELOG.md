@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.15.0] -- 2026-04-11
+
+### Added
+
+- **Enhanced choco update command** -- extracted to `scripts/shared/choco-update.ps1`
+  - `.\run.ps1 update` now shows only outdated packages (via `choco outdated`) instead of listing all
+  - `.\run.ps1 update nodejs,git` -- selective package updates
+  - `.\run.ps1 update --check` -- check-only mode (list outdated, no upgrade)
+  - `.\run.ps1 update -y` -- auto-confirm mode (skip [Y/n] prompt)
+  - `.\run.ps1 update --exclude=pkg1,pkg2` -- upgrade all except listed packages
+  - Root `-Y` switch also honored for auto-confirm
+
+---
+
 ## [v0.14.1] -- 2026-04-11
 
 ### Added
