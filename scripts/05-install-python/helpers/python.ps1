@@ -450,7 +450,8 @@ function Update-PythonPath {
     param(
         $Config,
         $LogMessages,
-        [string]$SitePath
+        [string]$SitePath,
+        [string]$DevDir
     )
 
     $isPathUpdateDisabled = -not $Config.path.updateUserPath
