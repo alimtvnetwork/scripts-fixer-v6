@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.3] -- 2026-04-11
+
+### Added
+
+- **Jupyter & pip combo keywords** in `install-keywords.json`
+  - `jupyter+libs` -- installs Jupyter group only (jupyterlab, notebook, ipykernel, ipywidgets)
+  - `pip+jupyter+libs` -- installs Python (05) + all pip libraries (41)
+  - `python+jupyter` -- installs Python (05) + all pip libraries (41)
+
+---
+
 ## [v0.17.2] -- 2026-04-11
 
 ### Added
