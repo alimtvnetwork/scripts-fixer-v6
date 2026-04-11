@@ -314,6 +314,108 @@ function Invoke-Edition {
     return $isAllOk
 }
 
+function Export-VsCodeSettings {
+    <#
+    .SYNOPSIS
+        Exports current VS Code settings, keybindings, and extensions
+        from the machine back into the script 11 folder.
+    #>
+    param(
+        $Config,
+        $LogMessages,
+        [string]$ScriptDir
+    )
+
+    $enabledEditions = $Config.enabledEditions
+
+    # Use first available edition for export
+    $exportEdition = $null
+    $exportEditionName = $null
+    $exportCli = $null
+
+    foreach ($edName in $enabledEditions) {
+        $ed = $Config.editions.$edName
+        $hasCli = Get-Command $ed.cliCommand -ErrorAction SilentlyContinue
+        if ($hasCli) {
+            $exportEdition = $ed
+            $exportEditionName = $edName
+            $exportCli = $ed.cliCommand
+            break
+        }
+    }
+
+    $hasNoEdition = -not $exportEdition
+    if ($hasNoEdition) {
+        Write-Log $LogMessages.messages.exportNoEdition -Level "error"
+        return
+    }
+
+    Write-Log ($LogMessages.messages.exportFromEdition -replace '\{edition\}', $exportEditionName) -Level "info"
+
+    # Resolve source settings directory
+    $rawPath = $exportEdition.settingsPath
+    $settingsDir = [System.Environment]::ExpandEnvironmentVariables($rawPath)
+
+    $isDirMissing = -not (Test-Path $settingsDir)
+    if ($isDirMissing) {
+        Write-Log ($LogMessages.messages.exportSettingsDirMissing -replace '\{path\}', $settingsDir) -Level "error"
+        return
+    }
+
+    # 1. Export settings.json
+    $srcSettings = Join-Path $settingsDir "settings.json"
+    $destSettings = Join-Path $ScriptDir "settings.json"
+    $hasSettings = Test-Path $srcSettings
+    if ($hasSettings) {
+        Copy-Item -Path $srcSettings -Destination $destSettings -Force
+        Write-Log ($LogMessages.messages.exportedSettings -replace '\{path\}', $destSettings) -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.exportSettingsNotFound -replace '\{path\}', $srcSettings) -Level "warn"
+    }
+
+    # 2. Export keybindings.json
+    $srcKeybindings = Join-Path $settingsDir "keybindings.json"
+    $destKeybindings = Join-Path $ScriptDir "keybindings.json"
+    $hasKeybindings = Test-Path $srcKeybindings
+    if ($hasKeybindings) {
+        Copy-Item -Path $srcKeybindings -Destination $destKeybindings -Force
+        Write-Log ($LogMessages.messages.exportedKeybindings -replace '\{path\}', $destKeybindings) -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.exportKeybindingsNotFound -replace '\{path\}', $srcKeybindings) -Level "warn"
+    }
+
+    # 3. Export extensions list via CLI
+    Write-Log ($LogMessages.messages.exportingExtensions -replace '\{cli\}', $exportCli) -Level "info"
+    try {
+        $extList = & $exportCli --list-extensions 2>$null
+        $hasExtensions = -not [string]::IsNullOrWhiteSpace($extList)
+        if ($hasExtensions) {
+            $extensions = @($extList -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+            $extData = @{
+                extensions = $extensions
+                disabled   = @()
+            }
+            $destExtensions = Join-Path $ScriptDir "extensions.json"
+            $extData | ConvertTo-Json -Depth 5 | Out-File -FilePath $destExtensions -Encoding utf8 -Force
+            Write-Log ($LogMessages.messages.exportedExtensions -replace '\{count\}', $extensions.Count -replace '\{path\}', $destExtensions) -Level "success"
+        } else {
+            Write-Log $LogMessages.messages.exportNoExtensions -Level "warn"
+        }
+    } catch {
+        Write-Log ($LogMessages.messages.exportExtensionsFailed -replace '\{error\}', "$_") -Level "error"
+    }
+
+    # 4. Save resolved export state
+    Save-ResolvedData -ScriptFolder "11-vscode-settings-sync" -Data @{
+        lastExport = @{
+            edition   = $exportEditionName
+            timestamp = (Get-Date -Format "o")
+        }
+    }
+
+    Write-Log $LogMessages.messages.exportComplete -Level "success"
+}
+
 function Uninstall-VsCodeSync {
     <#
     .SYNOPSIS

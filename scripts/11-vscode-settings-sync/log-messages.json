@@ -62,17 +62,31 @@
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} uninstalled successfully.",
     "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
-    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged.",
+    "exportFromEdition": "Exporting settings from VS Code {edition}...",
+    "exportNoEdition": "No VS Code edition found in PATH -- cannot export.",
+    "exportSettingsDirMissing": "Settings directory not found: {path}",
+    "exportedSettings": "Exported settings.json to: {path}",
+    "exportSettingsNotFound": "No settings.json found at: {path}",
+    "exportedKeybindings": "Exported keybindings.json to: {path}",
+    "exportKeybindingsNotFound": "No keybindings.json found at: {path}",
+    "exportingExtensions": "Exporting installed extensions via '{cli}'...",
+    "exportedExtensions": "Exported {count} extension(s) to: {path}",
+    "exportNoExtensions": "No extensions found to export.",
+    "exportExtensionsFailed": "Failed to export extensions: {error}",
+    "exportComplete": "VS Code settings export complete. Files saved to script folder."
   },
   "help": {
     "commands": {
       "(default)": "Replace mode -- back up and overwrite settings",
       "-Merge": "Deep-merge incoming settings into existing settings.json",
+      "export": "Export current VS Code settings, keybindings, and extensions to script folder",
       "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -Merge",
+      ".\\run.ps1 export",
       ".\\run.ps1 -Help",
       ".\\run.ps1 uninstall"
     ]

@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.0] -- 2026-04-11
+
+### Added
+
+- **VSCode settings export** (script 11) -- `.\run.ps1 -I 11 -- export`
+  - Exports `settings.json`, `keybindings.json` from `%APPDATA%\Code\User\` back to the script folder
+  - Exports installed extensions list via `code --list-extensions` into `extensions.json`
+  - Auto-detects first available edition (Stable or Insiders)
+  - Saves resolved export state with timestamp
+  - New help entry and example added
+
+---
+
 ## [v0.16.2] -- 2026-04-11
 
 ### Added

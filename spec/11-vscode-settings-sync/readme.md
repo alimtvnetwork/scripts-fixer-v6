@@ -173,10 +173,13 @@ what was extracted from it, and which fallback JSON files were used.
 
 ```powershell
 # From the project root (backup & replace, default):
-.\run.ps1 -I 2
+.\run.ps1 -I 11
 
 # Deep-merge settings into existing settings.json:
-.\run.ps1 -I 2 -Merge
+.\run.ps1 -I 11 -- -Merge
+
+# Export current VS Code settings back to script folder:
+.\run.ps1 -I 11 -- export
 ```
 
 ## Naming Conventions

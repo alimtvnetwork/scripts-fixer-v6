@@ -65,6 +65,13 @@ if ($isUninstall) {
     return
 }
 
+# -- Export check --------------------------------------------------------------
+$isExport = $Command.ToLower() -eq "export"
+if ($isExport) {
+    Export-VsCodeSettings -Config $config -LogMessages $logMessages -ScriptDir $scriptDir
+    return
+}
+
 # -- Resolve source files ------------------------------------------------------
 $sources = Resolve-SourceFiles -ScriptDir $scriptDir -LogMessages $logMessages
 
