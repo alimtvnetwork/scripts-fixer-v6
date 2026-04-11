@@ -52,6 +52,13 @@ function Show-ScriptHelp {
             }
         }
 
+        # Auto-inject -Path parameter if not already listed
+        $hasPathFlag = $Flags | Where-Object { $_.Name -eq "-Path" }
+        $isPathMissing = -not $hasPathFlag
+        if ($isPathMissing) {
+            $Flags += @{ Name = "-Path"; Description = "Custom dev directory path (overrides smart detection)" }
+        }
+
         # Extract examples
         if ($Examples.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.examples) {
             $Examples = @($LogMessages.help.examples)
