@@ -279,6 +279,14 @@ function Resolve-DevDir {
         return Resolve-UsableDevDir -PathValue $env:DEV_DIR
     }
 
+    # Check saved dev path (set via .\run.ps1 path <dir>)
+    $savedPath = Get-SavedDevPath
+    $hasSavedPath = $null -ne $savedPath
+    if ($hasSavedPath) {
+        Write-Log ($slm.messages.devDirSavedPathLoaded -replace '\{path\}', $savedPath) -Level "success"
+        return Resolve-UsableDevDir -PathValue $savedPath
+    }
+
     $hasNoConfig = -not $DevDirConfig
     if ($hasNoConfig) {
         # No config -- use smart drive detection
