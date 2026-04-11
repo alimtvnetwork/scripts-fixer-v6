@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 ## [v0.19.2] -- 2026-04-11
 
+## [v0.20.0] -- 2026-04-12
+
+### Fixed
+
+- **Python now installs from the official python.org installer** -- script 05 downloads `python-3.12.9-amd64.exe`, installs to `C:\Python312`, and no longer depends on Chocolatey shims to resolve `python.exe`
+- **Python runtime PATH + env are now persisted explicitly** -- `PYTHON_EXE`, `PYTHON_HOME`, and the Python/Scripts directories are written so new terminals and chained scripts can resolve Python immediately
+- **Script 41 now bootstraps script 05 automatically** -- pip/library installs attempt a real Python install first instead of failing immediately when Python is missing
+- **Resolver now probes persisted Python env vars before PATH scanning** -- `Resolve-PythonExe` checks saved `PYTHON_EXE` / `PYTHON_HOME` values before command aliases and wildcard fallbacks
+
+---
+
+## [v0.19.2] -- 2026-04-11
+
 ### Fixed
 
 - **Python resolution now resets `$LASTEXITCODE` before probing** -- stale exit codes from choco install caused `Test-PythonExecutable` to reject valid Python executables

@@ -124,6 +124,25 @@ function Refresh-EnvPath {
 }
 
 
+function Get-PersistedEnvironmentVariableValue {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [ValidateSet("User", "Machine")]
+        [string]$Scope = "User"
+    )
+
+    $value = [System.Environment]::GetEnvironmentVariable($Name, $Scope)
+    $hasValue = -not [string]::IsNullOrWhiteSpace($value)
+    if (-not $hasValue) {
+        return $null
+    }
+
+    return $value.Trim()
+}
+
+
 function Get-PythonResolverCache {
     $cacheVariable = Get-Variable -Name "_ScriptsFixerResolvedPythonInfo" -Scope Global -ErrorAction SilentlyContinue
     $hasCacheVariable = $null -ne $cacheVariable
@@ -370,10 +389,26 @@ function Resolve-PythonExe {
 
     $candidatePaths = [System.Collections.Generic.List[string]]::new()
 
-    $envPythonExe = $env:PYTHON_EXE
-    $hasEnvPythonExe = -not [string]::IsNullOrWhiteSpace($envPythonExe)
-    if ($hasEnvPythonExe) {
-        Add-UniquePath -Target $candidatePaths -Path $envPythonExe
+    $persistedPythonExeValues = @(
+        $env:PYTHON_EXE,
+        (Get-PersistedEnvironmentVariableValue -Name "PYTHON_EXE" -Scope "User"),
+        (Get-PersistedEnvironmentVariableValue -Name "PYTHON_EXE" -Scope "Machine")
+    )
+    foreach ($persistedPythonExe in $persistedPythonExeValues) {
+        Add-UniquePath -Target $candidatePaths -Path $persistedPythonExe
+    }
+
+    $persistedPythonHomes = @(
+        $env:PYTHON_HOME,
+        (Get-PersistedEnvironmentVariableValue -Name "PYTHON_HOME" -Scope "User"),
+        (Get-PersistedEnvironmentVariableValue -Name "PYTHON_HOME" -Scope "Machine")
+    )
+    foreach ($persistedPythonHome in $persistedPythonHomes) {
+        $hasPersistedPythonHome = -not [string]::IsNullOrWhiteSpace($persistedPythonHome)
+        if ($hasPersistedPythonHome) {
+            $persistedPythonPath = Join-Path $persistedPythonHome "python.exe"
+            Add-UniquePath -Target $candidatePaths -Path $persistedPythonPath
+        }
     }
 
     foreach ($commandName in @("python", "python3", "py")) {

@@ -66,17 +66,113 @@ function Set-PythonRuntimeEnvironment {
         return
     }
 
-    $env:PYTHON_EXE = $PythonInfo.Path
-    [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonInfo.Path, "User")
-
     $pythonDir = Split-Path -Parent $PythonInfo.Path
+    $env:PYTHON_EXE = $PythonInfo.Path
+    $env:PYTHON_HOME = $pythonDir
+    [System.Environment]::SetEnvironmentVariable("PYTHON_EXE", $PythonInfo.Path, "User")
+    [System.Environment]::SetEnvironmentVariable("PYTHON_HOME", $pythonDir, "User")
+
     Add-DirectoryToProcessPath -Directory $pythonDir
 
     $pythonScriptsDir = Join-Path $pythonDir "Scripts"
     $hasPythonScriptsDir = Test-Path $pythonScriptsDir -PathType Container
     if ($hasPythonScriptsDir) {
+        $env:PYTHON_SCRIPTS = $pythonScriptsDir
+        [System.Environment]::SetEnvironmentVariable("PYTHON_SCRIPTS", $pythonScriptsDir, "User")
         Add-DirectoryToProcessPath -Directory $pythonScriptsDir
     }
+}
+
+function Get-PythonInstallerConfig {
+    param(
+        $Config
+    )
+
+    $configFilePath = Join-Path (Split-Path -Parent $PSScriptRoot) "config.json"
+    $installerConfig = $Config.installer
+    $hasInstallerConfig = $null -ne $installerConfig
+    if (-not $hasInstallerConfig) {
+        $reason = "Missing 'installer' section required for official Python downloads"
+        Write-FileError -FilePath $configFilePath -Operation "load" -Reason $reason -Module "Get-PythonInstallerConfig"
+        throw $reason
+    }
+
+    $version = "$($installerConfig.version)".Trim()
+    $downloadUrl = "$($installerConfig.downloadUrl)".Trim()
+    $fileName = "$($installerConfig.fileName)".Trim()
+    $installDir = "$($installerConfig.installDir)".Trim()
+
+    foreach ($field in @(
+        @{ Name = "version"; Value = $version },
+        @{ Name = "downloadUrl"; Value = $downloadUrl },
+        @{ Name = "fileName"; Value = $fileName },
+        @{ Name = "installDir"; Value = $installDir }
+    )) {
+        $hasValue = -not [string]::IsNullOrWhiteSpace($field.Value)
+        if (-not $hasValue) {
+            $reason = "Missing installer.$($field.Name) value"
+            Write-FileError -FilePath $configFilePath -Operation "load" -Reason $reason -Module "Get-PythonInstallerConfig"
+            throw $reason
+        }
+    }
+
+    return @{
+        Version        = $version
+        DownloadUrl    = $downloadUrl
+        FileName       = $fileName
+        InstallDir     = $installDir
+        InstallAllUsers = [bool]$installerConfig.allUsers
+        IncludePip     = [bool]$installerConfig.includePip
+    }
+}
+
+function Download-PythonInstaller {
+    param(
+        $InstallerConfig
+    )
+
+    $installerPath = Join-Path ([System.IO.Path]::GetTempPath()) $InstallerConfig.FileName
+    Write-Log "Downloading Python $($InstallerConfig.Version) installer from $($InstallerConfig.DownloadUrl)" -Level "info"
+
+    try {
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $InstallerConfig.DownloadUrl -OutFile $installerPath -UseBasicParsing
+    } catch {
+        $reason = "Failed to download Python installer from $($InstallerConfig.DownloadUrl): $_"
+        Write-FileError -FilePath $installerPath -Operation "write" -Reason $reason -Module "Download-PythonInstaller"
+        throw "Failed to download Python installer: $installerPath"
+    }
+
+    return $installerPath
+}
+
+function Sync-PythonRuntimePath {
+    param(
+        [string]$PythonDir,
+        [string]$PythonScriptsDir
+    )
+
+    foreach ($pathEntry in @($PythonDir, $PythonScriptsDir)) {
+        $hasPathEntry = -not [string]::IsNullOrWhiteSpace($pathEntry) -and (Test-Path $pathEntry -PathType Container)
+        if (-not $hasPathEntry) {
+            continue
+        }
+
+        Add-DirectoryToProcessPath -Directory $pathEntry
+
+        $isAlreadyInUserPath = Test-InPath -Directory $pathEntry -Scope "User"
+        if ($isAlreadyInUserPath) {
+            Write-Log "PATH already contains Python runtime: $pathEntry" -Level "info"
+            continue
+        }
+
+        Write-Log "Adding Python runtime to PATH: $pathEntry" -Level "info"
+        Add-ToUserPath -Directory $pathEntry | Out-Null
+    }
+
+    Refresh-EnvPath
+    Add-DirectoryToProcessPath -Directory $PythonDir
+    Add-DirectoryToProcessPath -Directory $PythonScriptsDir
 }
 
 function Resolve-InstalledPython {
@@ -119,17 +215,19 @@ function Install-Python {
         $LogMessages
     )
 
-    $packageName = $Config.chocoPackageName
+    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $desiredVersion = "Python $($installerConfig.Version)"
 
     $existingPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
     $hasExistingPython = $null -ne $existingPython
     if ($hasExistingPython) {
         $currentVersion = $existingPython.Version
-        $isAlreadyTracked = Test-AlreadyInstalled -Name "python" -CurrentVersion $currentVersion
         Write-Log ($LogMessages.messages.pythonAlreadyInstalled -replace '\{version\}', $currentVersion) -Level "info"
 
+        $isDesiredVersionInstalled = $currentVersion -like "$desiredVersion*"
         $isUpgradeDisabled = -not $Config.alwaysUpgradeToLatest
-        if ($isAlreadyTracked -and $isUpgradeDisabled) {
+        if ($isDesiredVersionInstalled -or $isUpgradeDisabled) {
+            Save-InstalledRecord -Name "python" -Version $currentVersion -Method "python.org"
             return $existingPython
         }
     } else {
@@ -137,21 +235,53 @@ function Install-Python {
     }
 
     $isUpgrade = $hasExistingPython
+    $expectedPythonExe = Join-Path $installerConfig.InstallDir "python.exe"
+    $expectedScriptsDir = Join-Path $installerConfig.InstallDir "Scripts"
 
     try {
-        if ($isUpgrade) {
-            Upgrade-ChocoPackage -PackageName $packageName
-        } else {
-            Install-ChocoPackage -PackageName $packageName
+        $installerPath = Download-PythonInstaller -InstallerConfig $installerConfig
+        $installArgs = @(
+            "/quiet",
+            "InstallAllUsers=$(if ($installerConfig.InstallAllUsers) { 1 } else { 0 })",
+            "Include_pip=$(if ($installerConfig.IncludePip) { 1 } else { 0 })",
+            "Include_launcher=1",
+            "InstallLauncherAllUsers=1",
+            "AssociateFiles=0",
+            "Shortcuts=0",
+            "Include_test=0",
+            "PrependPath=0",
+            "TargetDir=\"$($installerConfig.InstallDir)\""
+        )
+
+        Write-Log "Installing Python $($installerConfig.Version) to $($installerConfig.InstallDir)" -Level "info"
+
+        try {
+            $installProcess = Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -PassThru -NoNewWindow
+        } catch {
+            $reason = "Failed to launch Python installer: $_"
+            Write-FileError -FilePath $installerPath -Operation "load" -Reason $reason -Module "Install-Python"
+            throw "Failed to launch Python installer: $installerPath"
         }
 
-        # Retry resolution up to 3 times with PATH refresh -- choco shims may need a moment
+        $hasInstallerFailed = $installProcess.ExitCode -ne 0
+        if ($hasInstallerFailed) {
+            throw "Python installer exited with code $($installProcess.ExitCode)."
+        }
+
+        $env:PYTHON_EXE = $expectedPythonExe
+        $env:PYTHON_HOME = $installerConfig.InstallDir
+        Add-DirectoryToProcessPath -Directory $installerConfig.InstallDir
+        Add-DirectoryToProcessPath -Directory $expectedScriptsDir
+        Sync-PythonRuntimePath -PythonDir $installerConfig.InstallDir -PythonScriptsDir $expectedScriptsDir
+
+        # Retry resolution with explicit env + PATH sync so chained installs see python immediately
         $resolvedPython = $null
-        $maxRetries = 3
+        $maxRetries = 5
         for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
-            # Clear stale resolver cache so each attempt re-probes
             Set-PythonResolverCache -PythonInfo $null
             Refresh-EnvPath
+            Add-DirectoryToProcessPath -Directory $installerConfig.InstallDir
+            Add-DirectoryToProcessPath -Directory $expectedScriptsDir
 
             $resolvedPython = Resolve-InstalledPython -LogMessages $LogMessages -RequirePip
             $hasResolvedPython = $null -ne $resolvedPython
@@ -159,16 +289,15 @@ function Install-Python {
 
             $isLastAttempt = $attempt -eq $maxRetries
             if (-not $isLastAttempt) {
-                Write-Log "Python not found on attempt $attempt/$maxRetries, retrying in 2s..." -Level "warn"
+                Write-Log "Python not found on attempt $attempt/$maxRetries, retrying in 2s after PATH refresh..." -Level "warn"
                 Start-Sleep -Seconds 2
             }
         }
 
         $isResolvedPythonMissing = $null -eq $resolvedPython
         if ($isResolvedPythonMissing) {
-            $failureMessage = "Chocolatey completed, but no working python executable could be resolved after install ($maxRetries attempts). Check that python3 is in PATH."
-            Write-Log $failureMessage -Level "error"
-            Save-InstalledError -Name "python" -ErrorMessage $failureMessage
+            $failureMessage = "Official installer completed, but no working python executable could be resolved at $expectedPythonExe after $maxRetries attempts."
+            Write-FileError -FilePath $expectedPythonExe -Operation "resolve" -Reason $failureMessage -Module "Install-Python" -Fallback "Verify the installer completed and rerun script 05."
             throw $failureMessage
         }
 
@@ -179,7 +308,7 @@ function Install-Python {
             Write-Log ($LogMessages.messages.pythonInstallSuccess -replace '\{version\}', $resolvedVersion) -Level "success"
         }
 
-        Save-InstalledRecord -Name "python" -Version $resolvedVersion
+        Save-InstalledRecord -Name "python" -Version $resolvedVersion -Method "python.org"
         return $resolvedPython
     } catch {
         $failureMessage = $_.Exception.Message
@@ -193,7 +322,7 @@ function Install-Python {
             Write-Log "Python install failed: $failureMessage" -Level "error"
         }
 
-        Save-InstalledError -Name "python" -ErrorMessage $failureMessage
+        Save-InstalledError -Name "python" -ErrorMessage $failureMessage -Method "python.org"
         throw
     }
 }
@@ -272,6 +401,9 @@ function Update-PythonPath {
     $pythonInfo = Resolve-PythonExe -ReturnInfo -RefreshPath
     $hasPythonInfo = $null -ne $pythonInfo -and $pythonInfo.IsValid
     if ($hasPythonInfo) {
+        $pythonDir = Split-Path -Parent $pythonInfo.Path
+        $pythonScriptsDir = Join-Path $pythonDir "Scripts"
+        Sync-PythonRuntimePath -PythonDir $pythonDir -PythonScriptsDir $pythonScriptsDir
         Set-PythonRuntimeEnvironment -PythonInfo $pythonInfo
     }
 }
@@ -289,26 +421,38 @@ function Uninstall-Python {
     )
 
     $packageName = $Config.chocoPackageName
+    $installerConfig = Get-PythonInstallerConfig -Config $Config
+    $installDir = $installerConfig.InstallDir
+    $installScriptsDir = Join-Path $installDir "Scripts"
 
-    # 1. Uninstall via Chocolatey
+    # 1. Remove legacy Chocolatey package if present
     Write-Log ($LogMessages.messages.uninstallingPython) -Level "info"
-    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
-    if ($isUninstalled) {
-        Write-Log ($LogMessages.messages.pythonUninstallSuccess) -Level "success"
-    } else {
-        Write-Log ($LogMessages.messages.pythonUninstallFailed) -Level "error"
+    $chocoCommand = Get-Command choco.exe -ErrorAction SilentlyContinue
+    $hasChocoCommand = $null -ne $chocoCommand
+    if ($hasChocoCommand) {
+        $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+        if ($isUninstalled) {
+            Write-Log ($LogMessages.messages.pythonUninstallSuccess) -Level "success"
+        }
     }
 
-    # 2. Remove PYTHONUSERBASE environment variable
-    $currentBase = [System.Environment]::GetEnvironmentVariable("PYTHONUSERBASE", "User")
-    $hasUserBase = -not [string]::IsNullOrWhiteSpace($currentBase)
-    if ($hasUserBase) {
-        Write-Log "Removing PYTHONUSERBASE env var: $currentBase" -Level "info"
-        [System.Environment]::SetEnvironmentVariable("PYTHONUSERBASE", $null, "User")
-        $env:PYTHONUSERBASE = $null
+    # 2. Remove Python-related environment variables
+    foreach ($variableName in @("PYTHONUSERBASE", "PYTHON_EXE", "PYTHON_HOME", "PYTHON_SCRIPTS")) {
+        $currentValue = [System.Environment]::GetEnvironmentVariable($variableName, "User")
+        $hasCurrentValue = -not [string]::IsNullOrWhiteSpace($currentValue)
+        if ($hasCurrentValue) {
+            Write-Log "Removing $variableName env var: $currentValue" -Level "info"
+            [System.Environment]::SetEnvironmentVariable($variableName, $null, "User")
+        }
+
+        Remove-Item "Env:$variableName" -ErrorAction SilentlyContinue
     }
 
-    # 3. Remove Scripts dir from PATH
+    # 3. Remove install/runtime paths from PATH
+    Remove-FromUserPath -Directory $installScriptsDir
+    Remove-FromUserPath -Directory $installDir
+
+    # 4. Remove PYTHONUSERBASE Scripts dir from PATH
     $sitePath = if ($DevDir) {
         Join-Path $DevDir $Config.devDirSubfolder
     } else {
@@ -321,14 +465,28 @@ function Uninstall-Python {
         Remove-FromUserPath -Directory $scriptsDir
     }
 
-    # 4. Clean dev directory subfolder
+    # 5. Remove direct-install folder
+    $isInstallDirPresent = Test-Path $installDir -PathType Container
+    if ($isInstallDirPresent) {
+        try {
+            Write-Log "Removing Python install directory: $installDir" -Level "info"
+            Remove-Item -Path $installDir -Recurse -Force
+            Write-Log "Python install directory removed: $installDir" -Level "success"
+        } catch {
+            Write-FileError -FilePath $installDir -Operation "write" -Reason "Failed to remove Python install directory: $_" -Module "Uninstall-Python"
+            Write-Log ($LogMessages.messages.pythonUninstallFailed) -Level "error"
+        }
+    }
+
+    # 6. Clean dev directory subfolder
     if ($hasValidSitePath -and (Test-Path $sitePath)) {
         Write-Log "Removing dev directory subfolder: $sitePath" -Level "info"
         Remove-Item -Path $sitePath -Recurse -Force
         Write-Log "Dev directory subfolder removed: $sitePath" -Level "success"
     }
 
-    # 5. Remove tracking records
+    # 7. Remove tracking records
+    Set-PythonResolverCache -PythonInfo $null
     Remove-InstalledRecord -Name "python"
     Remove-ResolvedData -ScriptFolder "05-install-python"
 

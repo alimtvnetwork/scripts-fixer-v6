@@ -2,7 +2,7 @@
   "scriptName": "Install Python Libraries",
   "description": "Installs common Python libraries via pip into the configured PYTHONUSERBASE directory.",
   "messages": {
-    "pythonNotFound": "Python is not installed. Run script 05 first.",
+    "pythonNotFound": "Python is not installed and automatic bootstrap failed. Run script 05 as administrator.",
     "pipNotFound": "pip is not available. Ensure Python was installed correctly.",
     "scriptDisabled": "Python libraries installation is disabled in config.",
     "notAdmin": "This script requires administrator privileges.",

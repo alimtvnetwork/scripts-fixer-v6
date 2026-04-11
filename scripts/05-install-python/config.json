@@ -1,8 +1,17 @@
 {
   "enabled": true,
+  "installMethod": "official-installer",
   "chocoPackageName": "python3",
   "alwaysUpgradeToLatest": true,
   "devDirSubfolder": "python",
+  "installer": {
+    "version": "3.12.9",
+    "downloadUrl": "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe",
+    "fileName": "python-3.12.9-amd64.exe",
+    "installDir": "C:\\Python312",
+    "allUsers": true,
+    "includePip": true
+  },
   "pip": {
     "setUserSite": true,
     "userSitePath": "E:\\dev-tool\\python"
