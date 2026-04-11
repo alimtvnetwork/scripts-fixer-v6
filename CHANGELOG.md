@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.13.1] -- 2026-04-11
+
+### Added
+
+- **Uninstall coverage audit check** (Check 11) -- Verifies every script has:
+  - An `Uninstall-*` function in its helper file
+  - An `uninstall` command handler in `run.ps1`
+  - Uninstall help entries in `log-messages.json`
+  - Exempt scripts: 02 (Chocolatey), 12 (orchestrator), audit, databases
+
+### Fixed
+
+- **Stale `\dev` path references** in audit symlink check (`checks.ps1` lines 457, 472) -- now correctly uses `\dev-tool`
+
+---
+
 ## [v0.13.0] -- 2026-04-11
 
 ### Added

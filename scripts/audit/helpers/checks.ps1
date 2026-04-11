@@ -454,7 +454,7 @@ function Test-VerifySymlinks {
             $testPath = "${letter}:\dev-tool\databases"
             $isPresent = Test-Path $testPath
             if ($isPresent) {
-                $devDir = "${letter}:\dev"
+                $devDir = "${letter}:\dev-tool"
                 break
             }
         }
@@ -469,7 +469,7 @@ function Test-VerifySymlinks {
                 $testPath = "${letter}:\dev-tool\databases"
                 $isPresent = Test-Path $testPath
                 if ($isPresent) {
-                    $devDir = "${letter}:\dev"
+                    $devDir = "${letter}:\dev-tool"
                     break
                 }
             }
