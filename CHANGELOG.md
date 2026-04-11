@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.14.0] -- 2026-04-11
+
+### Added
+
+- **DBeaver settings export** (script 32) -- `.\run.ps1 -I 32 -- export`
+  - Copies settings FROM `%APPDATA%\DBeaverData\workspace6\General\.dbeaver\` TO `settings/04 - dbeaver/`
+  - Exports `.json` config files and subdirectories (drivers, templates)
+  - Skips files > 512 KB (cache, not config)
+  - Preserves existing `readme.txt` in target
+
+### Fixed
+
+- **Typo in `Uninstall-Dbeaver`** -- `$$DbConfig` corrected to `$DbConfig`
+
+---
+
 ## [v0.13.1] -- 2026-04-11
 
 ### Added
