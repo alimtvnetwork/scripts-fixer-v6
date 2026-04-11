@@ -60,6 +60,13 @@ if ($isUninstall) {
     return
 }
 
+# -- Export check --------------------------------------------------------------
+$isExport = $Command.ToLower() -eq "export"
+if ($isExport) {
+    Export-DbeaverSettings -LogMessages $logMessages
+    return
+}
+
 # -- Resolve mode --------------------------------------------------------------
 $isModePassed = $Mode -ne ""
 if (-not $isModePassed) {
