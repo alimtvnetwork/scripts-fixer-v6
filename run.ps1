@@ -772,6 +772,207 @@ function Invoke-StatusCommand {
     Write-Host ""
 }
 
+# ── Doctor command function ────────────────────────────────────────────
+function Invoke-DoctorCommand {
+    <#
+    .SYNOPSIS
+        Quick health-check that verifies the project setup itself.
+        Lighter than full audit -- runs in < 2 seconds.
+    #>
+
+    Write-Host ""
+    Write-Host "  Project Doctor" -ForegroundColor Cyan
+    Write-Host "  ==============" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $passCount = 0
+    $failCount = 0
+    $warnCount = 0
+
+    # Helper to print check results
+    function Write-Check {
+        param([string]$Label, [string]$Status, [string]$Detail = "")
+        switch ($Status) {
+            "pass" {
+                Write-Host "    [PASS] " -ForegroundColor Green -NoNewline
+                Write-Host $Label -NoNewline
+                if ($Detail) { Write-Host " -- $Detail" -ForegroundColor DarkGray } else { Write-Host "" }
+                $script:passCount++
+            }
+            "fail" {
+                Write-Host "    [FAIL] " -ForegroundColor Red -NoNewline
+                Write-Host $Label -NoNewline
+                if ($Detail) { Write-Host " -- $Detail" -ForegroundColor DarkGray } else { Write-Host "" }
+                $script:failCount++
+            }
+            "warn" {
+                Write-Host "    [WARN] " -ForegroundColor Yellow -NoNewline
+                Write-Host $Label -NoNewline
+                if ($Detail) { Write-Host " -- $Detail" -ForegroundColor DarkGray } else { Write-Host "" }
+                $script:warnCount++
+            }
+        }
+    }
+
+    # 1. Check scripts root directory
+    $scriptsRoot = Join-Path $RootDir "scripts"
+    $hasScriptsDir = Test-Path $scriptsRoot
+    if ($hasScriptsDir) {
+        Write-Check "Scripts directory exists" "pass" $scriptsRoot
+    } else {
+        Write-Check "Scripts directory exists" "fail" "Not found: $scriptsRoot"
+    }
+
+    # 2. Check version.json
+    $versionFile = Join-Path $scriptsRoot "version.json"
+    $hasVersionFile = Test-Path $versionFile
+    if ($hasVersionFile) {
+        try {
+            $versionData = Get-Content $versionFile -Raw | ConvertFrom-Json
+            $hasVersion = -not [string]::IsNullOrWhiteSpace($versionData.version)
+            if ($hasVersion) {
+                Write-Check "version.json is valid" "pass" "v$($versionData.version)"
+            } else {
+                Write-Check "version.json is valid" "fail" "Empty version field"
+            }
+        } catch {
+            Write-Check "version.json is valid" "fail" "Parse error: $_"
+        }
+    } else {
+        Write-Check "version.json is valid" "fail" "Not found"
+    }
+
+    # 3. Check registry.json
+    $registryFile = Join-Path $scriptsRoot "registry.json"
+    $hasRegistry = Test-Path $registryFile
+    if ($hasRegistry) {
+        try {
+            $registryData = Get-Content $registryFile -Raw | ConvertFrom-Json
+            $registryCount = ($registryData.scripts.PSObject.Properties | Measure-Object).Count
+            Write-Check "registry.json is valid" "pass" "$registryCount scripts registered"
+        } catch {
+            Write-Check "registry.json is valid" "fail" "Parse error: $_"
+        }
+    } else {
+        Write-Check "registry.json is valid" "fail" "Not found"
+    }
+
+    # 4. Check registry IDs match existing folders
+    if ($hasRegistry) {
+        $missingFolders = @()
+        foreach ($prop in $registryData.scripts.PSObject.Properties) {
+            $folderPath = Join-Path $scriptsRoot $prop.Value
+            $isFolderMissing = -not (Test-Path $folderPath)
+            if ($isFolderMissing) {
+                $missingFolders += "$($prop.Name):$($prop.Value)"
+            }
+        }
+        $hasMissing = $missingFolders.Count -gt 0
+        if ($hasMissing) {
+            Write-Check "Registry folders exist" "fail" "Missing: $($missingFolders -join ', ')"
+        } else {
+            Write-Check "Registry folders exist" "pass" "All $registryCount folders present"
+        }
+    }
+
+    # 5. Check .logs directory
+    $logsDir = Join-Path $RootDir ".logs"
+    $hasLogsDir = Test-Path $logsDir
+    if ($hasLogsDir) {
+        $logFiles = @(Get-ChildItem -Path $logsDir -Filter "*.json" -File -ErrorAction SilentlyContinue)
+        Write-Check ".logs/ directory exists" "pass" "$($logFiles.Count) log file(s)"
+    } else {
+        Write-Check ".logs/ directory exists" "warn" "Will be created on first script run"
+    }
+
+    # 6. Check .installed directory
+    $installedDir = Join-Path $RootDir ".installed"
+    $hasInstalledDir = Test-Path $installedDir
+    if ($hasInstalledDir) {
+        $trackFiles = @(Get-ChildItem -Path $installedDir -Filter "*.json" -File -ErrorAction SilentlyContinue)
+        Write-Check ".installed/ directory exists" "pass" "$($trackFiles.Count) tool(s) tracked"
+    } else {
+        Write-Check ".installed/ directory exists" "warn" "No tools tracked yet"
+    }
+
+    # 7. Check Chocolatey
+    $chocoCmd = Get-Command choco -ErrorAction SilentlyContinue
+    $hasChoco = $null -ne $chocoCmd
+    if ($hasChoco) {
+        $chocoVer = try { & choco --version 2>$null } catch { $null }
+        Write-Check "Chocolatey is reachable" "pass" "v$chocoVer"
+    } else {
+        Write-Check "Chocolatey is reachable" "fail" "Not found in PATH"
+    }
+
+    # 8. Check admin rights
+    $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if ($isAdmin) {
+        Write-Check "Running as Administrator" "pass"
+    } else {
+        Write-Check "Running as Administrator" "warn" "Some scripts require admin rights"
+    }
+
+    # 9. Check shared helpers are present
+    $requiredHelpers = @("logging.ps1", "installed.ps1", "resolved.ps1", "help.ps1", "choco-utils.ps1", "path-utils.ps1", "dev-dir.ps1", "json-utils.ps1", "tool-version.ps1")
+    $sharedDir = Join-Path $scriptsRoot "shared"
+    $missingHelpers = @()
+    foreach ($helper in $requiredHelpers) {
+        $helperPath = Join-Path $sharedDir $helper
+        $isHelperMissing = -not (Test-Path $helperPath)
+        if ($isHelperMissing) {
+            $missingHelpers += $helper
+        }
+    }
+    $hasMissingHelpers = $missingHelpers.Count -gt 0
+    if ($hasMissingHelpers) {
+        Write-Check "Shared helpers present" "fail" "Missing: $($missingHelpers -join ', ')"
+    } else {
+        Write-Check "Shared helpers present" "pass" "$($requiredHelpers.Count) helpers found"
+    }
+
+    # 10. Check install-keywords.json
+    $keywordsFile = Join-Path $sharedDir "install-keywords.json"
+    $hasKeywords = Test-Path $keywordsFile
+    if ($hasKeywords) {
+        try {
+            $kwData = Get-Content $keywordsFile -Raw | ConvertFrom-Json
+            $kwCount = ($kwData.keywords.PSObject.Properties | Measure-Object).Count
+            Write-Check "install-keywords.json is valid" "pass" "$kwCount keywords mapped"
+        } catch {
+            Write-Check "install-keywords.json is valid" "fail" "Parse error: $_"
+        }
+    } else {
+        Write-Check "install-keywords.json is valid" "fail" "Not found"
+    }
+
+    # Summary
+    Write-Host ""
+    Write-Host "  Summary: " -NoNewline -ForegroundColor DarkGray
+    Write-Host "$passCount passed" -ForegroundColor Green -NoNewline
+    $hasWarns = $warnCount -gt 0
+    if ($hasWarns) {
+        Write-Host ", $warnCount warning(s)" -ForegroundColor Yellow -NoNewline
+    }
+    $hasFails = $failCount -gt 0
+    if ($hasFails) {
+        Write-Host ", $failCount failed" -ForegroundColor Red -NoNewline
+    }
+    Write-Host ""
+
+    if ($hasFails) {
+        Write-Host ""
+        Write-Host "  Some checks failed. Fix the issues above for a healthy setup." -ForegroundColor Red
+    } elseif ($hasWarns) {
+        Write-Host ""
+        Write-Host "  Project looks good with minor warnings." -ForegroundColor Yellow
+    } else {
+        Write-Host ""
+        Write-Host "  All checks passed. Project is healthy!" -ForegroundColor Green
+    }
+    Write-Host ""
+}
+
 # ── Path command function ─────────────────────────────────────────────
 function Invoke-PathCommand {
     param([string[]]$Args)
