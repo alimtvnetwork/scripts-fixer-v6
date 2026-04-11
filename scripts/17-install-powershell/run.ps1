@@ -3,6 +3,9 @@
 #  Installs the latest PowerShell (pwsh) via Winget or Chocolatey fallback.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

@@ -3,6 +3,9 @@
 #  Imports settings, keybindings, and extensions for VS Code.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Merge,
     [switch]$Help
 )

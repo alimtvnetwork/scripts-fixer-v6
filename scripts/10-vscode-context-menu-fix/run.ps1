@@ -3,6 +3,9 @@
 #  Restores "Open with Code" to the Windows right-click context menu.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 

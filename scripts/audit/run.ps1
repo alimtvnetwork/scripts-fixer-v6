@@ -4,6 +4,9 @@
 #  or renumbering inconsistencies.
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Fix,
     [switch]$DryRun,
     [switch]$Report,

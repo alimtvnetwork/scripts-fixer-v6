@@ -3,6 +3,9 @@
 #  Git repository navigator CLI tool
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 
