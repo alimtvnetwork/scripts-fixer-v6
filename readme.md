@@ -485,7 +485,7 @@ Reusable utilities in `scripts/shared/`:
 
 ### Md. Alim Ul Karim
 
-**Chief Software Engineer** | Riseup Asia LLC
+**Chief Software Engineer** | [Riseup Asia LLC](https://riseup-asia.com)
 
 </div>
 
