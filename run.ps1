@@ -506,13 +506,8 @@ function Show-KeywordTable {
     Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"
     Write-Host ""
 }
-    Write-Host ""
-    Write-Host "  Dev Tools Setup Scripts" -ForegroundColor Cyan
-    Write-Host "  =======================" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Host "  Usage:" -ForegroundColor Yellow
-    Write-Host ""
-    $col = 42
+
+
     Write-Host "    $(".\run.ps1 install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (bare command)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -Install <keywords>".PadRight($col))" -NoNewline; Write-Host "Install by keyword (named parameter)" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 update".PadRight($col))" -NoNewline; Write-Host "Show outdated, confirm, upgrade all" -ForegroundColor DarkGray
