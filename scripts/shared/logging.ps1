@@ -340,3 +340,9 @@ $_installedPath = Join-Path $PSScriptRoot "installed.ps1"
 if ((Test-Path $_installedPath) -and -not (Get-Command Test-AlreadyInstalled -ErrorAction SilentlyContinue)) {
     . $_installedPath
 }
+
+# -- Auto-load tool version helper ---------------------------------------------
+$_toolVersionPath = Join-Path $PSScriptRoot "tool-version.ps1"
+if ((Test-Path $_toolVersionPath) -and -not (Get-Command Assert-ToolVersion -ErrorAction SilentlyContinue)) {
+    . $_toolVersionPath
+}
