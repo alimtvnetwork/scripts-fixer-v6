@@ -268,8 +268,13 @@ function Save-LogFile {
         }
 
         $errorPath = Join-Path $script:_LogsDir "$($script:_LogName)-error.json"
-        $errorData | ConvertTo-Json -Depth 5 | Set-Content -Path $errorPath -Encoding UTF8
+        $errorJson = $errorData | ConvertTo-Json -Depth 5
+        $errorJson | Set-Content -Path $errorPath -Encoding UTF8
         Write-Host "  [ WARN ] Error log saved: $errorPath" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  ---- Error log contents ----" -ForegroundColor Red
+        $errorJson -split "`n" | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkRed }
+        Write-Host "  ----------------------------" -ForegroundColor Red
     }
 
     # Print one-line summary for easy copy-paste
