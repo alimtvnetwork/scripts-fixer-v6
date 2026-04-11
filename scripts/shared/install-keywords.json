@@ -188,6 +188,11 @@
     "flutter+android":   { "38": "android" },
     "flutter-extensions":{ "38": "extensions" },
     "flutter-doctor":    { "38": "doctor" },
-    "install-flutter":   { "38": "install" }
+    "install-flutter":   { "38": "install" },
+    "dotnet-6":          { "39": "install 6" },
+    "dotnet-8":          { "39": "install 8" },
+    "dotnet-9":          { "39": "install 9" },
+    "jdk-17":            { "40": "install 17" },
+    "jdk-21":            { "40": "install 21" }
   }
 }
