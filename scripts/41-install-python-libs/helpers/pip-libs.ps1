@@ -1,0 +1,205 @@
+# --------------------------------------------------------------------------
+#  Python Libraries helper functions
+# --------------------------------------------------------------------------
+
+# -- Bootstrap shared helpers --------------------------------------------------
+$_sharedDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "shared"
+$_loggingPath = Join-Path $_sharedDir "logging.ps1"
+if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . $_loggingPath
+}
+
+
+function Assert-PythonAvailable {
+    <#
+    .SYNOPSIS
+        Checks that python and pip are accessible. Returns $true or $false.
+    #>
+    param($LogMessages)
+
+    $hasPython = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $hasPython) {
+        Write-Log $LogMessages.messages.pythonNotFound -Level "error"
+        return $false
+    }
+
+    $hasPip = $null
+    try { $hasPip = & python -m pip --version 2>$null } catch {}
+    $isPipMissing = [string]::IsNullOrWhiteSpace($hasPip)
+    if ($isPipMissing) {
+        Write-Log $LogMessages.messages.pipNotFound -Level "error"
+        return $false
+    }
+
+    return $true
+}
+
+
+function Install-PipPackage {
+    <#
+    .SYNOPSIS
+        Installs a single pip package. Returns $true on success.
+    #>
+    param(
+        [string]$Package,
+        $LogMessages,
+        [switch]$UserSite
+    )
+
+    # Check if already installed
+    $existingVersion = $null
+    try {
+        $existingVersion = & python -m pip show $Package 2>$null |
+            Select-String "^Version:" |
+            ForEach-Object { ($_ -split ":\s*", 2)[1].Trim() }
+    } catch {}
+
+    $isAlreadyInstalled = -not [string]::IsNullOrWhiteSpace($existingVersion)
+    if ($isAlreadyInstalled) {
+        Write-Log ($LogMessages.messages.packageAlreadyInstalled -replace '\{package\}', $Package -replace '\{version\}', $existingVersion) -Level "info"
+        return $true
+    }
+
+    Write-Log ($LogMessages.messages.installingSinglePackage -replace '\{package\}', $Package) -Level "info"
+
+    try {
+        $pipArgs = @("-m", "pip", "install", "--no-cache-dir")
+        if ($UserSite) { $pipArgs += "--user" }
+        $pipArgs += $Package
+
+        $output = & python @pipArgs 2>&1
+        $isSuccess = $LASTEXITCODE -eq 0
+        if ($isSuccess) {
+            Write-Log ($LogMessages.messages.packageInstallSuccess -replace '\{package\}', $Package) -Level "success"
+            return $true
+        } else {
+            Write-Log ($LogMessages.messages.packageInstallFailed -replace '\{package\}', $Package -replace '\{error\}', "$output") -Level "error"
+            return $false
+        }
+    } catch {
+        Write-Log ($LogMessages.messages.packageInstallFailed -replace '\{package\}', $Package -replace '\{error\}', "$_") -Level "error"
+        return $false
+    }
+}
+
+
+function Install-PipPackages {
+    <#
+    .SYNOPSIS
+        Installs a list of pip packages. Returns count of successes.
+    #>
+    param(
+        [string[]]$Packages,
+        $LogMessages,
+        [switch]$UserSite
+    )
+
+    $successCount = 0
+    $totalCount = $Packages.Count
+
+    foreach ($pkg in $Packages) {
+        $isOk = Install-PipPackage -Package $pkg -LogMessages $LogMessages -UserSite:$UserSite
+        if ($isOk) { $successCount++ }
+    }
+
+    Write-Log ($LogMessages.messages.setupComplete -replace '\{success\}', $successCount -replace '\{total\}', $totalCount) -Level "success"
+    return $successCount
+}
+
+
+function Install-AllLibraries {
+    param(
+        $Config,
+        $LogMessages,
+        [switch]$UserSite
+    )
+
+    $packages = $Config.allPackages
+    $count = $packages.Count
+    Write-Log ($LogMessages.messages.installingAll -replace '\{count\}', $count) -Level "info"
+
+    return (Install-PipPackages -Packages $packages -LogMessages $LogMessages -UserSite:$UserSite)
+}
+
+
+function Install-LibraryGroup {
+    param(
+        [string]$GroupName,
+        $Config,
+        $LogMessages,
+        [switch]$UserSite
+    )
+
+    $group = $Config.groups.$GroupName
+    $hasGroup = $null -ne $group
+    if (-not $hasGroup) {
+        Write-Log "Unknown group: $GroupName. Use 'list' to see available groups." -Level "error"
+        return 0
+    }
+
+    $pkgList = $group.packages -join ", "
+    Write-Log ($LogMessages.messages.installingGroup -replace '\{group\}', $group.label -replace '\{packages\}', $pkgList) -Level "info"
+
+    return (Install-PipPackages -Packages $group.packages -LogMessages $LogMessages -UserSite:$UserSite)
+}
+
+
+function Show-LibraryGroups {
+    param($Config, $LogMessages)
+
+    Write-Log $LogMessages.messages.listingGroups -Level "info"
+    foreach ($key in $Config.groups.PSObject.Properties.Name) {
+        $g = $Config.groups.$key
+        $pkgList = $g.packages -join ", "
+        Write-Log ($LogMessages.messages.groupEntry -replace '\{name\}', $key -replace '\{label\}', $g.label -replace '\{packages\}', $pkgList) -Level "info"
+    }
+}
+
+
+function Show-InstalledPipPackages {
+    param($LogMessages)
+
+    Write-Log $LogMessages.messages.listingInstalled -Level "info"
+    & python -m pip list --format=columns 2>$null
+}
+
+
+function Uninstall-PipPackages {
+    <#
+    .SYNOPSIS
+        Uninstalls pip packages by name, or all tracked packages if none specified.
+    #>
+    param(
+        [string[]]$Packages,
+        $Config,
+        $LogMessages
+    )
+
+    $targetPackages = if ($Packages -and $Packages.Count -gt 0) {
+        $Packages
+    } else {
+        Write-Log $LogMessages.messages.uninstallingAll -Level "info"
+        $Config.allPackages
+    }
+
+    foreach ($pkg in $targetPackages) {
+        Write-Log ($LogMessages.messages.uninstallingPackage -replace '\{package\}', $pkg) -Level "info"
+        try {
+            & python -m pip uninstall -y $pkg 2>&1 | Out-Null
+            $isOk = $LASTEXITCODE -eq 0
+            if ($isOk) {
+                Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{package\}', $pkg) -Level "success"
+            } else {
+                Write-Log ($LogMessages.messages.uninstallFailed -replace '\{package\}', $pkg -replace '\{error\}', "exit code $LASTEXITCODE") -Level "warn"
+            }
+        } catch {
+            Write-Log ($LogMessages.messages.uninstallFailed -replace '\{package\}', $pkg -replace '\{error\}', "$_") -Level "warn"
+        }
+    }
+
+    # Remove tracking
+    Remove-InstalledRecord -Name "python-libs"
+    Remove-ResolvedData -ScriptFolder "41-install-python-libs"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

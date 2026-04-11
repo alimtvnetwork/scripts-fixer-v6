@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.16.2] -- 2026-04-11
+
+### Added
+
+- **Install Python Libraries** (script 41) -- `.\run.ps1 -I 41` or `.\run.ps1 install python-libs`
+  - Installs common Python/ML libraries via pip into PYTHONUSERBASE
+  - 7 library groups: ml, data, viz, web, scraping, cv, db
+  - `.\run.ps1 -I 41 -- all` installs all 17 default packages
+  - `.\run.ps1 -I 41 -- group ml` installs ML group (numpy, scipy, scikit-learn, torch, tensorflow, keras)
+  - `.\run.ps1 -I 41 -- add jupyterlab streamlit` installs custom packages
+  - `.\run.ps1 -I 41 -- list` shows available groups
+  - `.\run.ps1 -I 41 -- installed` shows pip package list
+  - `.\run.ps1 -I 41 -- uninstall` removes all tracked libraries
+  - Respects `PYTHONUSERBASE` -- uses `--user` flag when set
+  - New keywords: `python-libs`, `pip-libs`, `ml-libs`, `python-packages`, `python+libs`, `ml-dev`
+
+---
+
 ## [v0.16.1] -- 2026-04-11
 
 ### Added

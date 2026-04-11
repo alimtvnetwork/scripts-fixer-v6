@@ -40,6 +40,7 @@
     "37": "37-install-windows-terminal",
     "38": "38-install-flutter",
     "39": "39-install-dotnet",
-    "40": "40-install-java"
+    "40": "40-install-java",
+    "41": "41-install-python-libs"
   }
 }
