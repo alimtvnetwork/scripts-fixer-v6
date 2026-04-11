@@ -182,6 +182,12 @@ function Show-RootHelp {
     Write-Host "    $("install ai-dev".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (numpy, scipy, scikit-learn, torch)" -ForegroundColor DarkGray
     Write-Host "    $("install deep-learning".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (same as ai-dev)" -ForegroundColor DarkGray
     Write-Host "    $("install jupyter+libs".PadRight($kc))" -NoNewline; Write-Host "Jupyter only (jupyterlab, notebook, ipykernel)" -ForegroundColor DarkGray
+    Write-Host "    $("install viz-libs".PadRight($kc))" -NoNewline; Write-Host "Visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $("install web-libs".PadRight($kc))" -NoNewline; Write-Host "Web frameworks (django, flask, fastapi, uvicorn)" -ForegroundColor DarkGray
+    Write-Host "    $("install scraping-libs".PadRight($kc))" -NoNewline; Write-Host "Scraping (requests, beautifulsoup4)" -ForegroundColor DarkGray
+    Write-Host "    $("install db-libs".PadRight($kc))" -NoNewline; Write-Host "Database (sqlalchemy)" -ForegroundColor DarkGray
+    Write-Host "    $("install cv-libs".PadRight($kc))" -NoNewline; Write-Host "Computer Vision (opencv-python)" -ForegroundColor DarkGray
+    Write-Host "    $("install data-libs".PadRight($kc))" -NoNewline; Write-Host "Data tools (pandas, polars)" -ForegroundColor DarkGray
     Write-Host "    $("install python+jupyter".PadRight($kc))" -NoNewline; Write-Host "Python + all libraries (includes Jupyter)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "      By group (.\run.ps1 -I 41 --):" -ForegroundColor DarkYellow
@@ -295,6 +301,12 @@ function Show-RootHelp {
     Write-Host "    python+jupyter              Python + all libraries         05, 41"
     Write-Host "    pip+jupyter+libs            Python + all libraries         05, 41"
     Write-Host "    jupyter+libs                Jupyter group only             41"
+    Write-Host "    viz-libs                    Visualization group            41"
+    Write-Host "    web-libs                    Web frameworks group           41"
+    Write-Host "    scraping-libs               Scraping group                 41"
+    Write-Host "    db-libs                     Database group                 41"
+    Write-Host "    cv-libs                     Computer Vision group          41"
+    Write-Host "    data-libs                   Data tools group               41"
     Write-Host "    data-science, datascience   Python + data/viz libs         05, 41"
     Write-Host "    ai-dev, aidev               Python + ML libs               05, 41"
     Write-Host "    deep-learning, ml-full      Python + ML libs               05, 41"
@@ -379,6 +391,12 @@ function Show-KeywordTable {
     Write-Host "    python-libs, pip-libs All pip libraries              41"
     Write-Host "    ml-libs, ml-full     ML libraries                    41"
     Write-Host "    jupyter+libs         Jupyter group only              41"
+    Write-Host "    viz-libs             Visualization group             41"
+    Write-Host "    web-libs             Web frameworks group            41"
+    Write-Host "    scraping-libs        Scraping group                  41"
+    Write-Host "    db-libs              Database group                  41"
+    Write-Host "    cv-libs              Computer Vision group           41"
+    Write-Host "    data-libs            Data tools group                41"
     Write-Host "    python+libs, ml-dev  Python + all libraries          05, 41"
     Write-Host "    python+jupyter       Python + all libraries          05, 41"
     Write-Host "    pip+jupyter+libs     Python + all libraries          05, 41"
