@@ -808,7 +808,7 @@ if ($Defaults -and -not $Y) {
     Write-Host "  Defaults Mode" -ForegroundColor Cyan
     Write-Host "  =============" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "    Dev directory     : " -NoNewline -ForegroundColor DarkGray; Write-Host "auto (C:\DevTools)" -ForegroundColor White
+    Write-Host "    Dev directory     : " -NoNewline -ForegroundColor DarkGray; Write-Host "auto (E:\dev-tool -- smart detection)" -ForegroundColor White
     Write-Host "    VS Code edition   : " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
     Write-Host "    Settings sync     : " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
     Write-Host ""
