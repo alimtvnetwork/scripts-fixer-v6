@@ -35,8 +35,9 @@ function Install-Flutter {
         if ($Config.flutter.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersionData = & flutter --version --machine 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
-                $newVersion = if ($newVersionData) { $newVersionData.frameworkVersion } else { "upgraded" }
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $newVersionData = try { & flutter --version --machine 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue } catch { $null }
+                $newVersion = if ($newVersionData) { $newVersionData.frameworkVersion } else { "(version pending)" }
                 Write-Log ($LogMessages.messages.flutterUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
                 Save-InstalledRecord -Name "flutter" -Version $newVersion
             } catch {

@@ -35,9 +35,12 @@ function Install-NodeJs {
         if ($Config.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersion = & node --version 2>$null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $newVersion = try { & node --version 2>$null } catch { $null }
+                $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+                if ($isVersionEmpty) { $newVersion = "(version pending)" }
                 Write-Log ($LogMessages.messages.nodeUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-                Save-InstalledRecord -Name "nodejs" -Version $newVersion
+                Save-InstalledRecord -Name "nodejs" -Version "$newVersion".Trim()
             } catch {
                 Write-Log "Node.js upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "nodejs" -ErrorMessage "$_"

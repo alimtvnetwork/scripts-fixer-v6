@@ -113,13 +113,16 @@ function Install-Mingw {
         if ($Config.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
             } catch {
                 Write-Log "MinGW upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "mingw" -ErrorMessage "$_"
             }
         }
 
-        $version = & g++.exe --version 2>&1 | Select-Object -First 1
+        $version = try { & g++.exe --version 2>&1 | Select-Object -First 1 } catch { $null }
+        $isVersionEmpty = [string]::IsNullOrWhiteSpace($version)
+        if ($isVersionEmpty) { $version = "(version pending)" }
         Write-Log ($LogMessages.messages.mingwVersion -replace '\{version\}', $version) -Level "success"
         Save-InstalledRecord -Name "mingw" -Version "$version".Trim()
         return $true

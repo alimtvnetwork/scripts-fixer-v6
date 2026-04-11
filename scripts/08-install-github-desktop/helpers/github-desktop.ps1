@@ -44,6 +44,7 @@ function Install-GitHubDesktop {
             try {
                 Write-Log $LogMessages.messages.ghDesktopUpgrading -Level "info"
                 Upgrade-ChocoPackage -PackageName $packageName
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
                 Write-Log $LogMessages.messages.ghDesktopUpgradeSuccess -Level "success"
             } catch {
                 Write-Log "GitHub Desktop upgrade failed: $_" -Level "error"
@@ -52,7 +53,9 @@ function Install-GitHubDesktop {
         }
 
         $newVersion = (choco list --local-only --exact $packageName 2>&1 | Select-String $packageName) -replace ".*$packageName\s*", "" | ForEach-Object { $_.Trim() }
-        if ($newVersion) { Save-InstalledRecord -Name "github-desktop" -Version $newVersion }
+        $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+        if ($isVersionEmpty) { $newVersion = "(version pending)" }
+        Save-InstalledRecord -Name "github-desktop" -Version $newVersion
     }
     else {
         Write-Log $LogMessages.messages.ghDesktopNotFound -Level "info"

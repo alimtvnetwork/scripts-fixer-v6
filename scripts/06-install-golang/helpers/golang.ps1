@@ -70,13 +70,16 @@ function Install-Go {
         if ($Config.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName | Out-Null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
             } catch {
                 Write-Log "Go upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "golang" -ErrorMessage "$_"
             }
         }
 
-        $version = & go.exe version 2>&1
+        $version = try { & go.exe version 2>&1 } catch { $null }
+        $isVersionEmpty = [string]::IsNullOrWhiteSpace($version)
+        if ($isVersionEmpty) { $version = "(version pending)" }
         Write-Log ($LogMessages.messages.goVersion -replace '\{version\}', $version) -Level "success"
         Save-InstalledRecord -Name "golang" -Version "$version".Trim()
         return $true
