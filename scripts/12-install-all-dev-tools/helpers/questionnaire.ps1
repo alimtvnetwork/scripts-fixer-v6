@@ -94,7 +94,8 @@ function Invoke-Questionnaire {
     if ($UseDefaults) {
         $devDirInput = $defaultDevDir
     } else {
-        Write-Host "  Dev directory (tools, configs, data will be stored here)" -ForegroundColor Yellow
+        Write-Host "  Dev directory -- tools, configs, data will be stored here" -ForegroundColor Yellow
+        Write-Host "  (use -Path parameter to override, e.g. .\run.ps1 -Path F:\dev-tool)" -ForegroundColor DarkGray
         $devDirInput = Read-Host "  Path (default: $defaultDevDir)"
         $isDefaultDevDir = [string]::IsNullOrWhiteSpace($devDirInput)
         if ($isDefaultDevDir) { $devDirInput = $defaultDevDir }
