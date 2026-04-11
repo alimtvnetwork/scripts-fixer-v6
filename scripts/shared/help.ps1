@@ -45,6 +45,13 @@ function Show-ScriptHelp {
             }
         }
 
+        # Extract parameters from log messages help block
+        if ($Flags.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.parameters) {
+            foreach ($prop in $LogMessages.help.parameters.PSObject.Properties) {
+                $Flags += @{ Name = $prop.Name; Description = $prop.Value }
+            }
+        }
+
         # Extract examples
         if ($Examples.Count -eq 0 -and $LogMessages.help -and $LogMessages.help.examples) {
             $Examples = @($LogMessages.help.examples)
@@ -69,10 +76,10 @@ function Show-ScriptHelp {
     }
 
     if ($Flags.Count -gt 0) {
-        Write-Host $slm.messages.helpFlagsLabel -ForegroundColor Yellow
+        Write-Host $slm.messages.helpParametersLabel -ForegroundColor Yellow
         foreach ($flag in $Flags) {
             $label = "{0,-16}" -f $flag.Name
-            $line = $slm.messages.helpFlagItem -replace '\{label\}', $label -replace '\{description\}', $flag.Description
+            $line = $slm.messages.helpParameterItem -replace '\{label\}', $label -replace '\{description\}', $flag.Description
             Write-Host $line -ForegroundColor Gray
         }
         Write-Host ""
