@@ -5,7 +5,7 @@
   "devDirSubfolder": "python",
   "pip": {
     "setUserSite": true,
-    "userSitePath": "E:\\dev\\python"
+    "userSitePath": "E:\\dev-tool\\python"
   },
   "path": {
     "updateUserPath": true,

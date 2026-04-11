@@ -451,7 +451,7 @@ function Test-VerifySymlinks {
     } else {
         # Check preferred drives in order: E, D, then scan others
         foreach ($letter in @("E", "D")) {
-            $testPath = "${letter}:\dev\databases"
+            $testPath = "${letter}:\dev-tool\databases"
             $isPresent = Test-Path $testPath
             if ($isPresent) {
                 $devDir = "${letter}:\dev"
@@ -466,7 +466,7 @@ function Test-VerifySymlinks {
                 $letter = $disk.DeviceID.Substring(0, 1)
                 $isAlreadyChecked = $letter -eq "E" -or $letter -eq "D"
                 if ($isAlreadyChecked) { continue }
-                $testPath = "${letter}:\dev\databases"
+                $testPath = "${letter}:\dev-tool\databases"
                 $isPresent = Test-Path $testPath
                 if ($isPresent) {
                     $devDir = "${letter}:\dev"

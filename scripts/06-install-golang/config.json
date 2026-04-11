@@ -5,7 +5,7 @@
   "devDirSubfolder": "go",
   "gopath": {
     "mode": "json-or-prompt",
-    "default": "E:\\dev\\go",
+    "default": "E:\\dev-tool\\go",
     "override": ""
   },
   "path": {
