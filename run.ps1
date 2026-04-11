@@ -1054,6 +1054,7 @@ if ($hasCommand) {
     $isBarePathCommand    = $normalizedCommand -eq "path"
     $isBareExportCommand  = $normalizedCommand -eq "export"
     $isBareStatusCommand  = $normalizedCommand -eq "status"
+    $isBareDoctorCommand  = $normalizedCommand -eq "doctor"
     $isBareScriptId = $normalizedCommand -match '^\d+$'
 
     if ($isBareInstallCommand) {
@@ -1078,6 +1079,10 @@ if ($hasCommand) {
     } elseif ($isBarePathCommand) {
         Show-VersionHeader
         Invoke-PathCommand -Args $Install
+        exit 0
+    } elseif ($isBareDoctorCommand) {
+        Show-VersionHeader
+        Invoke-DoctorCommand
         exit 0
     } elseif ($isBareUpdateCommand) {
         Show-VersionHeader
