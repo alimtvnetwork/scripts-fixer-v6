@@ -313,7 +313,7 @@ function Install-Python {
             "Shortcuts=0",
             "Include_test=0",
             "PrependPath=1",
-            "TargetDir=\"$($installerConfig.InstallDir)\""
+            ('TargetDir="{0}"' -f $installerConfig.InstallDir)
         )
 
         Write-Log "Installing Python $($installerConfig.Version) to $($installerConfig.InstallDir)" -Level "info"
