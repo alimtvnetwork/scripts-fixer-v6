@@ -20,6 +20,7 @@ Install Windows Terminal via Chocolatey and/or sync curated settings
 .\run.ps1 install wt+settings       # WT + Settings (explicit)
 .\run.ps1 install wt-settings       # WT Settings only
 .\run.ps1 install install-wt        # Install WT only
+.\run.ps1 -I 37 -- export          # Export settings from machine to repo
 .\run.ps1 -I 37                     # WT + Settings (default mode)
 .\run.ps1 -I 37 -- -Mode settings-only   # WT Settings only
 .\run.ps1 -I 37 -- -Mode install-only    # Install WT only
@@ -100,6 +101,24 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `windows-terminal.ps1` | `Install-WindowsTerminal` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `windows-terminal.ps1` | `Sync-WindowsTerminalSettings` | Copy settings.json to LocalState |
+| `windows-terminal.ps1` | `Export-WindowsTerminalSettings` | Export settings from LocalState back to repo |
+
+## Settings Export
+
+The export command copies WT settings FROM the machine back INTO the repo:
+
+```powershell
+.\run.ps1 -I 37 -- export
+```
+
+**Source:** `%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\`
+**Target:** `settings/03 - windows-terminal/`
+
+Safety rules:
+- `settings.json` is always exported
+- Additional config files are included (themes, fragments)
+- `state.json` is excluded (runtime state, not config)
+- Files larger than 512 KB are skipped
 
 ## Install Keywords
 
