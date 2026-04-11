@@ -46,7 +46,7 @@ All `config.json` files use:
 | Field | Description |
 |-------|-------------|
 | `mode` | `"smart"` triggers auto-detection. Legacy `"json-or-prompt"` also triggers smart mode for backwards compatibility |
-| `default` | `"auto"` means use smart detection. Any explicit path (e.g. `"F:\\dev"`) uses that path directly |
+| `default` | `"auto"` means use smart detection. Any explicit path (e.g. `"F:\\dev-tool"`) uses that path directly |
 | `override` | If non-empty, this path is used unconditionally (bypasses smart detection) |
 
 ---
@@ -112,12 +112,12 @@ None.
 
 #### Returns
 
-A dev directory path string (e.g. `"E:\dev"`, `"D:\dev"`, or user-provided).
+A dev directory path string (e.g. `"E:\dev-tool"`, `"D:\dev-tool"`, or user-provided).
 
 #### Execution Flow
 
 1. Call `Find-BestDevDrive`
-2. If a drive is found: return `"<letter>:\dev"`
+2. If a drive is found: return `"<letter>:\dev-tool"`
 3. If no drive qualifies:
    - Display warning with threshold
    - List all fixed drives with their free space

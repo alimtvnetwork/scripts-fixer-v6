@@ -26,7 +26,7 @@ $script:MinFreeSpaceGB = 10
 
 function Get-SafeDevDirFallback {
     $systemDrive = if ([string]::IsNullOrWhiteSpace($env:SystemDrive)) { "C:" } else { $env:SystemDrive.TrimEnd('\') }
-    return "$systemDrive\dev"
+    return "$systemDrive\dev-tool"
 }
 
 function Test-DriveQualified {
@@ -151,7 +151,7 @@ function Resolve-SmartDevDir {
     $bestDrive = Find-BestDevDrive
     $hasBestDrive = $null -ne $bestDrive
     if ($hasBestDrive) {
-        return "${bestDrive}:\dev"
+        return "${bestDrive}:\dev-tool"
     }
 
     # No qualified drive found -- prompt user
@@ -166,7 +166,7 @@ function Resolve-SmartDevDir {
     }
 
     Write-Host ""
-    $userInput = Read-Host -Prompt "Enter dev directory path (e.g. C:\dev, F:\dev)"
+    $userInput = Read-Host -Prompt "Enter dev directory path (e.g. C:\dev-tool, F:\dev-tool)"
     $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
     if ($hasUserInput) {
         Write-Log ($slm.messages.devDirUserProvided -replace '\{path\}', $userInput) -Level "info"
