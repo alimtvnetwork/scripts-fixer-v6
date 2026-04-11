@@ -35,6 +35,17 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.15.3] -- 2026-04-11
+
+### Fixed
+
+- **Python installer** -- `pip` not recognized after install due to stale PATH
+  - Added Machine + User PATH refresh before version verification
+  - `pip --version` and `python --version` now use `try/catch` with `"unknown"` fallback
+- **Python empty-version guard** -- `--version` returning empty no longer crashes the installer
+
+---
+
 ## [v0.15.2] -- 2026-04-11
 
 ### Fixed
