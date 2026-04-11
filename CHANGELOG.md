@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.22.1] -- 2026-04-12
+
+### Fixed
+
+- **Help display alignment** -- all keyword tables, combo shortcuts, and Available Scripts section now use consistent PadRight column widths (28/36/44) for perfect alignment
+- **Missing scripts in help** -- added Flutter (38), .NET SDK (39), Java/OpenJDK (40), Windows Terminal (37), PowerShell Context Menu (31) to Available Scripts listing
+- **Installed tool versions shown** -- Available Scripts section now detects and displays `[vX.Y.Z]` in green next to each tool that is already installed on the machine
+- **`pylibs` keyword in help** -- added `pylibs` to Install by Keyword, Available Keywords, and Combo Shortcuts sections
+- **`backend` combo updated** -- now includes .NET (39) and Java (40) alongside Python, Go, PHP, PostgreSQL
+- **`full-stack` combo updated** -- now includes .NET (39) and Java (40)
+- **Desktop Tools category** -- renamed from "Database Tools" to include non-DB desktop apps (OBS, WT, GitMap, Sticky Notes)
+- **`data-dev` and `mobile-dev` combos** -- added to Combo Shortcuts in keyword table
+
 ## [v0.22.0] -- 2026-04-12
 
 ### Added
