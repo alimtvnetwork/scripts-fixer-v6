@@ -24,7 +24,7 @@ function Test-GitmapInstalled {
     # Check default install location
     $defaultPaths = @(
         "$env:LOCALAPPDATA\gitmap\gitmap.exe",
-        "C:\DevTools\GitMap\gitmap.exe"
+        "C:\dev-tool\GitMap\gitmap.exe"
     )
 
     # Also check devDir-resolved path if DEV_DIR is set
@@ -83,7 +83,7 @@ function Resolve-GitmapInstallDir {
         return $DevDirConfig.default
     }
 
-    return "C:\DevTools\GitMap"
+    return "C:\dev-tool\GitMap"
 }
 
 function Install-Gitmap {
