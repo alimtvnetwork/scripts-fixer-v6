@@ -347,7 +347,7 @@ after modifying the persistent environment variable.
 
 ### Purpose
 
-Resolves and initializes the base dev directory (e.g. `E:\dev`).
+Resolves and initializes the base dev directory (e.g. `E:\dev-tool`).
 
 ### Functions
 
@@ -361,7 +361,7 @@ Resolves and initializes the base dev directory (e.g. `E:\dev`).
 1. `$env:DEV_DIR` (set by the orchestrator, script 04)
 2. Config `override` value (non-empty string in config)
 3. User prompt (if mode is `json-or-prompt`)
-4. Config `default` value (fallback: `E:\dev`)
+4. Config `default` value (fallback: `E:\dev-tool`)
 
 ---
 

@@ -5,7 +5,7 @@
     "override": ""
   },
   "installMode": {
-    "_comment": "Where to install databases. Options: devDir (E:\\dev\\databases\\<db>), custom (user picks path), system (default system location). Default: devDir.",
+    "_comment": "Where to install databases. Options: devDir (E:\\dev-tool\\databases\\<db>), custom (user picks path), system (default system location). Default: devDir.",
     "default": "devDir"
   },
   "databases": {

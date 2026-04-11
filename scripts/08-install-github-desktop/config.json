@@ -5,7 +5,7 @@
   "scanFolders": {
     "enabled": true,
     "paths": [
-      "D:\\dev",
+      "D:\\dev-tool",
       "D:\\projects"
     ],
     "maxDepth": 2,

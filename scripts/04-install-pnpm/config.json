@@ -4,7 +4,7 @@
   "devDirSubfolder": "pnpm",
   "store": {
     "setStorePath": true,
-    "storePath": "E:\\dev\\pnpm\\store"
+    "storePath": "E:\\dev-tool\\pnpm\\store"
   },
   "path": {
     "updateUserPath": true

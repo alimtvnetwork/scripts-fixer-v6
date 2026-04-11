@@ -27,7 +27,7 @@ Popular open-source relational database.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\mysql`
+1. **Dev directory** (default): `E:\dev-tool\mysql`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

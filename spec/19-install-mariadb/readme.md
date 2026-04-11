@@ -27,7 +27,7 @@ MySQL-compatible fork with extra features.
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\mariadb`
+1. **Dev directory** (default): `E:\dev-tool\mariadb`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g., `C:\Program Files`)
 

@@ -6,7 +6,7 @@
 .DESCRIPTION
     After Chocolatey installs a database to its default system location,
     this helper creates a directory junction (symlink) from
-    E:\dev\databases\<name> -> actual install path, so all databases
+    E:\dev-tool\databases\<name> -> actual install path, so all databases
     appear organized under the dev directory.
 #>
 

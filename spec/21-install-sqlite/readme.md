@@ -67,12 +67,12 @@ Both components are toggled independently via `config.json`:
 
 ## Install Path Options
 
-1. **Dev directory** (default): `E:\dev\sqlite`
+1. **Dev directory** (default): `E:\dev-tool\sqlite`
 2. **Custom path**: User-specified location
 3. **System default**: Package manager default (e.g. `C:\Program Files`)
 
 If the configured drive is unavailable or invalid, the shared dev-dir helper
-falls back to a safe path such as `C:\dev`.
+falls back to a safe path such as `C:\dev-tool`.
 
 ---
 

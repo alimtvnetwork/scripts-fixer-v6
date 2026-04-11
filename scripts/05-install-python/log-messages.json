@@ -37,9 +37,9 @@
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
       ".\\run.ps1 uninstall",
-      ".\\run.ps1 all F:\\dev",
+      ".\\run.ps1 all F:\\dev-tool",
       ".\\run.ps1 install D:\\projects",
-      ".\\run.ps1 -Path E:\\dev",
+      ".\\run.ps1 -Path E:\\dev-tool",
       ".\\run.ps1 -Help"
     ]
   }

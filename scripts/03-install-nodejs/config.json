@@ -5,7 +5,7 @@
   "devDirSubfolder": "nodejs",
   "npm": {
     "setGlobalPrefix": true,
-    "globalPrefix": "E:\\dev\\nodejs"
+    "globalPrefix": "E:\\dev-tool\\nodejs"
   },
   "path": {
     "updateUserPath": true,
