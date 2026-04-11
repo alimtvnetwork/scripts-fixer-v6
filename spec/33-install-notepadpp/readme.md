@@ -22,6 +22,7 @@ from the bundled zip to the user's AppData directory. Supports three modes.
 .\run.ps1 install npp+settings     # NPP + Settings (explicit)
 .\run.ps1 install npp-settings     # NPP Settings only
 .\run.ps1 install install-npp      # Install NPP only
+.\run.ps1 -I 33 -- export         # Export settings from machine to repo
 .\run.ps1 -I 33                    # NPP + Settings (default mode)
 .\run.ps1 -I 33 -- -Mode settings-only   # NPP Settings only
 .\run.ps1 -I 33 -- -Mode install-only    # Install NPP only
@@ -85,6 +86,25 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `notepadpp.ps1` | `Install-NotepadPP` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `notepadpp.ps1` | `Sync-NotepadPPSettings` | Extract settings zip to AppData |
+| `notepadpp.ps1` | `Export-NotepadPPSettings` | Export settings from AppData back to repo |
+
+## Settings Export
+
+The export command copies Notepad++ settings FROM the machine back INTO the repo:
+
+```powershell
+.\run.ps1 -I 33 -- export
+```
+
+**Source:** `%APPDATA%\Notepad++\`
+**Target:** `settings/01 - notepad++/`
+
+Safety rules:
+- Config files exported: `.xml`, `.json`, `.ini`, `.txt`
+- Files larger than 512 KB are skipped (likely cache)
+- `readme.txt` is preserved in the target directory
+- Subdirectories exported recursively (themes, userDefineLangs, etc.)
+- Runtime folders skipped: `backup`, `session`, `plugins`
 
 ## Install Keywords
 

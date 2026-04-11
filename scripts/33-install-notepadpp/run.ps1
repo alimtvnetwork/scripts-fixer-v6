@@ -68,6 +68,13 @@ if ($isUninstall) {
     return
 }
 
+# -- Export check --------------------------------------------------------------
+$isExport = $Command.ToLower() -eq "export"
+if ($isExport) {
+    Export-NotepadPPSettings -LogMessages $logMessages
+    return
+}
+
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
 

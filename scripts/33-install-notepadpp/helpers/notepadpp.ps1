@@ -172,6 +172,103 @@ function Sync-NotepadPPSettings {
     return $true
 }
 
+function Export-NotepadPPSettings {
+    <#
+    .SYNOPSIS
+        Exports Notepad++ settings FROM the machine back INTO the repo's
+        settings/01 - notepad++/ folder for backup/version control.
+    #>
+    param(
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+
+    # Source: %APPDATA%\Notepad++\
+    $sourceDir = Join-Path $env:APPDATA "Notepad++"
+
+    # Target: repo/settings/01 - notepad++/
+    $repoRoot  = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    $targetDir = Join-Path $repoRoot "settings\01 - notepad++"
+
+    Write-Log ($msgs.exportStarting -replace '\{source\}', $sourceDir) -Level "info"
+
+    # -- Validate source exists ----------------------------------------
+    $isSourceMissing = -not (Test-Path $sourceDir)
+    if ($isSourceMissing) {
+        Write-FileError -FilePath $sourceDir -Operation "read" -Reason "Notepad++ AppData directory does not exist. Is Notepad++ installed and has been launched at least once?" -Module "Export-NotepadPPSettings"
+        Write-Log $msgs.exportNoSource -Level "error"
+        return $false
+    }
+
+    # -- Ensure target directory exists --------------------------------
+    $isTargetMissing = -not (Test-Path $targetDir)
+    if ($isTargetMissing) {
+        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+        Write-Log "Created settings directory: $targetDir" -Level "info"
+    }
+
+    $copiedCount = 0
+
+    # -- Export config files (.xml, .json, .ini) ------------------------
+    $configExts = @("*.xml", "*.json", "*.ini", "*.txt")
+    foreach ($ext in $configExts) {
+        $files = Get-ChildItem -Path $sourceDir -File -Filter $ext -ErrorAction SilentlyContinue
+        foreach ($file in $files) {
+            $isReadme = $file.Name -eq "readme.txt"
+            if ($isReadme) { continue }
+
+            $fileSizeKB = [math]::Round($file.Length / 1024, 1)
+            $isTooBig = $fileSizeKB -gt 512
+            if ($isTooBig) {
+                Write-Log "Skipped: $($file.Name) ($fileSizeKB KB -- too large, likely cache)" -Level "info"
+                continue
+            }
+
+            try {
+                $dest = Join-Path $targetDir $file.Name
+                Copy-Item -Path $file.FullName -Destination $dest -Force
+                Write-Log "Exported: $($file.Name) ($fileSizeKB KB)" -Level "success"
+                $copiedCount++
+            } catch {
+                Write-FileError -FilePath $file.FullName -Operation "copy" -Reason "Failed to export $($file.Name): $_" -Module "Export-NotepadPPSettings"
+            }
+        }
+    }
+
+    # -- Export subdirectories (themes, plugins, userDefineLangs) -------
+    $sourceDirs = Get-ChildItem -Path $sourceDir -Directory -ErrorAction SilentlyContinue
+    foreach ($dir in $sourceDirs) {
+        # Skip session and backup folders (runtime data, not config)
+        $skipDirs = @("backup", "session", "plugins")
+        $isDirSkipped = $skipDirs -contains $dir.Name.ToLower()
+        if ($isDirSkipped) {
+            Write-Log "Skipped folder: $($dir.Name) (runtime data)" -Level "info"
+            continue
+        }
+
+        try {
+            $dest = Join-Path $targetDir $dir.Name
+            Copy-Item -Path $dir.FullName -Destination $dest -Recurse -Force
+            $subCount = (Get-ChildItem $dir.FullName -Recurse -File).Count
+            Write-Log "Exported folder: $($dir.Name) ($subCount files)" -Level "success"
+            $copiedCount++
+        } catch {
+            Write-FileError -FilePath $dir.FullName -Operation "copy" -Reason "Failed to export folder $($dir.Name): $_" -Module "Export-NotepadPPSettings"
+        }
+    }
+
+    $hasNoFiles = $copiedCount -eq 0
+    if ($hasNoFiles) {
+        Write-Log $msgs.exportNoFiles -Level "warn"
+        return $false
+    }
+
+    $summary = $msgs.exportComplete -replace '\{count\}', $copiedCount -replace '\{path\}', $targetDir
+    Write-Log $summary -Level "success"
+    return $true
+}
+
 function Uninstall-NotepadPP {
     <#
     .SYNOPSIS
@@ -182,7 +279,7 @@ function Uninstall-NotepadPP {
         $LogMessages
     )
 
-    $packageName = $$NppConfig.chocoPackage
+    $packageName = $NppConfig.chocoPackage
 
     # 1. Uninstall via Chocolatey
     Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Notepad++") -Level "info"
