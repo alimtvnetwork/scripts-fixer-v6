@@ -144,11 +144,16 @@ function Set-PythonResolverCache {
 
 function Add-UniquePath {
     param(
-        [Parameter(Mandatory)]
         [System.Collections.Generic.List[string]]$Target,
 
         [string]$Path
     )
+
+    $hasTarget = $null -ne $Target
+    $isTargetMissing = -not $hasTarget
+    if ($isTargetMissing) {
+        return
+    }
 
     $hasPath = -not [string]::IsNullOrWhiteSpace($Path)
     $isPathMissing = -not $hasPath
