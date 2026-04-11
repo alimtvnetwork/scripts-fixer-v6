@@ -52,6 +52,18 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## [v0.15.4] -- 2026-04-11
+
+### Fixed
+
+- **PATH refresh after Chocolatey upgrades** -- all upgrade blocks now refresh `$env:Path` from Machine + User immediately after `Upgrade-ChocoPackage`
+  - Prevents stale PATH causing `--version` to return empty after an upgrade
+  - Applied to: VSCode (01), Node.js (03), Golang (06), Git + LFS + GH CLI (07), GitHub Desktop (08), MinGW/C++ (09), Flutter (38)
+- **Empty-version guard in upgrade blocks** -- version capture wrapped in `try/catch` with fallback to `"(version pending)"` when unresolvable
+- **Python installer duplicate save** -- removed second `Save-InstalledRecord` call that wrote empty `$newVersion`, causing the `"Warning: empty version"` warning
+
+---
+
 ## [v0.15.3] -- 2026-04-11
 
 ### Fixed
