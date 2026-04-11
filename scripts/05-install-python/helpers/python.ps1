@@ -44,13 +44,13 @@ function Install-Python {
                 $newVersion = try { & python --version 2>$null } catch { $null }
                 $hasNewVersion = -not [string]::IsNullOrWhiteSpace($newVersion)
                 if ($hasNewVersion) {
+                    $newVersion = "$newVersion".Trim()
                     Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
                     Save-InstalledRecord -Name "python" -Version $newVersion
                 } else {
                     Write-Log ($LogMessages.messages.pythonUpgradeSuccess -replace '\{version\}', "(version pending)") -Level "success"
                     Save-InstalledRecord -Name "python" -Version "installed"
                 }
-                Save-InstalledRecord -Name "python" -Version $newVersion
             } catch {
                 Write-Log "Python upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "python" -ErrorMessage "$_"
