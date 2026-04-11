@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.2] -- 2026-04-11
+
+### Added
+
+- **Python Libraries in help** -- script 41 now fully visible in `.\run.ps1 -Help`
+  - New "Python & pip libraries" section in Install by Keyword with all group commands
+  - Keywords added to Available Keywords table: `python-libs`, `pip-libs`, `ml-libs`, `python+libs`, `ml-dev`
+  - Script 41 listed in Available Scripts under Core Tools
+  - Combo shortcut: `python+libs` / `ml-dev` installs Python + all libraries (05, 41)
+  - Per-group commands shown: `group ml`, `group jupyter`, `group viz`, `group web`, `group data`
+  - Custom install: `add <pkg>`, `list`, `installed` commands documented
+
+---
+
 ## [v0.17.1] -- 2026-04-11
 
 ### Added
