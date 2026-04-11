@@ -80,11 +80,13 @@
     "commands": {
       "(default)": "Replace mode -- back up and overwrite settings",
       "-Merge": "Deep-merge incoming settings into existing settings.json",
+      "export": "Export current VS Code settings, keybindings, and extensions to script folder",
       "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 -Merge",
+      ".\\run.ps1 export",
       ".\\run.ps1 -Help",
       ".\\run.ps1 uninstall"
     ]
