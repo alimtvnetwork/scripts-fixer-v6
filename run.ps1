@@ -632,6 +632,144 @@ function Invoke-ExportCommand {
     Write-Host ""
 }
 
+# ── Status command function ────────────────────────────────────────────
+function Invoke-StatusCommand {
+    param([string[]]$Args)
+
+    Write-Host ""
+    Write-Host "  Tool Status Dashboard" -ForegroundColor Cyan
+    Write-Host "  =====================" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $installedDir = Join-Path $RootDir ".installed"
+    $isInstalledDirMissing = -not (Test-Path $installedDir)
+    if ($isInstalledDirMissing) {
+        Write-Host "  No tools tracked yet. Run some install scripts first." -ForegroundColor Yellow
+        Write-Host ""
+        return
+    }
+
+    $records = Get-ChildItem -Path $installedDir -Filter "*.json" -File | Sort-Object Name
+    $hasNoRecords = $records.Count -eq 0
+    if ($hasNoRecords) {
+        Write-Host "  No tools tracked yet. Run some install scripts first." -ForegroundColor Yellow
+        Write-Host ""
+        return
+    }
+
+    # Parse --no-choco flag
+    $isNoChoco = $false
+    if ($null -ne $Args) {
+        foreach ($arg in $Args) {
+            $argLower = "$arg".Trim().ToLower()
+            $isNoChocoFlag = $argLower -eq "--no-choco" -or $argLower -eq "--fast"
+            if ($isNoChocoFlag) { $isNoChoco = $true }
+        }
+    }
+
+    # Table header
+    $nameCol = 24
+    $versionCol = 24
+    $statusCol = 12
+    $methodCol = 12
+    $header = "    {0}  {1}  {2}  {3}" -f "Tool".PadRight($nameCol), "Version".PadRight($versionCol), "Status".PadRight($statusCol), "Source".PadRight($methodCol)
+    Write-Host $header -ForegroundColor DarkGray
+    $separator = "    {0}  {1}  {2}  {3}" -f ("-" * $nameCol), ("-" * $versionCol), ("-" * $statusCol), ("-" * $methodCol)
+    Write-Host $separator -ForegroundColor DarkGray
+
+    $okCount = 0
+    $errorCount = 0
+    $unknownCount = 0
+
+    foreach ($file in $records) {
+        try {
+            $record = Get-Content $file.FullName -Raw | ConvertFrom-Json
+        } catch {
+            continue
+        }
+
+        $toolName = if ($record.name) { $record.name } else { $file.BaseName }
+        $version  = if ($record.version) { $record.version } else { "unknown" }
+        $method   = if ($record.method) { $record.method } else { "--" }
+
+        # Determine status
+        $hasError = $record.lastError -and ($record.lastError -ne "")
+        $isVersionUnknown = $version -eq "unknown" -or $version -eq "installed" -or $version -eq "(version pending)"
+
+        $status = "ok"
+        $statusColor = "Green"
+        if ($hasError) {
+            $status = "error"
+            $statusColor = "Red"
+            $errorCount++
+        } elseif ($isVersionUnknown) {
+            $status = "unverified"
+            $statusColor = "Yellow"
+            $unknownCount++
+        } else {
+            $okCount++
+        }
+
+        # Truncate long values
+        $displayName = if ($toolName.Length -gt $nameCol) { $toolName.Substring(0, $nameCol - 2) + ".." } else { $toolName }
+        $displayVer  = if ($version.Length -gt $versionCol) { $version.Substring(0, $versionCol - 2) + ".." } else { $version }
+
+        Write-Host "    $($displayName.PadRight($nameCol))  $($displayVer.PadRight($versionCol))  " -NoNewline
+        Write-Host $status.PadRight($statusCol) -ForegroundColor $statusColor -NoNewline
+        Write-Host "  $method"
+    }
+
+    Write-Host ""
+    Write-Host "  Summary: " -NoNewline -ForegroundColor DarkGray
+    Write-Host "$okCount ok" -ForegroundColor Green -NoNewline
+    $hasErrors = $errorCount -gt 0
+    if ($hasErrors) {
+        Write-Host ", $errorCount error(s)" -ForegroundColor Red -NoNewline
+    }
+    $hasUnknowns = $unknownCount -gt 0
+    if ($hasUnknowns) {
+        Write-Host ", $unknownCount unverified" -ForegroundColor Yellow -NoNewline
+    }
+    Write-Host " -- $($records.Count) total tracked"
+
+    # Optionally check choco outdated
+    $isChocoCheckEnabled = -not $isNoChoco
+    if ($isChocoCheckEnabled) {
+        $chocoCmd = Get-Command choco -ErrorAction SilentlyContinue
+        $isChocoAvailable = $null -ne $chocoCmd
+        if ($isChocoAvailable) {
+            Write-Host ""
+            Write-Host "  Checking for outdated packages..." -ForegroundColor DarkGray
+            try {
+                $outdated = & choco outdated -r 2>$null | Where-Object { $_ -match '\|' }
+                $hasOutdated = $null -ne $outdated -and @($outdated).Count -gt 0
+                if ($hasOutdated) {
+                    Write-Host ""
+                    Write-Host "  Outdated Packages:" -ForegroundColor Yellow
+                    foreach ($line in $outdated) {
+                        $parts = $line -split '\|'
+                        $hasParts = $parts.Count -ge 3
+                        if ($hasParts) {
+                            $pkgName = $parts[0]
+                            $currentVer = $parts[1]
+                            $availableVer = $parts[2]
+                            Write-Host "    $($pkgName.PadRight(24))  $currentVer -> $availableVer" -ForegroundColor DarkGray
+                        }
+                    }
+                } else {
+                    Write-Host "  All Chocolatey packages are up to date." -ForegroundColor Green
+                }
+            } catch {
+                Write-Host "  Could not check Chocolatey outdated: $_" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  Tip: Use '.\run.ps1 status --no-choco' to skip the outdated check." -ForegroundColor DarkGray
+    Write-Host ""
+}
+
 # ── Path command function ─────────────────────────────────────────────
 function Invoke-PathCommand {
     param([string[]]$Args)
