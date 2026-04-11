@@ -12,6 +12,7 @@ Install Python via Chocolatey and configure `PYTHONUSERBASE` so that
 | `all` | Install Python + configure pip (default) |
 | `install` | Install/upgrade Python only |
 | `configure` | Configure pip site and PATH only |
+| `uninstall` | Uninstall Python, remove env vars, clean dev dir, purge tracking |
 | `-Help` | Show usage information |
 
 ## Parameters
@@ -32,6 +33,21 @@ Install Python via Chocolatey and configure `PYTHONUSERBASE` so that
 When `-Path` is provided, the script skips smart drive detection entirely
 and uses the given path as the dev directory. The pip user site will be
 set to `<Path>\python` (the `devDirSubfolder` from config.json).
+
+## Uninstall
+
+The `uninstall` subcommand performs a full cleanup:
+
+1. **Chocolatey uninstall** -- removes the Python package and its dependencies
+2. **Environment variable** -- removes `PYTHONUSERBASE` from User scope
+3. **PATH cleanup** -- removes the `Scripts\` directory from User PATH
+4. **Dev directory** -- deletes the `<devDir>\python` subfolder and all its contents
+5. **Tracking records** -- purges `.installed/python.json` and `.resolved/05-install-python/`
+
+```powershell
+.\run.ps1 uninstall            # Full uninstall with smart dev dir detection
+.\run.ps1 uninstall E:\dev     # Uninstall, clean E:\dev\python specifically
+```
 
 ## config.json
 
