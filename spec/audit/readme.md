@@ -21,6 +21,7 @@ inconsistencies. Designed to run after any renumbering or restructuring.
 | 9 | **Keyword modes vs config validModes** | Every mode value in `install-keywords.json` `modes` must exist in the target script's `config.json` `validModes` array. |
 | 10 | **Verify database symlinks** | Scans `dev-tool\databases\` for broken junctions, missing links, and real directories. Supports `-Fix` and `-DryRun`. |
 | 11 | **Uninstall coverage** | Every script (except 02, 12, audit, databases) must have: an `Uninstall-*` function in helpers, an `uninstall` command in `run.ps1`, and uninstall help in `log-messages.json`. |
+| 12 | **Export coverage** | Every settings-capable script (32, 33, 36, 37) must have: an `Export-*` function in helpers, an `export` command in `run.ps1`, and export-related messages in `log-messages.json`. |
 
 ## Usage
 
