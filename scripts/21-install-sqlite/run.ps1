@@ -3,6 +3,9 @@
 #  File-based embedded SQL database
 # --------------------------------------------------------------------------
 param(
+    [Parameter(Position = 0)]
+    [string]$Path,
+
     [switch]$Help
 )
 
@@ -54,7 +57,13 @@ if ($isNotAdmin) {
 }
 
 # -- Resolve dev directory -----------------------------------------------------
-$devDir = Resolve-DevDir -Config $config.devDir
+$hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
+if ($hasPathParam) {
+    $devDir = $Path
+    Write-Log "Using user-specified dev directory: $devDir" -Level "info"
+} else {
+    $devDir = Resolve-DevDir -Config $config.devDir
+}
 Initialize-DevDir -Path $devDir
 $env:DEV_DIR = $devDir
 
