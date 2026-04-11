@@ -20,6 +20,7 @@ and profiles from the bundled settings zip. Supports three modes.
 .\run.ps1 install obs+settings     # OBS + Settings (explicit)
 .\run.ps1 install obs-settings     # OBS Settings only
 .\run.ps1 install install-obs      # Install OBS only
+.\run.ps1 -I 36 -- export         # Export settings from machine to repo
 .\run.ps1 -I 36                    # OBS + Settings (default mode)
 .\run.ps1 -I 36 -- -Mode settings-only   # OBS Settings only
 .\run.ps1 -I 36 -- -Mode install-only    # Install OBS only
@@ -111,6 +112,23 @@ Defined in `log-messages.json`. Key messages:
 |------|----------|---------|
 | `obs.ps1` | `Install-OBS` | Install via Chocolatey, verify, track (accepts `-Mode`) |
 | `obs.ps1` | `Sync-OBSSettings` | Extract zip to temp, copy scenes + profiles to AppData |
+| `obs.ps1` | `Export-OBSSettings` | Export scenes + profiles from AppData back to repo |
+
+## Settings Export
+
+The export command copies OBS settings FROM the machine back INTO the repo:
+
+```powershell
+.\run.ps1 -I 36 -- export
+```
+
+**Source:** `%APPDATA%\obs-studio\basic\scenes\` and `%APPDATA%\obs-studio\basic\profiles\`
+**Target:** `settings/02 - obs-settings/`
+
+Safety rules:
+- Only `.json` scene collections are exported (no binaries)
+- Files larger than 512 KB are skipped
+- Profile folders are exported recursively
 
 ## Install Keywords
 

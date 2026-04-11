@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.14.1] -- 2026-04-11
+
+### Added
+
+- **OBS settings export** (script 36) -- `.\run.ps1 -I 36 -- export`
+  - Exports scene collections (.json) and profile folders from `%APPDATA%\obs-studio\basic\`
+  - Saves to `settings/02 - obs-settings/`
+  - Skips files > 512 KB
+- **Windows Terminal settings export** (script 37) -- `.\run.ps1 -I 37 -- export`
+  - Exports `settings.json` and extra config files from LocalState
+  - Saves to `settings/03 - windows-terminal/`
+  - Excludes `state.json` (runtime state)
+
+### Fixed
+
+- **Typo in `Uninstall-OBS`** -- `$$ObsConfig` corrected to `$ObsConfig`
+- **Typo in `Uninstall-WindowsTerminal`** -- `$$WtConfig` corrected to `$WtConfig`
+
+---
+
 ## [v0.14.0] -- 2026-04-11
 
 ### Added

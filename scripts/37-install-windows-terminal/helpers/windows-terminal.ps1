@@ -193,6 +193,96 @@ function Sync-WindowsTerminalSettings {
     return $true
 }
 
+function Export-WindowsTerminalSettings {
+    <#
+    .SYNOPSIS
+        Exports Windows Terminal settings FROM the machine back INTO the repo's
+        settings/03 - windows-terminal/ folder for backup/version control.
+    #>
+    param(
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+
+    # -- Find WT package directory -------------------------------------
+    $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminal_*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $wtPackageDir) {
+        $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminalPreview_*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
+
+    $sourceDir = if ($wtPackageDir) { Join-Path $wtPackageDir.FullName "LocalState" } else { $null }
+
+    # Target: repo/settings/03 - windows-terminal/
+    $repoRoot  = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    $targetDir = Join-Path $repoRoot "settings\03 - windows-terminal"
+
+    Write-Log ($msgs.exportStarting -replace '\{source\}', $(if ($sourceDir) { $sourceDir } else { "LocalState" })) -Level "info"
+
+    # -- Validate source exists ----------------------------------------
+    $isSourceMissing = (-not $sourceDir) -or (-not (Test-Path $sourceDir))
+    if ($isSourceMissing) {
+        Write-FileError -FilePath "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState" -Operation "read" -Reason "Windows Terminal LocalState directory not found. Is Windows Terminal installed?" -Module "Export-WindowsTerminalSettings"
+        Write-Log $msgs.exportNoSource -Level "error"
+        return $false
+    }
+
+    # -- Check for settings.json ---------------------------------------
+    $sourceSettings = Join-Path $sourceDir "settings.json"
+    $hasSettingsFile = Test-Path $sourceSettings
+    if (-not $hasSettingsFile) {
+        Write-Log $msgs.exportNoFiles -Level "warn"
+        return $false
+    }
+
+    # -- Ensure target directory exists --------------------------------
+    $isTargetMissing = -not (Test-Path $targetDir)
+    if ($isTargetMissing) {
+        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+        Write-Log "Created settings directory: $targetDir" -Level "info"
+    }
+
+    $copiedCount = 0
+
+    # -- Copy settings.json --------------------------------------------
+    try {
+        $dest = Join-Path $targetDir "settings.json"
+        Copy-Item -Path $sourceSettings -Destination $dest -Force
+        $fileSizeKB = [math]::Round((Get-Item $sourceSettings).Length / 1024, 1)
+        Write-Log "Exported: settings.json ($fileSizeKB KB)" -Level "success"
+        $copiedCount++
+    } catch {
+        Write-FileError -FilePath $sourceSettings -Operation "copy" -Reason "Failed to export settings.json: $_" -Module "Export-WindowsTerminalSettings"
+        Write-Log "Failed to export settings.json: $_" -Level "error"
+    }
+
+    # -- Copy any additional config files (fragments, themes) ----------
+    $extraFiles = Get-ChildItem -Path $sourceDir -File -Exclude "state.json" -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne "settings.json" }
+    foreach ($file in $extraFiles) {
+        $isReadme = $file.Name -eq "readme.txt"
+        if ($isReadme) { continue }
+
+        $fileSizeKB = [math]::Round($file.Length / 1024, 1)
+        $isTooBig = $fileSizeKB -gt 512
+        if ($isTooBig) {
+            Write-Log "Skipped: $($file.Name) ($fileSizeKB KB -- too large)" -Level "info"
+            continue
+        }
+        try {
+            $dest = Join-Path $targetDir $file.Name
+            Copy-Item -Path $file.FullName -Destination $dest -Force
+            Write-Log "Exported: $($file.Name) ($fileSizeKB KB)" -Level "success"
+            $copiedCount++
+        } catch {
+            Write-FileError -FilePath $file.FullName -Operation "copy" -Reason "Failed to export $($file.Name): $_" -Module "Export-WindowsTerminalSettings"
+        }
+    }
+
+    $summary = $msgs.exportComplete -replace '\{count\}', $copiedCount -replace '\{path\}', $targetDir
+    Write-Log $summary -Level "success"
+    return $true
+}
+
 function Uninstall-WindowsTerminal {
     <#
     .SYNOPSIS
@@ -203,7 +293,7 @@ function Uninstall-WindowsTerminal {
         $LogMessages
     )
 
-    $packageName = $$WtConfig.chocoPackage
+    $packageName = $WtConfig.chocoPackage
 
     # 1. Uninstall via Chocolatey
     Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "Windows Terminal") -Level "info"

@@ -72,6 +72,13 @@ if ($isUninstall) {
     return
 }
 
+# -- Export check --------------------------------------------------------------
+$isExport = $Command.ToLower() -eq "export"
+if ($isExport) {
+    Export-OBSSettings -LogMessages $logMessages
+    return
+}
+
 # -- Install -------------------------------------------------------------------
 $ok = Install-OBS -ObsConfig $config.obs -LogMessages $logMessages -Mode $Mode
 

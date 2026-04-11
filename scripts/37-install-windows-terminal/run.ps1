@@ -72,6 +72,13 @@ if ($isUninstall) {
     return
 }
 
+# -- Export check --------------------------------------------------------------
+$isExport = $Command.ToLower() -eq "export"
+if ($isExport) {
+    Export-WindowsTerminalSettings -LogMessages $logMessages
+    return
+}
+
 # -- Install -------------------------------------------------------------------
 $ok = Install-WindowsTerminal -WtConfig $config.windowsTerminal -LogMessages $logMessages -Mode $Mode
 

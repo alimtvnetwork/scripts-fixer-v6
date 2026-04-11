@@ -201,6 +201,96 @@ function Sync-OBSSettings {
     return $true
 }
 
+function Export-OBSSettings {
+    <#
+    .SYNOPSIS
+        Exports OBS settings FROM the machine back INTO the repo's
+        settings/02 - obs-settings/ folder for backup/version control.
+    #>
+    param(
+        [Parameter(Mandatory)] $LogMessages
+    )
+
+    $msgs = $LogMessages.messages
+
+    # Source directories
+    $appDataDir  = Join-Path $env:APPDATA "obs-studio"
+    $scenesDir   = Join-Path $appDataDir "basic\scenes"
+    $profilesDir = Join-Path $appDataDir "basic\profiles"
+
+    # Target: repo/settings/02 - obs-settings/
+    $repoRoot  = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    $targetDir = Join-Path $repoRoot "settings\02 - obs-settings"
+
+    Write-Log ($msgs.exportStarting -replace '\{source\}', $appDataDir) -Level "info"
+
+    # -- Validate source exists ----------------------------------------
+    $isSourceMissing = -not (Test-Path $appDataDir)
+    if ($isSourceMissing) {
+        Write-FileError -FilePath $appDataDir -Operation "read" -Reason "OBS data directory does not exist. Is OBS installed and has been launched at least once?" -Module "Export-OBSSettings"
+        Write-Log $msgs.exportNoSource -Level "error"
+        return $false
+    }
+
+    # -- Ensure target directory exists --------------------------------
+    $isTargetMissing = -not (Test-Path $targetDir)
+    if ($isTargetMissing) {
+        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+        Write-Log "Created settings directory: $targetDir" -Level "info"
+    }
+
+    $copiedCount = 0
+
+    # -- Export scene collections (.json files) -------------------------
+    $hasScenesDir = Test-Path $scenesDir
+    if ($hasScenesDir) {
+        $sceneFiles = Get-ChildItem -Path $scenesDir -File -Filter "*.json" -ErrorAction SilentlyContinue
+        foreach ($file in $sceneFiles) {
+            $fileSizeKB = [math]::Round($file.Length / 1024, 1)
+            $isTooBig = $fileSizeKB -gt 512
+            if ($isTooBig) {
+                Write-Log "Skipped: $($file.Name) ($fileSizeKB KB -- too large)" -Level "info"
+                continue
+            }
+            try {
+                $dest = Join-Path $targetDir $file.Name
+                Copy-Item -Path $file.FullName -Destination $dest -Force
+                Write-Log "Exported scene: $($file.Name) ($fileSizeKB KB)" -Level "success"
+                $copiedCount++
+            } catch {
+                Write-FileError -FilePath $file.FullName -Operation "copy" -Reason "Failed to export $($file.Name): $_" -Module "Export-OBSSettings"
+            }
+        }
+    }
+
+    # -- Export profile folders -----------------------------------------
+    $hasProfilesDir = Test-Path $profilesDir
+    if ($hasProfilesDir) {
+        $profileFolders = Get-ChildItem -Path $profilesDir -Directory -ErrorAction SilentlyContinue
+        foreach ($folder in $profileFolders) {
+            try {
+                $dest = Join-Path $targetDir $folder.Name
+                Copy-Item -Path $folder.FullName -Destination $dest -Recurse -Force
+                $subCount = (Get-ChildItem $folder.FullName -Recurse -File).Count
+                Write-Log "Exported profile: $($folder.Name) ($subCount files)" -Level "success"
+                $copiedCount++
+            } catch {
+                Write-FileError -FilePath $folder.FullName -Operation "copy" -Reason "Failed to export profile $($folder.Name): $_" -Module "Export-OBSSettings"
+            }
+        }
+    }
+
+    $hasNoFiles = $copiedCount -eq 0
+    if ($hasNoFiles) {
+        Write-Log $msgs.exportNoFiles -Level "warn"
+        return $false
+    }
+
+    $summary = $msgs.exportComplete -replace '\{count\}', $copiedCount -replace '\{path\}', $targetDir
+    Write-Log $summary -Level "success"
+    return $true
+}
+
 function Uninstall-OBS {
     <#
     .SYNOPSIS
@@ -211,7 +301,7 @@ function Uninstall-OBS {
         $LogMessages
     )
 
-    $packageName = $$ObsConfig.chocoPackage
+    $packageName = $ObsConfig.chocoPackage
 
     # 1. Uninstall via Chocolatey
     Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "OBS Studio") -Level "info"
