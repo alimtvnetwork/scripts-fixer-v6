@@ -80,7 +80,8 @@ function Install-PipPackage {
     # Check if already installed
     $existingVersion = $null
     try {
-        $existingVersion = & python -m pip show $Package 2>$null |
+        $pyExe = Resolve-PythonExe
+        $existingVersion = & $pyExe -m pip show $Package 2>$null |
             Select-String "^Version:" |
             ForEach-Object { ($_ -split ":\s*", 2)[1].Trim() }
     } catch {}
@@ -94,11 +95,12 @@ function Install-PipPackage {
     Write-Log ($LogMessages.messages.installingSinglePackage -replace '\{package\}', $Package) -Level "info"
 
     try {
+        $pyExe = Resolve-PythonExe
         $pipArgs = @("-m", "pip", "install", "--no-cache-dir")
         if ($UserSite) { $pipArgs += "--user" }
         $pipArgs += $Package
 
-        $output = & python @pipArgs 2>&1
+        $output = & $pyExe @pipArgs 2>&1
         $isSuccess = $LASTEXITCODE -eq 0
         if ($isSuccess) {
             Write-Log ($LogMessages.messages.packageInstallSuccess -replace '\{package\}', $Package) -Level "success"
@@ -191,7 +193,8 @@ function Show-InstalledPipPackages {
     param($LogMessages)
 
     Write-Log $LogMessages.messages.listingInstalled -Level "info"
-    & python -m pip list --format=columns 2>$null
+    $pyExe = Resolve-PythonExe
+    & $pyExe -m pip list --format=columns 2>$null
 }
 
 
@@ -216,7 +219,8 @@ function Uninstall-PipPackages {
     foreach ($pkg in $targetPackages) {
         Write-Log ($LogMessages.messages.uninstallingPackage -replace '\{package\}', $pkg) -Level "info"
         try {
-            & python -m pip uninstall -y $pkg 2>&1 | Out-Null
+            $pyExe = Resolve-PythonExe
+            & $pyExe -m pip uninstall -y $pkg 2>&1 | Out-Null
             $isOk = $LASTEXITCODE -eq 0
             if ($isOk) {
                 Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{package\}', $pkg) -Level "success"
