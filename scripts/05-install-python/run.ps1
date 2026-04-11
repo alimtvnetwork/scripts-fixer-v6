@@ -6,6 +6,9 @@ param(
     [Parameter(Position = 0)]
     [string]$Command = "all",
 
+    [Parameter(Position = 1)]
+    [string]$Path,
+
     [switch]$Help
 )
 
@@ -67,7 +70,15 @@ if ($isNotAdmin) {
 Assert-Choco
 
 # -- Resolve dev directory -----------------------------------------------------
-$devDir = if ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
+$hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
+if ($hasPathParam) {
+    $devDir = $Path
+    Write-Log ($logMessages.messages.devDirFromParam -replace '\{path\}', $devDir) -Level "info"
+} elseif ($env:DEV_DIR) {
+    $devDir = $env:DEV_DIR
+} else {
+    $devDir = $null
+}
 
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
