@@ -172,10 +172,22 @@ function Get-VersionMap {
             "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Notepad++",
             "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Notepad++"
         )},
+        @{ Id = "34"; Name = "Simple Sticky Notes"; Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Simple Sticky Notes*",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Simple Sticky Notes*",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Simple Sticky Notes*"
+        )},
         @{ Id = "36"; Name = "OBS Studio";       Paths = @(
             "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio",
             "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio",
             "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio"
+        )},
+        @{ Id = "37"; Name = "Windows Terminal";  Paths = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*WindowsTerminal*",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*WindowsTerminal*",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*WindowsTerminal*",
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*Windows Terminal*",
+            "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*Windows Terminal*"
         )}
     )
 
