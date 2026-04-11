@@ -11,6 +11,8 @@
     "staleRefsPowerShell": true,
     "keywordModes": true,
     "verifySymlinks": true,
-    "uninstallCoverage": true
-  }
+    "uninstallCoverage": true,
+    "exportCoverage": true
+  },
+  "exportCapableScripts": ["32", "33", "36", "37"]
 }

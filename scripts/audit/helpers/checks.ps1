@@ -755,3 +755,76 @@ function Test-UninstallCoverage {
     Write-CheckResult -CheckName "Uninstall coverage" -Passed $isPassed -Details $issues -LogMessages $LogMessages
     return @{ Passed = $isPassed; Issues = $issues }
 }
+
+# --------------------------------------------------------------------------
+#  Check 12: Export coverage (settings-capable scripts)
+# --------------------------------------------------------------------------
+function Test-ExportCoverage {
+    param(
+        [string]$RepoRoot,
+        $Registry,
+        [string[]]$ExportCapableIds,
+        $LogMessages
+    )
+
+    $issues = @()
+    $scriptsDir = Join-Path $RepoRoot "scripts"
+
+    foreach ($id in $ExportCapableIds) {
+        $folder = $Registry.scripts.$id
+        $isIdMissing = $null -eq $folder
+        if ($isIdMissing) {
+            $issues += "Export-capable ID '$id' not found in registry"
+            continue
+        }
+
+        $folderPath = Join-Path $scriptsDir $folder
+        $isFolderMissing = -not (Test-Path $folderPath)
+        if ($isFolderMissing) { continue }
+
+        # -- Check 1: Helper file has Export-* function --
+        $helpersDir = Join-Path $folderPath "helpers"
+        $hasHelpersDir = Test-Path $helpersDir
+        $hasExportFunc = $false
+        if ($hasHelpersDir) {
+            $helperFiles = Get-ChildItem -Path $helpersDir -Filter "*.ps1" -ErrorAction SilentlyContinue
+            foreach ($helperFile in $helperFiles) {
+                $content = Get-Content $helperFile.FullName -Raw
+                $isExportPresent = $content -match 'function\s+Export-'
+                if ($isExportPresent) {
+                    $hasExportFunc = $true
+                    break
+                }
+            }
+        }
+        if (-not $hasExportFunc) {
+            $issues += "ID '$id' ($folder): no Export-* function found in helpers/"
+        }
+
+        # -- Check 2: run.ps1 has 'export' command handler --
+        $runFile = Join-Path $folderPath "run.ps1"
+        $isRunPresent = Test-Path $runFile
+        if ($isRunPresent) {
+            $runContent = Get-Content $runFile -Raw
+            $hasExportCommand = $runContent -match '[''"]export[''"]'
+            if (-not $hasExportCommand) {
+                $issues += "ID '$id' ($folder): run.ps1 missing 'export' command handler"
+            }
+        }
+
+        # -- Check 3: log-messages.json has export-related entry --
+        $logMsgPath = Join-Path $folderPath "log-messages.json"
+        $isLogMsgPresent = Test-Path $logMsgPath
+        if ($isLogMsgPresent) {
+            $logMsgContent = Get-Content $logMsgPath -Raw
+            $hasExportMsg = $logMsgContent -match '[Ee]xport'
+            if (-not $hasExportMsg) {
+                $issues += "ID '$id' ($folder): log-messages.json missing export-related messages"
+            }
+        }
+    }
+
+    $isPassed = $issues.Count -eq 0
+    Write-CheckResult -CheckName "Export coverage" -Passed $isPassed -Details $issues -LogMessages $LogMessages
+    return @{ Passed = $isPassed; Issues = $issues }
+}

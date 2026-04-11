@@ -109,6 +109,11 @@ if ($checks.uninstallCoverage) {
     [void]$allResults.Add((Test-UninstallCoverage -RepoRoot $repoRoot -Registry $registry -LogMessages $logMessages))
 }
 
+if ($checks.exportCoverage) {
+    $exportCapableIds = @($config.exportCapableScripts)
+    [void]$allResults.Add((Test-ExportCoverage -RepoRoot $repoRoot -Registry $registry -ExportCapableIds $exportCapableIds -LogMessages $logMessages))
+}
+
 # -- Summary ------------------------------------------------------------------
 Write-Host ""
 Write-Log $logMessages.messages.summaryHeader -Level "info"
