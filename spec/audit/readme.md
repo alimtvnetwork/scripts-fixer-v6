@@ -19,6 +19,8 @@ inconsistencies. Designed to run after any renumbering or restructuring.
 | 7 | **Stale ID references in suggestions** | Scan `suggestions/**/*.md` for the same stale-reference patterns. |
 | 8 | **Stale ID references in PowerShell** | Scan `scripts/**/*.ps1` for hardcoded folder references like `01-install-vscode` and verify they match registry entries. |
 | 9 | **Keyword modes vs config validModes** | Every mode value in `install-keywords.json` `modes` must exist in the target script's `config.json` `validModes` array. |
+| 10 | **Verify database symlinks** | Scans `dev-tool\databases\` for broken junctions, missing links, and real directories. Supports `-Fix` and `-DryRun`. |
+| 11 | **Uninstall coverage** | Every script (except 02, 12, audit, databases) must have: an `Uninstall-*` function in helpers, an `uninstall` command in `run.ps1`, and uninstall help in `log-messages.json`. |
 
 ## Usage
 
