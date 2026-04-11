@@ -278,7 +278,8 @@ function Show-RootHelp {
     Write-Host "    .\run.ps1 -d -Defaults                  " -NoNewline; Write-Host "All-dev with defaults, prompt to confirm" -ForegroundColor DarkGray
     Write-Host "    .\run.ps1 -d -Defaults -Y               " -NoNewline; Write-Host "All-dev with defaults, auto-confirm" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "    Default dev directory: " -NoNewline -ForegroundColor DarkGray; Write-Host "C:\DevTools" -ForegroundColor White
+    Write-Host "    Default dev directory: " -NoNewline -ForegroundColor DarkGray; Write-Host "E:\dev-tool (smart detection: E: > D: > best drive)" -ForegroundColor White
+    Write-Host "    Override with: " -NoNewline -ForegroundColor DarkGray; Write-Host ".\run.ps1 -I 12 -- -Path F:\dev-tool" -ForegroundColor White
     Write-Host "    Default VS Code edition: " -NoNewline -ForegroundColor DarkGray; Write-Host "Stable" -ForegroundColor White
     Write-Host "    Default sync mode: " -NoNewline -ForegroundColor DarkGray; Write-Host "Overwrite" -ForegroundColor White
     Write-Host ""
