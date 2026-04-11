@@ -58,27 +58,50 @@ be installed individually or all at once.
 
 ## Install Keywords
 
-| Keyword |
-|---------|
-| `python-libs` |
-| `pip-libs` |
-| `ml-libs` |
-| `python-packages` |
+**Single-script keywords** (script 41 only):
 
-**Group shortcuts** (installs multiple scripts):
+| Keyword | Description |
+|---------|-------------|
+| `python-libs` | Install all pip libraries |
+| `pip-libs` | Install all pip libraries |
+| `ml-libs` | ML/Data libraries |
+| `ml-full` | ML libraries |
+| `python-packages` | Install all pip libraries |
+| `jupyter+libs` | Jupyter group only (mode: `group jupyter`) |
 
-| Keyword | Scripts |
-|---------|---------|
-| `python+libs` | 5, 41 |
-| `ml-dev` | 5, 41 |
+**Combo keywords** (installs Python 05 + libraries 41):
+
+| Keyword | Scripts | Description |
+|---------|---------|-------------|
+| `python+libs` | 05, 41 | Python + all libraries |
+| `ml-dev` | 05, 41 | Python + all libraries |
+| `python+jupyter` | 05, 41 | Python + all libraries |
+| `pip+jupyter+libs` | 05, 41 | Python + all libraries |
+| `data-science` | 05, 41 | Python + data/viz libs (mode: `group data`) |
+| `datascience` | 05, 41 | Python + data/viz libs (mode: `group data`) |
+| `ai-dev` | 05, 41 | Python + ML libs (mode: `group ml`) |
+| `aidev` | 05, 41 | Python + ML libs (mode: `group ml`) |
+| `deep-learning` | 05, 41 | Python + ML libs (mode: `group ml`) |
+
+## Usage Examples
 
 ```powershell
-.\run.ps1                          # Install all libraries
-.\run.ps1 group ml                 # Install ML group only
-.\run.ps1 group viz                # Install visualization only
-.\run.ps1 add jupyterlab streamlit # Install custom packages
-.\run.ps1 list                     # Show available groups
-.\run.ps1 installed                # Show pip packages
-.\run.ps1 uninstall                # Remove all tracked libraries
-.\run.ps1 uninstall numpy pandas   # Remove specific packages
+# Via root dispatcher
+.\run.ps1 install python-libs       # Install all libraries
+.\run.ps1 install python+libs       # Install Python + all libraries
+.\run.ps1 install jupyter+libs      # Install Jupyter group only
+.\run.ps1 install data-science      # Python + data/viz group
+.\run.ps1 install ai-dev            # Python + ML group
+.\run.ps1 install python+jupyter    # Python + all libraries
+
+# Via script directly
+.\run.ps1 -I 41                     # Install all libraries
+.\run.ps1 -I 41 -- group ml         # Install ML group only
+.\run.ps1 -I 41 -- group jupyter    # Install Jupyter group
+.\run.ps1 -I 41 -- group viz        # Install visualization only
+.\run.ps1 -I 41 -- add jupyterlab streamlit  # Install custom packages
+.\run.ps1 -I 41 -- list             # Show available groups
+.\run.ps1 -I 41 -- installed        # Show pip packages
+.\run.ps1 -I 41 -- uninstall        # Remove all tracked libraries
+.\run.ps1 -I 41 -- uninstall numpy pandas  # Remove specific packages
 ```
