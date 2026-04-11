@@ -7,6 +7,9 @@
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [Parameter(Position = 1)]
     [string]$Path,
 
     [switch]$Help,
@@ -35,6 +38,7 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "resolved.ps1")
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helper -------------------------------------------------
 . (Join-Path $scriptDir "helpers\notepadpp.ps1")
@@ -44,7 +48,7 @@ $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help) {
+if ($Help -or $Command -eq "--help") {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -56,6 +60,13 @@ Write-Banner -Title $logMessages.scriptName
 Initialize-Logging -ScriptName $logMessages.scriptName
 
 try {
+
+# -- Uninstall check -----------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-NotepadPP -NppConfig $config.notepadpp -LogMessages $logMessages
+    return
+}
 
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull

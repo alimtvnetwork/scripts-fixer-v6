@@ -25,6 +25,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "path-utils.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\golang.ps1")
@@ -75,6 +76,14 @@ if ($isNotConfigureOnly) {
 }
 
 # -- Execute subcommand --------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    $hasPathParam = -not [string]::IsNullOrWhiteSpace($Path)
+    $devDir = if ($hasPathParam) { $Path } elseif ($env:DEV_DIR) { $env:DEV_DIR } else { $null }
+    Uninstall-Go -Config $config -LogMessages $logMessages -DevDir $devDir
+    return
+}
+
 Write-Log ($logMessages.messages.commandInfo -replace '\{command\}', $Command) -Level "info"
 $isSuccess = Invoke-GoSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower() -LogMessages $logMessages
 

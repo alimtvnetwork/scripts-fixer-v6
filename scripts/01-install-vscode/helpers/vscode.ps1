@@ -161,3 +161,41 @@ function Invoke-VsCodeSetup {
         }
     }
 }
+
+function Uninstall-VsCode {
+    <#
+    .SYNOPSIS
+        Full VS Code uninstall: choco uninstall both editions, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    # 1. Uninstall Stable edition
+    $stablePackage = $Config.editions.stable.chocoPackageName
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "VS Code Stable") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $stablePackage
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "VS Code Stable") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "VS Code Stable") -Level "warn"
+    }
+
+    # 2. Uninstall Insiders edition
+    $insidersPackage = $Config.editions.insiders.chocoPackageName
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "VS Code Insiders") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $insidersPackage
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "VS Code Insiders") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "VS Code Insiders") -Level "warn"
+    }
+
+    # 3. Remove tracking records
+    Remove-InstalledRecord -Name "vscode"
+    Remove-InstalledRecord -Name "vscode-insiders"
+    Remove-ResolvedData -ScriptFolder "01-install-vscode"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

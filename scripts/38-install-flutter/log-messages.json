@@ -29,7 +29,11 @@
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
     "savingResolved": "Saving resolved state...",
-    "flutterSetupComplete": "Flutter development environment setup complete."
+    "flutterSetupComplete": "Flutter development environment setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
@@ -38,7 +42,8 @@
       "android": "Install Android Studio only",
       "chrome": "Install Chrome only",
       "extensions": "Install VS Code Flutter/Dart extensions only",
-      "doctor": "Run flutter doctor only"
+      "doctor": "Run flutter doctor only",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
@@ -46,7 +51,8 @@
       ".\\run.ps1 android",
       ".\\run.ps1 extensions",
       ".\\run.ps1 doctor",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

@@ -23,6 +23,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "path-utils.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\pnpm.ps1")
@@ -82,6 +83,10 @@ switch ($Command.ToLower()) {
     "configure" {
         $storePath = Configure-PnpmStore -Config $config -LogMessages $logMessages -DevDir $devDir
         Update-PnpmPath -Config $config -LogMessages $logMessages
+    }
+    "uninstall" {
+        Uninstall-Pnpm -Config $config -LogMessages $logMessages -DevDir $devDir
+        return
     }
     default {
         Write-Log ($logMessages.messages.unknownCommand -replace '\{command\}', $Command) -Level "error"

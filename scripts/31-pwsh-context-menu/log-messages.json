@@ -38,13 +38,20 @@
     "verifyMiss": "[miss] {label} -- {path}",
     "done": "All PowerShell context menu entries created successfully!",
     "completedWithWarnings": "Completed with some warnings -- check output above.",
-    "setupComplete": "PowerShell context menu setup complete."
+    "setupComplete": "PowerShell context menu setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
-    "commands": {},
+    "commands": {
+      "uninstall": "Uninstall completely, remove tracking, clean up"
+    },
     "examples": [
       ".\\run.ps1",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

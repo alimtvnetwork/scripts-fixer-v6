@@ -17,16 +17,22 @@
     "installPathCustom": "Enter custom path:",
     "installPathSystem": "Install to default system location",
     "installPathPrompt": "Choose install location [1] Dev dir  [2] Custom path  [3] System default:",
-    "installPathChosen": "Install location: {path}"
+    "installPathChosen": "Install location: {path}",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       ".\\run.ps1": "Install PostgreSQL",
-      ".\\run.ps1 -Help": "Show this help"
+      ".\\run.ps1 -Help": "Show this help",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

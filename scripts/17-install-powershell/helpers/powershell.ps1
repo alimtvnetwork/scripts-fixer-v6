@@ -114,3 +114,31 @@ function Install-PowerShellLatest {
         return $false
     }
 }
+
+function Uninstall-PowerShellLatest {
+    <#
+    .SYNOPSIS
+        Full PowerShell (pwsh) uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    $packageName = $Config.powershell.fallbackChocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "PowerShell") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "PowerShell") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "PowerShell") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "powershell"
+    Remove-ResolvedData -ScriptFolder "17-install-powershell"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

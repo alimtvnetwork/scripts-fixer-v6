@@ -200,3 +200,31 @@ function Sync-OBSSettings {
     Write-Log ($msgs.settingsSynced -replace '\{path\}', $appDataDir) -Level "success"
     return $true
 }
+
+function Uninstall-OBS {
+    <#
+    .SYNOPSIS
+        Full OBS Studio uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $ObsConfig,
+        $LogMessages
+    )
+
+    $packageName = $$ObsConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "OBS Studio") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "OBS Studio") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "OBS Studio") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "obs"
+    Remove-ResolvedData -ScriptFolder "36-install-obs"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

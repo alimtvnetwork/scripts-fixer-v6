@@ -139,3 +139,54 @@ function Update-PnpmPath {
         $env:PNPM_HOME = $pnpmHome
     }
 }
+
+function Uninstall-Pnpm {
+    <#
+    .SYNOPSIS
+        Full pnpm uninstall: npm uninstall, remove PNPM_HOME env var,
+        remove from PATH, clean dev dir subfolder, purge tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages,
+        [string]$DevDir
+    )
+
+    # 1. Uninstall via npm
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "pnpm") -Level "info"
+    try {
+        $output = & npm uninstall -g pnpm 2>&1
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "pnpm") -Level "success"
+    } catch {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "pnpm") -Level "error"
+    }
+
+    # 2. Remove PNPM_HOME environment variable
+    $currentHome = [System.Environment]::GetEnvironmentVariable("PNPM_HOME", "User")
+    $hasHome = -not [string]::IsNullOrWhiteSpace($currentHome)
+    if ($hasHome) {
+        Write-Log "Removing PNPM_HOME env var: $currentHome" -Level "info"
+        [System.Environment]::SetEnvironmentVariable("PNPM_HOME", $null, "User")
+        $env:PNPM_HOME = $null
+        Remove-FromUserPath -Directory $currentHome
+    }
+
+    # 3. Clean dev directory subfolder
+    $storePath = if ($DevDir) { Join-Path $DevDir $Config.devDirSubfolder } else { $Config.store.storePath }
+    $hasValidPath = -not [string]::IsNullOrWhiteSpace($storePath)
+    if ($hasValidPath) {
+        $parentDir = Split-Path -Parent $storePath
+        $isDirPresent = Test-Path $parentDir
+        if ($isDirPresent) {
+            Write-Log "Removing dev directory subfolder: $parentDir" -Level "info"
+            Remove-Item -Path $parentDir -Recurse -Force
+            Write-Log "Dev directory subfolder removed: $parentDir" -Level "success"
+        }
+    }
+
+    # 4. Remove tracking records
+    Remove-InstalledRecord -Name "pnpm"
+    Remove-ResolvedData -ScriptFolder "04-install-pnpm"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

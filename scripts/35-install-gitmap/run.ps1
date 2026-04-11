@@ -4,6 +4,9 @@
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
+    [string]$Command = "all",
+
+    [Parameter(Position = 1)]
     [string]$Path,
 
     [switch]$Help
@@ -20,6 +23,8 @@ $sharedDir  = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "git-pull.ps1")
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
+. (Join-Path $sharedDir "installed.ps1")
+. (Join-Path $sharedDir "path-utils.ps1")
 
 # -- Dot-source script helper -------------------------------------------------
 . (Join-Path $scriptDir "helpers\gitmap.ps1")
@@ -29,7 +34,7 @@ $config      = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
 
 # -- Help ---------------------------------------------------------------------
-if ($Help) {
+if ($Help -or $Command -eq "--help") {
     Show-ScriptHelp -LogMessages $logMessages
     return
 }
@@ -44,6 +49,13 @@ try {
 
 # -- Git pull ------------------------------------------------------------------
 Invoke-GitPull
+
+# -- Uninstall check -----------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-Gitmap -GitmapConfig $config.gitmap -DevDirConfig $config.devDir -LogMessages $logMessages
+    return
+}
 
 # -- Install -------------------------------------------------------------------
 $ok = Install-Gitmap -GitmapConfig $config.gitmap -DevDirConfig $config.devDir -LogMessages $logMessages

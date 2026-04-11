@@ -92,3 +92,31 @@ function Install-Couchdb {
         return $false
     }
 }
+
+function Uninstall-Couchdb {
+    <#
+    .SYNOPSIS
+        Full CouchDB uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "CouchDB") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "CouchDB") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "CouchDB") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "couchdb"
+    Remove-ResolvedData -ScriptFolder "23-install-couchdb"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -53,3 +53,22 @@ function Invoke-WindowsTweaks {
         return $false
     }
 }
+function Uninstall-WindowsTweaks {
+    <#
+    .SYNOPSIS
+        Windows Tweaks uninstall: removes tracking records only
+        (system tweaks cannot be automatically reverted).
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    Write-Log "Windows Tweaks uninstall: removing tracking records only (tweaks cannot be auto-reverted)" -Level "warn"
+
+    # Remove tracking records
+    Remove-InstalledRecord -Name "windows-tweaks"
+    Remove-ResolvedData -ScriptFolder "15-windows-tweaks"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

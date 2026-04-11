@@ -24,6 +24,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "help.ps1")
 . (Join-Path $sharedDir "choco-utils.ps1")
 . (Join-Path $sharedDir "path-utils.ps1")
+. (Join-Path $sharedDir "installed.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\mingw.ps1")
@@ -74,6 +75,12 @@ if ($isNotConfigureOnly) {
 }
 
 # -- Execute subcommand --------------------------------------------------------
+$isUninstall = $Command.ToLower() -eq "uninstall"
+if ($isUninstall) {
+    Uninstall-Mingw -Config $config -LogMessages $logMessages
+    return
+}
+
 Write-Log ($logMessages.messages.commandInfo -replace '\{command\}', $Command) -Level "info"
 $isSuccess = Invoke-MingwSetup -Config $config -ScriptDir $scriptDir -Command $Command.ToLower() -LogMessages $logMessages
 

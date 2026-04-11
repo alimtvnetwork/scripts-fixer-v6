@@ -153,3 +153,33 @@ function Install-Gitmap {
 
     return $true
 }
+
+function Uninstall-Gitmap {
+    <#
+    .SYNOPSIS
+        Full GitMap uninstall: remove install directory, purge tracking.
+    #>
+    param(
+        $GitmapConfig,
+        $DevDirConfig,
+        $LogMessages
+    )
+
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "GitMap") -Level "info"
+
+    # 1. Remove from PATH and delete install directory
+    $installDir = $GitmapConfig.installDir
+    $hasInstallDir = -not [string]::IsNullOrWhiteSpace($installDir)
+    if ($hasInstallDir -and (Test-Path $installDir)) {
+        Remove-FromUserPath -Directory $installDir
+        Write-Log "Removing install directory: $installDir" -Level "info"
+        Remove-Item -Path $installDir -Recurse -Force
+        Write-Log "Install directory removed: $installDir" -Level "success"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "gitmap"
+    Remove-ResolvedData -ScriptFolder "35-install-gitmap"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

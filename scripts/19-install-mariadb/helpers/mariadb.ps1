@@ -92,3 +92,31 @@ function Install-Mariadb {
         return $false
     }
 }
+
+function Uninstall-Mariadb {
+    <#
+    .SYNOPSIS
+        Full MariaDB uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "MariaDB") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "MariaDB") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "MariaDB") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "mariadb"
+    Remove-ResolvedData -ScriptFolder "19-install-mariadb"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

@@ -21,20 +21,26 @@
     "pmaSkipped": "phpMyAdmin install skipped (php-only mode)",
     "done": "PHP setup complete.",
     "completedWithWarnings": "Completed with some warnings -- check output above.",
-    "setupComplete": "Setup complete."
+    "setupComplete": "Setup complete.",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "php+phpmyadmin": "Install PHP and phpMyAdmin (default)",
       "php-only": "Install PHP only",
-      "phpmyadmin-only": "Install phpMyAdmin only"
+      "phpmyadmin-only": "Install phpMyAdmin only",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1 install php",
       ".\\run.ps1 install php+phpmyadmin",
       ".\\run.ps1 install phpmyadmin",
       ".\\run.ps1 -I 16",
-      ".\\run.ps1 -I 16 -- -Mode php-only"
+      ".\\run.ps1 -I 16 -- -Mode php-only",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

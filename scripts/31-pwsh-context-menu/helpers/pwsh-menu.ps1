@@ -253,3 +253,39 @@ function Invoke-PwshMode {
 
     return $isAllOk
 }
+
+function Uninstall-PwshContextMenu {
+    <#
+    .SYNOPSIS
+        Removes PowerShell context menu entries from registry, purges tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    # 1. Remove registry entries for each mode
+    foreach ($modeName in $Config.enabledModes) {
+        $mode = $Config.modes.$modeName
+        $isModeValid = $null -ne $mode
+        if ($isModeValid) {
+            foreach ($scope in @("directory", "background")) {
+                $regPath = $mode.registryPaths.$scope
+                $isPathValid = -not [string]::IsNullOrWhiteSpace($regPath)
+                if ($isPathValid) {
+                    $isPresent = Test-Path $regPath
+                    if ($isPresent) {
+                        Remove-Item -Path $regPath -Recurse -Force
+                        Write-Log "Removed registry key: $regPath" -Level "success"
+                    }
+                }
+            }
+        }
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "pwsh-context-menu"
+    Remove-ResolvedData -ScriptFolder "31-pwsh-context-menu"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

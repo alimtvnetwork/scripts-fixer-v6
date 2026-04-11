@@ -92,3 +92,31 @@ function Install-Mongodb {
         return $false
     }
 }
+
+function Uninstall-Mongodb {
+    <#
+    .SYNOPSIS
+        Full MongoDB uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "MongoDB") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "MongoDB") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "MongoDB") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "mongodb"
+    Remove-ResolvedData -ScriptFolder "22-install-mongodb"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

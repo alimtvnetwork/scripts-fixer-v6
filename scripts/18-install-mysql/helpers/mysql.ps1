@@ -92,3 +92,31 @@ function Install-Mysql {
         return $false
     }
 }
+
+function Uninstall-Mysql {
+    <#
+    .SYNOPSIS
+        Full MySQL uninstall: choco uninstall, purge tracking.
+    #>
+    param(
+        $DbConfig,
+        $LogMessages
+    )
+
+    $packageName = $DbConfig.chocoPackage
+
+    # 1. Uninstall via Chocolatey
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "MySQL") -Level "info"
+    $isUninstalled = Uninstall-ChocoPackage -PackageName $packageName
+    if ($isUninstalled) {
+        Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{name\}', "MySQL") -Level "success"
+    } else {
+        Write-Log ($LogMessages.messages.uninstallFailed -replace '\{name\}', "MySQL") -Level "error"
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "mysql"
+    Remove-ResolvedData -ScriptFolder "18-install-mysql"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}

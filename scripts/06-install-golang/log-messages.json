@@ -47,19 +47,25 @@
     "golangciLintAlready": "golangci-lint already installed: {version}",
     "golangciLintFailed": "golangci-lint install failed: {error}",
     "golangciLintNotInPath": "golangci-lint installed but not found in PATH -- ensure GOPATH\\bin is in PATH",
-    "golangciLintDisabled": "golangci-lint install is disabled in config"
+    "golangciLintDisabled": "golangci-lint install is disabled in config",
+    "uninstalling": "Uninstalling {name}...",
+    "uninstallSuccess": "{name} uninstalled successfully.",
+    "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
+    "uninstallComplete": "Uninstall complete. Package removed, tracking purged."
   },
   "help": {
     "commands": {
       "all": "Install + configure + tools (default)",
       "install": "Install/upgrade Go only (skip env config and tools)",
-      "configure": "Configure GOPATH/env and install tools (skip Go install)"
+      "configure": "Configure GOPATH/env and install tools (skip Go install)",
+      "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
-      ".\\run.ps1 -Help"
+      ".\\run.ps1 -Help",
+      ".\\run.ps1 uninstall"
     ]
   }
 }

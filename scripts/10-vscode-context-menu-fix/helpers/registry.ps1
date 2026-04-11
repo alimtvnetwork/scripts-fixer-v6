@@ -317,3 +317,40 @@ function Invoke-Edition {
 
     return $isAllOk
 }
+
+function Uninstall-VsCodeContextMenu {
+    <#
+    .SYNOPSIS
+        Removes VS Code context menu registry entries, purges tracking.
+    #>
+    param(
+        $Config,
+        $LogMessages
+    )
+
+    Write-Log ($LogMessages.messages.uninstalling -replace '\{name\}', "VS Code Context Menu") -Level "info"
+
+    # 1. Remove registry entries for each edition
+    foreach ($editionName in $Config.enabledEditions) {
+        $edition = $Config.editions.$editionName
+        $isEditionValid = $null -ne $edition
+        if ($isEditionValid) {
+            foreach ($regKey in @($edition.registryKeys.file, $edition.registryKeys.directory, $edition.registryKeys.background)) {
+                $hasKey = -not [string]::IsNullOrWhiteSpace($regKey)
+                if ($hasKey) {
+                    $isPresent = Test-Path $regKey -ErrorAction SilentlyContinue
+                    if ($isPresent) {
+                        Remove-Item -Path $regKey -Recurse -Force -ErrorAction SilentlyContinue
+                        Write-Log "Removed registry key: $regKey" -Level "success"
+                    }
+                }
+            }
+        }
+    }
+
+    # 2. Remove tracking records
+    Remove-InstalledRecord -Name "vscode-context-menu"
+    Remove-ResolvedData -ScriptFolder "10-vscode-context-menu-fix"
+
+    Write-Log $LogMessages.messages.uninstallComplete -Level "success"
+}
