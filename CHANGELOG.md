@@ -2,6 +2,43 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.12.0] -- 2026-04-11
+
+### Added
+
+- **`uninstall` subcommand rolled out to all 34 scripts** (01-38, excluding 02-Chocolatey)
+  - Each script now supports `.\run.ps1 uninstall` with full cleanup logic
+  - Chocolatey packages removed via `Uninstall-ChocoPackage`
+  - Environment variables and PATH entries cleaned up
+  - Dev directory subfolders deleted
+  - Tracking records purged (`.installed/` and `.resolved/`)
+  - Special handling: registry cleanup (10, 31), dotnet tool (29), tracking-only (14, 15)
+- **Batch uninstall in script 12 orchestrator**
+  - Interactive: `[U] Uninstall` option in quick menu with checkbox picker
+  - Flag-based: `-Uninstall`, `-Uninstall -All`, `-Uninstall -Only 03,05,07`
+  - Dry run: `-Uninstall -DryRun` to preview without changes
+  - Safety: Chocolatey (02) always skipped, reverse execution order, YES confirmation required
+- **Batch uninstall in databases orchestrator** (`scripts/databases/run.ps1`)
+  - `.\run.ps1 -Uninstall` -- interactive picker
+  - `.\run.ps1 -Uninstall -All` -- uninstall all databases
+  - `.\run.ps1 -Uninstall -Only mysql,redis` -- uninstall specific databases
+  - `.\run.ps1 -Uninstall -DryRun` -- preview mode
+  - Reverse order execution with YES confirmation
+- **`-Path` parameter rolled out to all 38 `run.ps1` scripts**
+  - Consistent `[Parameter(Position = 1)] [string]$Path` across all scripts
+  - Overrides `$env:DEV_DIR` and smart drive detection
+  - Orchestrators propagate `-Path` to child scripts via `$env:DEV_DIR`
+
+### Changed
+
+- **Default dev directory** changed from `\dev` to `\dev-tool` (e.g. `E:\dev-tool`)
+  - Updated `Get-SafeDevDirFallback`, `Resolve-SmartDevDir`, user prompts
+  - All help text and spec docs updated to reflect new default
+  - GitMap fallback path updated from `C:\DevTools\GitMap` to `C:\dev-tool\GitMap`
+- **Help output** now shows `-Path` override example and smart detection info
+
+---
+
 ## [v0.11.0] -- 2026-04-11
 
 ### Added
