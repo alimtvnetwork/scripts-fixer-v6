@@ -22,8 +22,8 @@ function Show-QuickMenu {
     param($LogMessages)
 
     Write-Host ""
-    Write-Host "  What would you like to install?" -ForegroundColor Cyan
-    Write-Host "  ================================" -ForegroundColor DarkGray
+    Write-Host "  What would you like to do?" -ForegroundColor Cyan
+    Write-Host "  ===========================" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    [1] " -NoNewline -ForegroundColor Yellow
     Write-Host "All Dev Tools" -NoNewline
@@ -37,11 +37,15 @@ function Show-QuickMenu {
     Write-Host "    [4] " -NoNewline -ForegroundColor Yellow
     Write-Host "Custom" -NoNewline
     Write-Host " (pick individual tools from the full list)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "    [U] " -NoNewline -ForegroundColor Red
+    Write-Host "Uninstall" -NoNewline
+    Write-Host " (remove installed tools -- pick from list)" -ForegroundColor DarkGray
     Write-Host "    [Q] " -NoNewline -ForegroundColor Yellow
     Write-Host "Quit"
     Write-Host ""
 
-    $choice = Read-Host "  Choose [1/2/3/4/Q] (default: 1)"
+    $choice = Read-Host "  Choose [1/2/3/4/U/Q] (default: 1)"
     $choice = $choice.Trim().ToUpper()
 
     $isQuit = $choice -eq "Q"
