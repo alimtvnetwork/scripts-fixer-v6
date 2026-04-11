@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.13.0] -- 2026-04-11
+
+### Added
+
+- **`path` command** -- Persistently set, view, or reset the default dev directory
+  - `.\run.ps1 path D:\devtools` -- save custom dev directory
+  - `.\run.ps1 path` -- show current saved path
+  - `.\run.ps1 path --reset` -- clear saved path, revert to smart detection
+  - Saved to `scripts/dev-path.json`; all scripts pick it up automatically via `Resolve-DevDir`
+  - Priority: `-Path` param > `$env:DEV_DIR` > saved path > smart detection
+
+---
+
 ## [v0.12.1] -- 2026-04-11
 
 ### Fixed

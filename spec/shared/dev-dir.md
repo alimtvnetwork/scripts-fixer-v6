@@ -17,11 +17,11 @@ existence and free space, removing the need for hardcoded drive letters.
 
 | Priority | Candidate | Condition |
 |----------|-----------|-----------|
-| 1 | `E:\dev` | E: drive exists and has >= 10 GB free |
-| 2 | `D:\dev` | D: drive exists and has >= 10 GB free |
+| 1 | `E:\dev-tool` | E: drive exists and has >= 10 GB free |
+| 2 | `D:\dev-tool` | D: drive exists and has >= 10 GB free |
 | 3 | Best other drive | Any non-system fixed drive (DriveType=3), most free space wins, >= 10 GB |
 | 4 | User prompt | Shows all available drives with free space; user types a path |
-| 5 | System drive fallback | `C:\dev` (last resort if user provides no input) |
+| 5 | System drive fallback | `C:\dev-tool` (last resort if user provides no input) |
 
 ### Minimum Free Space
 
@@ -52,6 +52,20 @@ All `config.json` files use:
 ---
 
 ## Functions
+
+### Get-SavedDevPath / Set-SavedDevPath / Remove-SavedDevPath
+
+Manage the persistent dev directory override stored in `scripts/dev-path.json`.
+
+| Function | Description |
+|----------|-------------|
+| `Get-SavedDevPath` | Returns the saved path string, or `$null` if no file or empty |
+| `Set-SavedDevPath -Path <dir>` | Writes `{"path": "<dir>"}` to `scripts/dev-path.json` |
+| `Remove-SavedDevPath` | Deletes `scripts/dev-path.json` |
+
+Set via `.\run.ps1 path D:\devtools`. Read automatically by `Resolve-DevDir`.
+
+---
 
 ### Test-DriveQualified
 
@@ -146,12 +160,13 @@ A validated dev directory path string.
 
 1. **`$env:DEV_DIR`** -- Set by the orchestrator; if present, used directly
    (validated via `Resolve-UsableDevDir`)
-2. **Config override** -- `devDir.override` in `config.json`; if non-empty,
+2. **Saved path** -- From `scripts/dev-path.json` (set via `.\run.ps1 path <dir>`)
+3. **Config override** -- `devDir.override` in `config.json`; if non-empty,
    used directly
-3. **Smart detection** -- If mode is `"smart"` or `"json-or-prompt"`,
+4. **Smart detection** -- If mode is `"smart"` or `"json-or-prompt"`,
    calls `Resolve-SmartDevDir`
-4. **Config default** -- Legacy fallback to `devDir.default` value
-5. **System drive** -- `C:\dev` as absolute last resort
+5. **Config default** -- Legacy fallback to `devDir.default` value
+6. **System drive** -- `C:\dev-tool` as absolute last resort
 
 ---
 

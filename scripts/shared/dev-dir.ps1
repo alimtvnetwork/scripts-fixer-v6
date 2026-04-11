@@ -24,6 +24,34 @@ if (-not (Get-Variable -Name SharedLogMessages -Scope Script -ErrorAction Silent
 # -- Constants -----------------------------------------------------------------
 $script:MinFreeSpaceGB = 10
 
+function Get-DevPathFile {
+    return Join-Path (Split-Path $PSScriptRoot -Parent) "dev-path.json"
+}
+
+function Get-SavedDevPath {
+    $devPathFile = Get-DevPathFile
+    $isFilePresent = Test-Path $devPathFile
+    if (-not $isFilePresent) { return $null }
+    try {
+        $data = Get-Content $devPathFile -Raw | ConvertFrom-Json
+        $hasPath = -not [string]::IsNullOrWhiteSpace($data.path)
+        if ($hasPath) { return $data.path }
+    } catch {}
+    return $null
+}
+
+function Set-SavedDevPath {
+    param([string]$Path)
+    $devPathFile = Get-DevPathFile
+    @{ path = $Path } | ConvertTo-Json -Depth 1 | Set-Content -Path $devPathFile -Encoding UTF8
+}
+
+function Remove-SavedDevPath {
+    $devPathFile = Get-DevPathFile
+    $isFilePresent = Test-Path $devPathFile
+    if ($isFilePresent) { Remove-Item $devPathFile -Force }
+}
+
 function Get-SafeDevDirFallback {
     $systemDrive = if ([string]::IsNullOrWhiteSpace($env:SystemDrive)) { "C:" } else { $env:SystemDrive.TrimEnd('\') }
     return "$systemDrive\dev-tool"
@@ -249,6 +277,14 @@ function Resolve-DevDir {
     if ($hasDevDirEnv) {
         Write-Log ($slm.messages.devDirFromEnv -replace '\{path\}', $env:DEV_DIR) -Level "success"
         return Resolve-UsableDevDir -PathValue $env:DEV_DIR
+    }
+
+    # Check saved dev path (set via .\run.ps1 path <dir>)
+    $savedPath = Get-SavedDevPath
+    $hasSavedPath = $null -ne $savedPath
+    if ($hasSavedPath) {
+        Write-Log ($slm.messages.devDirSavedPathLoaded -replace '\{path\}', $savedPath) -Level "success"
+        return Resolve-UsableDevDir -PathValue $savedPath
     }
 
     $hasNoConfig = -not $DevDirConfig

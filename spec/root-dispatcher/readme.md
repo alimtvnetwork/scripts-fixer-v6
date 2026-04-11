@@ -25,6 +25,10 @@ Chocolatey packages.
 .\run.ps1 -Install python             # Install Python + pip
 .\run.ps1 -Install go,git,cpp         # Install Go, Git, and C++
 .\run.ps1 -Install all-dev            # Interactive dev tools menu
+.\run.ps1 update                      # Upgrade all Chocolatey packages
+.\run.ps1 path D:\devtools            # Set default dev directory
+.\run.ps1 path                        # Show current dev directory
+.\run.ps1 path --reset                # Clear saved path, use smart detection
 .\run.ps1 -d                          # Shortcut for -I 12 (interactive menu)
 .\run.ps1 -I <number>                 # Run a script by ID
 .\run.ps1 -I <number> -Merge          # Run with -Merge passed through
@@ -169,6 +173,23 @@ Duplicate IDs are automatically de-duplicated and sorted by ID for logical execu
 2. Git pull (self-update scripts to latest)
 3. Run `Invoke-ChocoUpdate` (list packages, confirm, `choco upgrade all -y`)
 4. Exit
+
+### Path mode (`path`)
+1. Display version header (`Scripts Fixer vX.Y.Z`)
+2. If no argument: show current saved path (or "smart detection" message)
+3. If `--reset`: remove `scripts/dev-path.json`, confirm reset
+4. If path provided: validate format (`X:\...`), save to `scripts/dev-path.json`, confirm
+5. Exit
+
+**Storage:** The saved path is persisted in `scripts/dev-path.json` as `{"path": "D:\\devtools"}`.
+
+**Priority chain** for dev directory resolution (in `Resolve-DevDir`):
+1. `-Path` parameter (per-run override)
+2. `$env:DEV_DIR` (set by orchestrator)
+3. **Saved path** from `scripts/dev-path.json` (set via `.\run.ps1 path`)
+4. Config override value
+5. Smart drive detection (E: > D: > best drive > prompt)
+6. Config default value (legacy fallback)
 
 ### Keyword mode (`install` or `-Install`)
 1. Steps 1-7 same as standard mode
