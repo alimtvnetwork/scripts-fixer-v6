@@ -39,9 +39,12 @@ function Install-VsCodeEdition {
         Write-Log ($LogMessages.messages.editionAlreadyInstalled -replace '\{label\}', $Label) -Level "info"
         try {
             Upgrade-ChocoPackage -PackageName $ChocoPackageName
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
             Write-Log ($LogMessages.messages.editionUpgradeSuccess -replace '\{label\}', $Label) -Level "success"
 
             $newVersion = (choco list --local-only --exact $ChocoPackageName 2>&1 | Select-String $ChocoPackageName) -replace ".*$ChocoPackageName\s*", "" | ForEach-Object { $_.Trim() }
+            $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+            if ($isVersionEmpty) { $newVersion = "(version pending)" }
             Save-InstalledRecord -Name $trackingName -Version $newVersion
         } catch {
             Write-Log "VS Code ($Label) upgrade failed: $_" -Level "error"

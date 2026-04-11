@@ -34,9 +34,12 @@ function Install-Git {
         if ($Config.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersion = & git --version 2>$null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $newVersion = try { & git --version 2>$null } catch { $null }
+                $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+                if ($isVersionEmpty) { $newVersion = "(version pending)" }
                 Write-Log ($LogMessages.messages.gitUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-                Save-InstalledRecord -Name "git" -Version $newVersion
+                Save-InstalledRecord -Name "git" -Version "$newVersion".Trim()
             } catch {
                 Write-Log "Git upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "git" -ErrorMessage "$_"
@@ -89,9 +92,12 @@ function Install-GitLfs {
         if ($lfsConfig.alwaysUpgradeToLatest) {
             try {
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersion = & git lfs version 2>$null
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $newVersion = try { & git lfs version 2>$null } catch { $null }
+                $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+                if ($isVersionEmpty) { $newVersion = "(version pending)" }
                 Write-Log ($LogMessages.messages.lfsUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-                Save-InstalledRecord -Name "git-lfs" -Version $newVersion
+                Save-InstalledRecord -Name "git-lfs" -Version "$newVersion".Trim()
             } catch {
                 Write-Log "Git LFS upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "git-lfs" -ErrorMessage "$_"
@@ -149,9 +155,12 @@ function Install-GitHubCli {
             try {
                 Write-Log $LogMessages.messages.ghUpgrading -Level "info"
                 Upgrade-ChocoPackage -PackageName $packageName
-                $newVersion = & gh --version 2>$null | Select-Object -First 1
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $newVersion = try { & gh --version 2>$null | Select-Object -First 1 } catch { $null }
+                $isVersionEmpty = [string]::IsNullOrWhiteSpace($newVersion)
+                if ($isVersionEmpty) { $newVersion = "(version pending)" }
                 Write-Log ($LogMessages.messages.ghUpgradeSuccess -replace '\{version\}', $newVersion) -Level "success"
-                Save-InstalledRecord -Name "github-cli" -Version $newVersion
+                Save-InstalledRecord -Name "github-cli" -Version "$newVersion".Trim()
             } catch {
                 Write-Log "GitHub CLI upgrade failed: $_" -Level "error"
                 Save-InstalledError -Name "github-cli" -ErrorMessage "$_"
