@@ -29,6 +29,7 @@
       "install": "Install DBeaver Community Edition + sync settings (default)",
       "settings-only": "Sync DBeaver settings only (skip install)",
       "install-only": "Install DBeaver only (skip settings sync)",
+      "export": "Export DBeaver settings from machine to repo for backup",
       "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
@@ -36,8 +37,9 @@
       ".\\run.ps1 install dbeaver",
       ".\\run.ps1 install dbeaver-settings",
       ".\\run.ps1 install install-dbeaver",
+      ".\\run.ps1 -I 32 -- export",
       ".\\run.ps1 -I 32 -- -Help",
-      ".\\run.ps1 uninstall"
+      ".\\run.ps1 -I 32 -- uninstall"
     ]
   }
 }
