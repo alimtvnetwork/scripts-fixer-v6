@@ -106,12 +106,16 @@ switch ($Command.ToLower()) {
 
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
-$pythonVersion = & python --version 2>$null
-$pipVersion    = & pip --version 2>$null
+
+# Refresh PATH so python/pip are discoverable after install/upgrade
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+$pythonVersion = try { & python --version 2>$null } catch { $null }
+$pipVersion    = try { & pip --version 2>$null } catch { $null }
 
 Save-ResolvedData -ScriptFolder "05-install-python" -Data @{
-    pythonVersion  = $pythonVersion
-    pipVersion     = $pipVersion
+    pythonVersion  = if ($pythonVersion) { $pythonVersion } else { "unknown" }
+    pipVersion     = if ($pipVersion) { $pipVersion } else { "unknown" }
     pythonUserBase = $env:PYTHONUSERBASE
     timestamp      = (Get-Date -Format "o")
 }
