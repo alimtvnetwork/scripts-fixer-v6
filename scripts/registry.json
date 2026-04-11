@@ -38,6 +38,8 @@
     "35": "35-install-gitmap",
     "36": "36-install-obs",
     "37": "37-install-windows-terminal",
-    "38": "38-install-flutter"
+    "38": "38-install-flutter",
+    "39": "39-install-dotnet",
+    "40": "40-install-java"
   }
 }

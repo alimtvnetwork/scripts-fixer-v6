@@ -137,7 +137,21 @@
     "mobile-dev":        [38],
     "mobiledev":         [38],
     "data-dev":          [20, 24, 28, 32],
-    "datadev":           [20, 24, 28, 32]
+    "datadev":           [20, 24, 28, 32],
+    "dotnet":            [39],
+    ".net":              [39],
+    "dotnet-sdk":        [39],
+    "csharp":            [39],
+    "c#":                [39],
+    "dotnet-6":          [39],
+    "dotnet-8":          [39],
+    "dotnet-9":          [39],
+    "java":              [40],
+    "openjdk":           [40],
+    "jdk":               [40],
+    "jre":               [40],
+    "jdk-17":            [40],
+    "jdk-21":            [40]
   },
   "modes": {
     "notepad++":         { "33": "install+settings" },
