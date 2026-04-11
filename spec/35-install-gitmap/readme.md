@@ -28,7 +28,7 @@ irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v2/main/gitmap/script
 | `gitmap.repo`        | GitHub repository                          |
 | `gitmap.installDir`  | Override install directory (bypasses devDir)|
 
-Default install directory: `C:\DevTools\GitMap` (resolved via `devDir` config).
+Default install directory: `C:\dev-tool\GitMap` (resolved via `devDir` config).
 
 ## Install Directory Resolution
 
@@ -36,7 +36,7 @@ Priority order:
 1. `gitmap.installDir` -- explicit override in config
 2. `Resolve-DevDir` -- uses `$env:DEV_DIR`, smart drive detection (E: > D: > best drive), or user prompt
 3. `devDir.default` -- legacy fallback from config
-4. Hardcoded `C:\DevTools\GitMap`
+4. Hardcoded `C:\dev-tool\GitMap`
 
 The resolved path is passed as `-InstallDir` to the remote installer script.
 
@@ -52,7 +52,7 @@ The resolved path is passed as `-InstallDir` to the remote installer script.
 ## Detection
 
 1. Checks `gitmap` in PATH (`Get-Command`)
-2. Falls back to known install paths: `$env:LOCALAPPDATA\gitmap\gitmap.exe` and `C:\DevTools\GitMap\gitmap.exe`
+2. Falls back to known install paths: `$env:LOCALAPPDATA\gitmap\gitmap.exe` and `C:\dev-tool\GitMap\gitmap.exe`
 3. Also checks devDir-resolved path: `$env:DEV_DIR\GitMap\gitmap.exe`
 
 ## How It Works
