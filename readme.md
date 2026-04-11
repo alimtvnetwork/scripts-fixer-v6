@@ -483,23 +483,34 @@ Reusable utilities in `scripts/shared/`:
 
 <div align="center">
 
-### Md. Alim Ul Karim
+### [Md. Alim Ul Karim](https://www.google.com/search?q=alim+ul+karim)
 
-**Chief Software Engineer** | [Riseup Asia LLC](https://riseup-asia.com)
+**[Creator & Lead Architect](https://alimkarim.com)** | [Chief Software Engineer](https://www.google.com/search?q=alim+ul+karim), [Riseup Asia LLC](https://riseup-asia.com)
 
 </div>
 
-A Software Architect and Chief Software Engineer with **20+ years** of professional experience across enterprise-scale systems. His technology stack spans **.NET/C# (18+ years)**, **JavaScript (10+ years)**, **TypeScript (6+ years)**, and **Golang (4+ years)**.
+A system architect with **20+ years** of professional software engineering experience across enterprise, fintech, and distributed systems. His technology stack spans **.NET/C# (18+ years)**, **JavaScript (10+ years)**, **TypeScript (6+ years)**, and **Golang (4+ years)**.
 
-Recognized as a **top 1% talent at Crossover**, he has worked across AdTech, staff augmentation platforms, and full-stack enterprise architecture. He is also the **CEO of Riseup Asia LLC** and maintains an active presence on **Stack Overflow** (2,452+ reputation, member since 2010) and **LinkedIn** (12,500+ followers).
-
-His published writings on clean function design and meaningful naming directly inform the coding principles encoded in this specification system.
+Recognized as a **top 1% talent at Crossover** and one of the top software architects globally. He is also the **Chief Software Engineer of [Riseup Asia LLC](https://riseup-asia.com/)** and maintains an active presence on **[Stack Overflow](https://stackoverflow.com/users/361646/alim-ul-karim)** (2,452+ reputation, member since 2010) and **LinkedIn** (12,500+ followers).
 
 | | |
 |---|---|
-| **Website** | [alimkarim.com](https://alimkarim.com) · [my.alimkarim.com](https://my.alimkarim.com) |
+| **Website** | [alimkarim.com](https://alimkarim.com/) · [my.alimkarim.com](https://my.alimkarim.com/) |
 | **LinkedIn** | [linkedin.com/in/alimkarim](https://linkedin.com/in/alimkarim) |
+| **Stack Overflow** | [stackoverflow.com/users/361646/alim-ul-karim](https://stackoverflow.com/users/361646/alim-ul-karim) |
+| **Google** | [Alim Ul Karim](https://www.google.com/search?q=Alim+Ul+Karim) |
 | **Role** | Chief Software Engineer, [Riseup Asia LLC](https://riseup-asia.com) |
+
+### Riseup Asia LLC
+
+[Top Leading Software Company in WY (2026)](https://riseup-asia.com)
+
+| | |
+|---|---|
+| **Website** | [riseup-asia.com](https://riseup-asia.com) |
+| **Facebook** | [riseupasia.talent](https://www.facebook.com/riseupasia.talent/) |
+| **LinkedIn** | [Riseup Asia](https://www.linkedin.com/company/105304484/) |
+| **YouTube** | [@riseup-asia](https://www.youtube.com/@riseup-asia) |
 
 ---
 
