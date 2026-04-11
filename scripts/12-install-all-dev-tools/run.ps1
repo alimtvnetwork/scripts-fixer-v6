@@ -4,6 +4,7 @@
 #  Supports: quick menu (All Dev / All Dev+DB / Custom), -All, -Skip, -Only.
 # --------------------------------------------------------------------------
 param(
+    [string]$Path,
     [string]$Skip,
     [string]$Only,
     [switch]$All,

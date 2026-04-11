@@ -4,6 +4,7 @@
 #  numbered DB scripts (18-29).
 # --------------------------------------------------------------------------
 param(
+    [string]$Path,
     [switch]$All,
     [string]$Skip,
     [string]$Only,
