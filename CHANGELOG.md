@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.12.1] -- 2026-04-11
+
+### Fixed
+
+- **Default dev directory references** -- Updated all remaining `\dev` path references to `\dev-tool` across configs, specs, memory files, and shared helpers (43 files total)
+
+---
+
 ## [v0.12.0] -- 2026-04-11
 
 ### Added
