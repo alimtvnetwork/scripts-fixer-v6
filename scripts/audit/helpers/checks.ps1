@@ -673,3 +673,85 @@ function Test-VerifySymlinks {
     Write-CheckResult -CheckName "Verify database symlinks" -Passed $isPassed -Details $issues -LogMessages $LogMessages
     return @{ Passed = $isPassed; Issues = $issues }
 }
+
+# --------------------------------------------------------------------------
+#  Check 11: Uninstall coverage
+# --------------------------------------------------------------------------
+function Test-UninstallCoverage {
+    param(
+        [string]$RepoRoot,
+        $Registry,
+        $LogMessages
+    )
+
+    $issues = @()
+    $scriptsDir = Join-Path $RepoRoot "scripts"
+
+    # Scripts exempt from uninstall requirement
+    # 02 = Chocolatey (would break uninstall chain)
+    # 12 = orchestrator (batch uninstall, not individual)
+    # audit = audit script (no tool to uninstall)
+    # databases = orchestrator (batch uninstall, not individual)
+    $exemptFolders = @(
+        "02-install-package-managers",
+        "12-install-all-dev-tools",
+        "audit",
+        "databases"
+    )
+
+    foreach ($prop in $Registry.scripts.PSObject.Properties) {
+        $id = $prop.Name
+        $folder = $prop.Value
+        $isExempt = $folder -in $exemptFolders
+        if ($isExempt) { continue }
+
+        $folderPath = Join-Path $scriptsDir $folder
+        $isFolderMissing = -not (Test-Path $folderPath)
+        if ($isFolderMissing) { continue }
+
+        # -- Check 1: Helper file has Uninstall-* function --
+        $helpersDir = Join-Path $folderPath "helpers"
+        $hasHelpersDir = Test-Path $helpersDir
+        $hasUninstallFunc = $false
+        if ($hasHelpersDir) {
+            $helperFiles = Get-ChildItem -Path $helpersDir -Filter "*.ps1" -ErrorAction SilentlyContinue
+            foreach ($helperFile in $helperFiles) {
+                $content = Get-Content $helperFile.FullName -Raw
+                $isUninstallPresent = $content -match 'function\s+Uninstall-'
+                if ($isUninstallPresent) {
+                    $hasUninstallFunc = $true
+                    break
+                }
+            }
+        }
+        if (-not $hasUninstallFunc) {
+            $issues += "ID '$id' ($folder): no Uninstall-* function found in helpers/"
+        }
+
+        # -- Check 2: run.ps1 has 'uninstall' command handler --
+        $runFile = Join-Path $folderPath "run.ps1"
+        $isRunPresent = Test-Path $runFile
+        if ($isRunPresent) {
+            $runContent = Get-Content $runFile -Raw
+            $hasUninstallCommand = $runContent -match '[''"]uninstall[''"]'
+            if (-not $hasUninstallCommand) {
+                $issues += "ID '$id' ($folder): run.ps1 missing 'uninstall' command handler"
+            }
+        }
+
+        # -- Check 3: log-messages.json has uninstall help entry --
+        $logMsgPath = Join-Path $folderPath "log-messages.json"
+        $isLogMsgPresent = Test-Path $logMsgPath
+        if ($isLogMsgPresent) {
+            $logMsgContent = Get-Content $logMsgPath -Raw
+            $hasUninstallHelp = $logMsgContent -match '[Uu]ninstall'
+            if (-not $hasUninstallHelp) {
+                $issues += "ID '$id' ($folder): log-messages.json missing uninstall help entry"
+            }
+        }
+    }
+
+    $isPassed = $issues.Count -eq 0
+    Write-CheckResult -CheckName "Uninstall coverage" -Passed $isPassed -Details $issues -LogMessages $LogMessages
+    return @{ Passed = $isPassed; Issues = $issues }
+}
