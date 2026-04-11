@@ -172,17 +172,34 @@ function Show-RootHelp {
     Write-Host "    $("install contextmenu".PadRight($kc))" -NoNewline; Write-Host "Fix VSCode right-click context menu" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Python & pip libraries:" -ForegroundColor Magenta
+    Write-Host ""
+    Write-Host "      Quick install:" -ForegroundColor DarkYellow
     Write-Host "    $("install python-libs".PadRight($kc))" -NoNewline; Write-Host "Install all Python/ML libraries (numpy, pandas, etc.)" -ForegroundColor DarkGray
     Write-Host "    $("install python+libs".PadRight($kc))" -NoNewline; Write-Host "Install Python + all libraries in one go" -ForegroundColor DarkGray
-    Write-Host "    $("install ml-libs".PadRight($kc))" -NoNewline; Write-Host "Install ML libraries (same as python-libs)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group ml".PadRight($kc))" -NoNewline; Write-Host "Install ML group only (numpy, scipy, scikit-learn...)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group jupyter".PadRight($kc))" -NoNewline; Write-Host "Install Jupyter Notebook (jupyterlab, notebook...)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group viz".PadRight($kc))" -NoNewline; Write-Host "Install visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group web".PadRight($kc))" -NoNewline; Write-Host "Install web frameworks (django, flask, fastapi)" -ForegroundColor DarkGray
-    Write-Host "    $(".\run.ps1 -I 41 -- group data".PadRight($kc))" -NoNewline; Write-Host "Install data tools (pandas, polars)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      By purpose:" -ForegroundColor DarkYellow
+    Write-Host "    $("install data-science".PadRight($kc))" -NoNewline; Write-Host "Python + data/viz libs (pandas, matplotlib, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $("install ai-dev".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (numpy, scipy, scikit-learn, torch)" -ForegroundColor DarkGray
+    Write-Host "    $("install deep-learning".PadRight($kc))" -NoNewline; Write-Host "Python + ML libs (same as ai-dev)" -ForegroundColor DarkGray
+    Write-Host "    $("install jupyter+libs".PadRight($kc))" -NoNewline; Write-Host "Jupyter only (jupyterlab, notebook, ipykernel)" -ForegroundColor DarkGray
+    Write-Host "    $("install python+jupyter".PadRight($kc))" -NoNewline; Write-Host "Python + all libraries (includes Jupyter)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      By group (.\run.ps1 -I 41 --):" -ForegroundColor DarkYellow
+    Write-Host "    $(".\run.ps1 -I 41 -- group ml".PadRight($kc))" -NoNewline; Write-Host "ML group (numpy, scipy, scikit-learn, torch...)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group jupyter".PadRight($kc))" -NoNewline; Write-Host "Jupyter (jupyterlab, notebook, ipykernel, ipywidgets)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group viz".PadRight($kc))" -NoNewline; Write-Host "Visualization (matplotlib, seaborn, plotly)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group data".PadRight($kc))" -NoNewline; Write-Host "Data tools (pandas, polars)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group web".PadRight($kc))" -NoNewline; Write-Host "Web frameworks (django, flask, fastapi, uvicorn)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group scraping".PadRight($kc))" -NoNewline; Write-Host "Scraping (requests, beautifulsoup4)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group cv".PadRight($kc))" -NoNewline; Write-Host "Computer Vision (opencv-python)" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- group db".PadRight($kc))" -NoNewline; Write-Host "Database (sqlalchemy)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "      Utilities:" -ForegroundColor DarkYellow
     Write-Host "    $(".\run.ps1 -I 41 -- add <pkg1> <pkg2>".PadRight($kc))" -NoNewline; Write-Host "Install specific packages by name" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I 41 -- list".PadRight($kc))" -NoNewline; Write-Host "Show all available library groups" -ForegroundColor DarkGray
     Write-Host "    $(".\run.ps1 -I 41 -- installed".PadRight($kc))" -NoNewline; Write-Host "Show currently installed pip packages" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- uninstall".PadRight($kc))" -NoNewline; Write-Host "Uninstall all tracked libraries" -ForegroundColor DarkGray
+    Write-Host "    $(".\run.ps1 -I 41 -- uninstall <pkg>".PadRight($kc))" -NoNewline; Write-Host "Uninstall specific packages" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "    Database installs:" -ForegroundColor Magenta
     Write-Host "    $("install databases".PadRight($kc))" -NoNewline; Write-Host "Open the interactive database installer menu" -ForegroundColor DarkGray
@@ -207,17 +224,19 @@ function Show-RootHelp {
     Write-Host "    choco, chocolatey    Chocolatey                      02"
     Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
     Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
+    Write-Host ""
+    Write-Host "    Python & Libraries" -ForegroundColor Magenta
     Write-Host "    python, pip          Python + pip                    05"
-    Write-Host "    python-libs, pip-libs Python libraries (all groups)   41"
-    Write-Host "    ml-libs              ML/Data libraries               41"
+    Write-Host "    python-libs, pip-libs All pip libraries              41"
+    Write-Host "    ml-libs, ml-full     ML libraries                    41"
     Write-Host "    jupyter+libs         Jupyter group only              41"
     Write-Host "    python+libs, ml-dev  Python + all libraries          05, 41"
     Write-Host "    python+jupyter       Python + all libraries          05, 41"
     Write-Host "    pip+jupyter+libs     Python + all libraries          05, 41"
     Write-Host "    data-science         Python + data/viz libs          05, 41"
-    Write-Host "    ai-dev               Python + ML libs                05, 41"
-    Write-Host "    deep-learning        Python + ML libs                05, 41"
-    Write-Host "    ml-full              Python + ML libs                05, 41"
+    Write-Host "    ai-dev, deep-learning Python + ML libs               05, 41"
+    Write-Host ""
+    Write-Host "    Languages & Runtimes" -ForegroundColor Magenta
     Write-Host "    go, golang           Go                              06"
     Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
     Write-Host "    github-desktop       GitHub Desktop                  08"
@@ -270,6 +289,8 @@ function Show-RootHelp {
     Write-Host "    backend                     Python + Go + PHP + Postgres  05, 06, 16, 20"
     Write-Host "    web-dev, webdev             VSCode + Node + pnpm + Git    01, 03, 04, 07, 11"
     Write-Host "    essentials                  VSCode + Choco + Node + Git   01, 02, 03, 07, 11"
+    Write-Host ""
+    Write-Host "    Python & Libraries" -ForegroundColor Magenta
     Write-Host "    python+libs, ml-dev         Python + all libraries         05, 41"
     Write-Host "    python+jupyter              Python + all libraries         05, 41"
     Write-Host "    pip+jupyter+libs            Python + all libraries         05, 41"
@@ -277,6 +298,8 @@ function Show-RootHelp {
     Write-Host "    data-science, datascience   Python + data/viz libs         05, 41"
     Write-Host "    ai-dev, aidev               Python + ML libs               05, 41"
     Write-Host "    deep-learning, ml-full      Python + ML libs               05, 41"
+    Write-Host ""
+    Write-Host "    General" -ForegroundColor Magenta
     Write-Host "    full-stack, fullstack       Everything for full-stack dev 01-09, 11, 16"
     Write-Host ""
     Write-Host "  Available Scripts:" -ForegroundColor Yellow
@@ -350,17 +373,19 @@ function Show-KeywordTable {
     Write-Host "    choco, chocolatey    Chocolatey                      02"
     Write-Host "    nodejs, node         Node.js + Yarn + Bun            03"
     Write-Host "    pnpm                 Node.js + pnpm                  03, 04"
+    Write-Host ""
+    Write-Host "    Python & Libraries" -ForegroundColor Magenta
     Write-Host "    python, pip          Python + pip                    05"
-    Write-Host "    python-libs, pip-libs Python libraries (all groups)   41"
-    Write-Host "    ml-libs              ML/Data libraries               41"
+    Write-Host "    python-libs, pip-libs All pip libraries              41"
+    Write-Host "    ml-libs, ml-full     ML libraries                    41"
     Write-Host "    jupyter+libs         Jupyter group only              41"
     Write-Host "    python+libs, ml-dev  Python + all libraries          05, 41"
     Write-Host "    python+jupyter       Python + all libraries          05, 41"
     Write-Host "    pip+jupyter+libs     Python + all libraries          05, 41"
     Write-Host "    data-science         Python + data/viz libs          05, 41"
-    Write-Host "    ai-dev               Python + ML libs                05, 41"
-    Write-Host "    deep-learning        Python + ML libs                05, 41"
-    Write-Host "    ml-full              Python + ML libs                05, 41"
+    Write-Host "    ai-dev, deep-learning Python + ML libs               05, 41"
+    Write-Host ""
+    Write-Host "    Languages & Runtimes" -ForegroundColor Magenta
     Write-Host "    go, golang           Go                              06"
     Write-Host "    git, gh              Git + LFS + GitHub CLI          07"
     Write-Host "    github-desktop       GitHub Desktop                  08"
@@ -414,6 +439,8 @@ function Show-KeywordTable {
     Write-Host "    backend                     Python + Go + PHP + Postgres  05, 06, 16, 20"
     Write-Host "    web-dev, webdev             VSCode + Node + pnpm + Git    01, 03, 04, 07, 11"
     Write-Host "    essentials                  VSCode + Choco + Node + Git   01, 02, 03, 07, 11"
+    Write-Host ""
+    Write-Host "    Python & Libraries" -ForegroundColor Magenta
     Write-Host "    python+libs, ml-dev         Python + all libraries         05, 41"
     Write-Host "    python+jupyter              Python + all libraries         05, 41"
     Write-Host "    pip+jupyter+libs            Python + all libraries         05, 41"
@@ -421,6 +448,8 @@ function Show-KeywordTable {
     Write-Host "    data-science, datascience   Python + data/viz libs         05, 41"
     Write-Host "    ai-dev, aidev               Python + ML libs               05, 41"
     Write-Host "    deep-learning, ml-full      Python + ML libs               05, 41"
+    Write-Host ""
+    Write-Host "    General" -ForegroundColor Magenta
     Write-Host "    full-stack, fullstack       Everything for full-stack dev 01-09, 11, 16"
     Write-Host ""
     Write-Host "  Usage: " -NoNewline -ForegroundColor Yellow; Write-Host ".\run.ps1 install <keyword>[,<keyword>,...]"

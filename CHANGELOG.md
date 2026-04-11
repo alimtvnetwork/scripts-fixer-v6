@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.5] -- 2026-04-11
+
+### Changed
+
+- **Python help section reorganized** with proper sub-groupings in all help views
+  - Quick-start section: "Quick install", "By purpose", "By group", "Utilities" sub-headers
+  - Added missing groups to help: `scraping`, `cv`, `db` alongside existing `ml`, `jupyter`, `viz`, `data`, `web`
+  - Added `uninstall` commands to help utilities section
+  - Keyword tables now use "Python & Libraries" and "Languages & Runtimes" group headers
+  - Combo Shortcuts section uses "Python & Libraries" and "General" group headers
+  - All four help locations (Show-RootHelp keywords, combos; Show-KeywordTable keywords, combos) consistent
+
+---
+
 ## [v0.17.4] -- 2026-04-11
 
 ### Added
