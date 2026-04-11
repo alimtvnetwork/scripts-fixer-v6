@@ -8,8 +8,23 @@ Script 32 (install-dbeaver) handles sync automatically:
 2. Copies all config files (data-sources.json, etc.) to that directory
 3. Copies any subdirectories (drivers, templates) alongside them
 
-Common files to include:
-- data-sources.json     -- Connection profiles (exported from DBeaver)
+Included template profiles (data-sources.json):
+- MySQL (localhost:3306)
+- MariaDB (localhost:3306)
+- PostgreSQL (localhost:5432)
+- SQLite (C:\dev-tool\sqlite\sample.db)
+- MongoDB (localhost:27017)
+- Redis (localhost:6379)
+- CouchDB (localhost:5984)
+- Cassandra (localhost:9042)
+- Neo4j (localhost:7687)
+- Elasticsearch (localhost:9200)
+- DuckDB (C:\dev-tool\duckdb\sample.duckdb)
+
+All connections use the "Development" type (green color).
+Edit data-sources.json to match your environment before syncing.
+
+Other files you can add:
 - credentials-config.json -- Encrypted credential store
 
 To export your current DBeaver settings to this folder:
