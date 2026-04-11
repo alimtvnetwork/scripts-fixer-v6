@@ -283,6 +283,8 @@ function Test-PythonExecutable {
 
     $versionOutput = $null
     try {
+        # Reset LASTEXITCODE so stale values from prior commands (e.g. choco) don't pollute the check
+        $Global:LASTEXITCODE = 0
         $versionOutput = & $ExecutablePath --version 2>&1
     } catch {
     }
@@ -300,6 +302,7 @@ function Test-PythonExecutable {
 
     $pipOutput = $null
     try {
+        $Global:LASTEXITCODE = 0
         $pipOutput = & $ExecutablePath -m pip --version 2>&1
     } catch {
     }
@@ -391,6 +394,10 @@ function Resolve-PythonExe {
     if ($hasChocolateyInstall) {
         $fallbackPatterns += (Join-Path $env:ChocolateyInstall "bin\python.exe")
         $fallbackPatterns += (Join-Path $env:ChocolateyInstall "bin\python3.exe")
+        # Chocolatey lib tools path (where the actual python exe lives)
+        $fallbackPatterns += (Join-Path $env:ChocolateyInstall "lib\python3\tools\python.exe")
+        $fallbackPatterns += (Join-Path $env:ChocolateyInstall "lib\python\tools\python.exe")
+        $fallbackPatterns += (Join-Path $env:ChocolateyInstall "lib\python3*\tools\python.exe")
     }
 
     $hasLocalAppData = -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)
