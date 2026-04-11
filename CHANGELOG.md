@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.18.1] -- 2026-04-11
+
+### Added
+
+- **Per-group Python library keywords** for standalone install via root dispatcher
+  - `viz-libs` -- visualization (matplotlib, seaborn, plotly)
+  - `web-libs` -- web frameworks (django, flask, fastapi, uvicorn)
+  - `scraping-libs` -- scraping (requests, beautifulsoup4)
+  - `db-libs` -- database (sqlalchemy)
+  - `cv-libs` -- computer vision (opencv-python)
+  - `data-libs` -- data tools (pandas, polars)
+  - `jupyter-libs` -- jupyter group (alias for jupyter+libs)
+  - Each keyword maps to script 41 with the appropriate `group <name>` mode
+  - Combinable: `install viz-libs,web-libs` runs script 41 twice with separate groups
+
+---
+
 ## [v0.18.0] -- 2026-04-11
 
 ### Fixed
