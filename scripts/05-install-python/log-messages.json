@@ -15,6 +15,7 @@
     "savingResolved": "Saving resolved state...",
     "notAdmin": "This script requires administrator privileges.",
     "unknownCommand": "Unknown command: {command}. Use -Help for usage.",
+    "devDirFromParam": "Using user-specified dev directory: {path}",
     "pythonSetupComplete": "Python setup complete."
   },
   "help": {
@@ -23,10 +24,16 @@
       "install": "Install/upgrade Python only",
       "configure": "Configure pip user site and PATH only"
     },
+    "parameters": {
+      "-Path": "Custom dev directory path (overrides smart detection)"
+    },
     "examples": [
       ".\\run.ps1",
       ".\\run.ps1 install",
       ".\\run.ps1 configure",
+      ".\\run.ps1 all F:\\dev",
+      ".\\run.ps1 install D:\\projects",
+      ".\\run.ps1 -Path E:\\dev",
       ".\\run.ps1 -Help"
     ]
   }
