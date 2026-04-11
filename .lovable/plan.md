@@ -122,5 +122,5 @@ Reduces boilerplate across all 30+ install helpers and prevents future empty-ver
 - [x] Plan approved
 - [x] v0.16.0 implementation (Audit Check 12 + root export command + .NET + Java scripts)
 - [x] v0.16.1 implementation (Status command + defensive version guards)
-- [ ] v0.16.2 implementation
-- [ ] v0.16.3 implementation
+- [x] v0.16.2 implementation (Python libraries script 41 + VSCode export)
+- [ ] v0.16.3 implementation (doctor command + Assert-ToolVersion)
