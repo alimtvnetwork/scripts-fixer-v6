@@ -75,6 +75,8 @@
     "helpCommandItem": "    {label}{description}",
     "helpFlagsLabel": "  Flags:",
     "helpFlagItem": "    {label}{description}",
+    "helpParametersLabel": "  Parameters:",
+    "helpParameterItem": "    {label}{description}",
     "helpExamplesLabel": "  Examples:",
     "helpExampleItem": "    {example}",
     "helpDescription": "  {description}",
