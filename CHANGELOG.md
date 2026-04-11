@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.17.7] -- 2026-04-11
+
+### Changed
+
+- **Root dispatcher supports multi-mode same-script execution**
+  - `install jupyter,ml-libs` now runs script 41 twice: once with `group jupyter`, once with `group ml`
+  - Previously, duplicate script IDs were merged -- only the last mode survived
+  - Entries with different modes (e.g. `group ml` vs `group jupyter`) are kept as separate runs
+  - Standard install modes (`install+settings`, `install-only`, `settings-only`) still merge by priority
+  - Enables `install pip,jupyter,ml-libs` to install Python (05), then Jupyter group (41), then ML group (41)
+
+---
+
 ## [v0.17.6] -- 2026-04-11
 
 ### Fixed
