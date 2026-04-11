@@ -14,6 +14,10 @@
     "settingsSkipped": "No OBS settings bundle found in script folder -- skipping sync",
     "setupComplete": "OBS Studio setup complete",
     "disabled": "OBS Studio install is disabled in config",
+    "exportStarting": "Exporting OBS settings from {source}...",
+    "exportNoSource": "OBS data directory not found -- has OBS been launched at least once?",
+    "exportNoFiles": "No scene collections or profiles found -- nothing to export",
+    "exportComplete": "OBS settings exported -- {count} item(s) saved to {path}",
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} uninstalled successfully.",
     "uninstallFailed": "{name} uninstall failed -- package may need manual removal.",
@@ -24,6 +28,7 @@
       "install+settings": "Install OBS Studio and sync settings (default)",
       "settings-only": "Sync settings only (no install)",
       "install-only": "Install OBS Studio only (no settings sync)",
+      "export": "Export OBS settings from machine to repo for backup",
       "uninstall": "Uninstall completely, remove tracking, clean up"
     },
     "examples": [
@@ -31,6 +36,7 @@
       ".\\run.ps1 install obs+settings",
       ".\\run.ps1 install obs-settings",
       ".\\run.ps1 install install-obs",
+      ".\\run.ps1 -I 36 -- export",
       ".\\run.ps1 -I 36",
       ".\\run.ps1 -I 36 -- -Mode settings-only",
       ".\\run.ps1 -I 36 -- -Mode install-only",
