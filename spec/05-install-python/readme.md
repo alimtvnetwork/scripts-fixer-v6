@@ -90,23 +90,30 @@ Users can always override with `-Path`.
 
 ## Install Keywords
 
-| Keyword |
-|---------|
-| `python` |
-| `pip` |
-| `python-pip` |
-| `pythonpip` |
-| `python+pip` |
+| Keyword | Scripts | Description |
+|---------|---------|-------------|
+| `python` | 05 | Install Python + pip |
+| `pip` | 05 | Install Python + pip |
+| `python-pip` | 05 | Install Python + pip |
+| `pythonpip` | 05 | Install Python + pip |
+| `python+pip` | 05 | Install Python + pip |
+| `pylibs` | 05, 41 | Python + all pip libraries (numpy, pandas, jupyter, etc.) |
 
 **Group shortcuts** (installs multiple scripts):
 
-| Keyword | Scripts |
-|---------|---------|
-| `full-stack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
-| `fullstack` | 1, 2, 3, 4, 5, 7, 8, 9, 11, 16 |
-| `backend` | 5, 6, 16, 20 |
+| Keyword | Scripts | Description |
+|---------|---------|-------------|
+| `full-stack` | 01-09, 11, 16, 39, 40 | Everything for full-stack dev |
+| `fullstack` | 01-09, 11, 16, 39, 40 | Everything for full-stack dev |
+| `backend` | 05, 06, 16, 20, 39, 40 | Python + Go + PHP + PG + .NET + Java |
+| `python+libs` | 05, 41 | Python + all libraries |
+| `ml-dev` | 05, 41 | Python + all libraries |
+| `data-science` | 05, 41 | Python + data/viz libs |
+| `ai-dev` | 05, 41 | Python + ML libs |
 
 ```powershell
 .\run.ps1 install python
+.\run.ps1 install pylibs             # Python + all pip libraries in one go
 .\run.ps1 install full-stack
+.\run.ps1 install backend
 ```
