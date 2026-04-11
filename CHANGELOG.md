@@ -2,6 +2,38 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.11.0] -- 2026-04-11
+
+### Added
+
+- **`-Path` parameter** -- Script 05 (Install Python) now accepts `-Path` to override dev directory
+  - `.\run.ps1 all F:\dev` installs and configures pip to `F:\dev\python`
+  - Overrides both smart drive detection and `$env:DEV_DIR`
+  - Pattern to be rolled out to all scripts
+- **`uninstall` subcommand** -- Script 05 (Install Python) reference implementation
+  - Runs `choco uninstall python3 --remove-dependencies`
+  - Removes `PYTHONUSERBASE` environment variable
+  - Removes `Scripts\` from User PATH
+  - Deletes `<devDir>\python` subfolder
+  - Purges `.installed/python.json` and `.resolved/05-install-python/`
+- **Shared uninstall helpers** for all scripts to use:
+  - `Uninstall-ChocoPackage` in `choco-utils.ps1`
+  - `Remove-FromUserPath` in `path-utils.ps1`
+  - `Remove-InstalledRecord` in `installed.ps1`
+  - `Remove-ResolvedData` in `resolved.ps1`
+- **Help system upgrade** -- `help.ps1` now auto-injects `-Path` parameter in help output for all scripts
+  - Reads `help.parameters` block from `log-messages.json`
+  - Renamed "Flags:" section to "Parameters:" for clarity
+- **Install keywords documentation** -- added Install Keywords section to all 35+ spec readmes
+  - Each spec now documents direct keywords, mode overrides, and group shortcuts
+  - Consistent formatting with tables and PowerShell usage examples
+- **`data-dev` group shortcut** -- bundles PostgreSQL (20), Redis (24), DuckDB (28), DBeaver (32)
+  - Also aliased as `datadev`
+- **`mobile-dev` group shortcut** -- bundles Flutter-related scripts
+- **Flutter mode overrides** -- `flutter-only`, `flutter+android`, `flutter-extensions` keywords
+
+---
+
 ## [v0.10.0] -- 2026-04-10
 
 ### Added
