@@ -14,6 +14,25 @@ Install Python via Chocolatey and configure `PYTHONUSERBASE` so that
 | `configure` | Configure pip site and PATH only |
 | `-Help` | Show usage information |
 
+## Parameters
+
+| Parameter | Position | Description |
+|-----------|----------|-------------|
+| `-Path` | 1 (after command) | Custom dev directory path. Overrides smart drive detection and `$env:DEV_DIR`. All pip site configuration uses this path. |
+
+### Usage with -Path
+
+```powershell
+.\run.ps1 all F:\dev           # Install + configure pip to F:\dev\python
+.\run.ps1 install D:\projects  # Install Python, dev dir set to D:\projects
+.\run.ps1 -Path E:\dev         # Same as: .\run.ps1 all E:\dev
+.\run.ps1 configure G:\tools   # Configure pip site to G:\tools\python
+```
+
+When `-Path` is provided, the script skips smart drive detection entirely
+and uses the given path as the dev directory. The pip user site will be
+set to `<Path>\python` (the `devDirSubfolder` from config.json).
+
 ## config.json
 
 | Key | Type | Purpose |
