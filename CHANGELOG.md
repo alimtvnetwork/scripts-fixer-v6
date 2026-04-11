@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.15.1] -- 2026-04-11
+
+### Added
+
+- **Notepad++ settings export** (script 33) -- `.\run.ps1 -I 33 -- export`
+  - Exports config files (.xml, .json, .ini) from `%APPDATA%\Notepad++\`
+  - Exports subdirectories (themes, userDefineLangs) recursively
+  - Skips runtime folders (backup, session, plugins) and files > 512 KB
+  - Saves to `settings/01 - notepad++/`
+
+### Fixed
+
+- **Typo in `Uninstall-NotepadPP`** -- `$$NppConfig` corrected to `$NppConfig`
+
+---
+
 ## [v0.15.0] -- 2026-04-11
 
 ### Added
