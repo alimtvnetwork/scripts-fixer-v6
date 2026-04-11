@@ -114,7 +114,8 @@ switch ($Command.ToLower()) {
 # -- Save resolved state -------------------------------------------------------
 Write-Log $logMessages.messages.savingResolved -Level "info"
 
-$pipList = try { & python -m pip list --format=json 2>$null | ConvertFrom-Json } catch { @() }
+$pyExe = Resolve-PythonExe
+$pipList = try { & $pyExe -m pip list --format=json 2>$null | ConvertFrom-Json } catch { @() }
 $installedNames = ($pipList | ForEach-Object { $_.name }) -join ", "
 
 Save-ResolvedData -ScriptFolder "41-install-python-libs" -Data @{

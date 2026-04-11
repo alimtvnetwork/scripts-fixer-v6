@@ -10,6 +10,26 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
 }
 
 
+# -- Resolve python executable -------------------------------------------------
+$script:_PythonExe = $null
+
+function Resolve-PythonExe {
+    <#
+    .SYNOPSIS
+        Finds python or python3 in PATH and caches the result.
+    #>
+    if ($script:_PythonExe) { return $script:_PythonExe }
+
+    foreach ($candidate in @("python", "python3", "py")) {
+        $found = Get-Command $candidate -ErrorAction SilentlyContinue
+        if ($found) {
+            $script:_PythonExe = $found.Source
+            return $script:_PythonExe
+        }
+    }
+    return $null
+}
+
 function Assert-PythonAvailable {
     <#
     .SYNOPSIS
@@ -17,20 +37,31 @@ function Assert-PythonAvailable {
     #>
     param($LogMessages)
 
-    $hasPython = Get-Command python -ErrorAction SilentlyContinue
+    $pyExe = Resolve-PythonExe
+    $hasPython = $null -ne $pyExe
     if (-not $hasPython) {
         Write-Log $LogMessages.messages.pythonNotFound -Level "error"
         return $false
     }
 
+    Write-Log ("Found Python executable: $pyExe") -Level "info"
+
     $hasPip = $null
-    try { $hasPip = & python -m pip --version 2>$null } catch {}
+    try { $hasPip = & $pyExe -m pip --version 2>$null } catch {}
     $isPipMissing = [string]::IsNullOrWhiteSpace($hasPip)
     if ($isPipMissing) {
-        Write-Log $LogMessages.messages.pipNotFound -Level "error"
-        return $false
+        # Try ensurepip as last resort
+        Write-Log "pip not found, attempting ensurepip..." -Level "warn"
+        try { & $pyExe -m ensurepip --upgrade 2>$null } catch {}
+        try { $hasPip = & $pyExe -m pip --version 2>$null } catch {}
+        $isPipMissing = [string]::IsNullOrWhiteSpace($hasPip)
+        if ($isPipMissing) {
+            Write-Log $LogMessages.messages.pipNotFound -Level "error"
+            return $false
+        }
     }
 
+    Write-Log ("pip version: $hasPip") -Level "info"
     return $true
 }
 
@@ -49,7 +80,8 @@ function Install-PipPackage {
     # Check if already installed
     $existingVersion = $null
     try {
-        $existingVersion = & python -m pip show $Package 2>$null |
+        $pyExe = Resolve-PythonExe
+        $existingVersion = & $pyExe -m pip show $Package 2>$null |
             Select-String "^Version:" |
             ForEach-Object { ($_ -split ":\s*", 2)[1].Trim() }
     } catch {}
@@ -63,11 +95,12 @@ function Install-PipPackage {
     Write-Log ($LogMessages.messages.installingSinglePackage -replace '\{package\}', $Package) -Level "info"
 
     try {
+        $pyExe = Resolve-PythonExe
         $pipArgs = @("-m", "pip", "install", "--no-cache-dir")
         if ($UserSite) { $pipArgs += "--user" }
         $pipArgs += $Package
 
-        $output = & python @pipArgs 2>&1
+        $output = & $pyExe @pipArgs 2>&1
         $isSuccess = $LASTEXITCODE -eq 0
         if ($isSuccess) {
             Write-Log ($LogMessages.messages.packageInstallSuccess -replace '\{package\}', $Package) -Level "success"
@@ -160,7 +193,8 @@ function Show-InstalledPipPackages {
     param($LogMessages)
 
     Write-Log $LogMessages.messages.listingInstalled -Level "info"
-    & python -m pip list --format=columns 2>$null
+    $pyExe = Resolve-PythonExe
+    & $pyExe -m pip list --format=columns 2>$null
 }
 
 
@@ -185,7 +219,8 @@ function Uninstall-PipPackages {
     foreach ($pkg in $targetPackages) {
         Write-Log ($LogMessages.messages.uninstallingPackage -replace '\{package\}', $pkg) -Level "info"
         try {
-            & python -m pip uninstall -y $pkg 2>&1 | Out-Null
+            $pyExe = Resolve-PythonExe
+            & $pyExe -m pip uninstall -y $pkg 2>&1 | Out-Null
             $isOk = $LASTEXITCODE -eq 0
             if ($isOk) {
                 Write-Log ($LogMessages.messages.uninstallSuccess -replace '\{package\}', $pkg) -Level "success"
