@@ -129,6 +129,7 @@
     "pip-libs":          [41],
     "ml-libs":           [41],
     "python-packages":   [41],
+    "jupyter":           [41],
     "python+libs":       [5, 41],
     "ml-dev":            [5, 41],
     "python+pip":        [5],
