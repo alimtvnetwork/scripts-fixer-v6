@@ -88,7 +88,8 @@ function Set-PythonRuntimeEnvironment {
 
 function Get-PythonInstallerConfig {
     param(
-        $Config
+        $Config,
+        [string]$DevDir
     )
 
     $configFilePath = Join-Path (Split-Path -Parent $PSScriptRoot) "config.json"
@@ -103,13 +104,13 @@ function Get-PythonInstallerConfig {
     $version = "$($installerConfig.version)".Trim()
     $downloadUrl = "$($installerConfig.downloadUrl)".Trim()
     $fileName = "$($installerConfig.fileName)".Trim()
-    $installDir = "$($installerConfig.installDir)".Trim()
+    $installDirSubfolder = "$($installerConfig.installDirSubfolder)".Trim()
 
     foreach ($field in @(
         @{ Name = "version"; Value = $version },
         @{ Name = "downloadUrl"; Value = $downloadUrl },
         @{ Name = "fileName"; Value = $fileName },
-        @{ Name = "installDir"; Value = $installDir }
+        @{ Name = "installDirSubfolder"; Value = $installDirSubfolder }
     )) {
         $hasValue = -not [string]::IsNullOrWhiteSpace($field.Value)
         if (-not $hasValue) {
@@ -118,6 +119,16 @@ function Get-PythonInstallerConfig {
             throw $reason
         }
     }
+
+    # Resolve installDir dynamically: DevDir\python\Python313
+    $hasDevDir = -not [string]::IsNullOrWhiteSpace($DevDir)
+    if (-not $hasDevDir) {
+        # Use smart drive detection to find best dev directory
+        $DevDir = Resolve-SmartDevDir
+    }
+
+    $devDirSubfolder = if ($Config.devDirSubfolder) { $Config.devDirSubfolder } else { "python" }
+    $installDir = Join-Path (Join-Path $DevDir $devDirSubfolder) $installDirSubfolder
 
     return @{
         Version        = $version
