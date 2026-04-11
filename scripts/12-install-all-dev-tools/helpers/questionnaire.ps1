@@ -48,6 +48,9 @@ function Show-QuickMenu {
     $choice = Read-Host "  Choose [1/2/3/4/U/Q] (default: 1)"
     $choice = $choice.Trim().ToUpper()
 
+    $isUninstall = $choice -eq "U"
+    if ($isUninstall) { return "uninstall" }
+
     $isQuit = $choice -eq "Q"
     if ($isQuit) { return "quit" }
 
