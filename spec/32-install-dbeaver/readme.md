@@ -47,6 +47,24 @@ Supported files:
 - `credentials-config.json` -- Encrypted credential store
 - Any subdirectories (drivers, templates, etc.)
 
+## Settings Export
+
+The export command copies settings FROM the machine back INTO the repo for
+backup and version control:
+
+```powershell
+.\run.ps1 -I 32 -- export
+```
+
+**Source:** `%APPDATA%\DBeaverData\workspace6\General\.dbeaver\`
+**Target:** `settings/04 - dbeaver/`
+
+Safety rules:
+- Only `.json` config files are exported (no binaries)
+- Files larger than 512 KB are skipped (likely cache, not config)
+- `readme.txt` is preserved in the target directory
+- Subdirectories (drivers, templates) are exported recursively
+
 ## Usage
 
 ```powershell
@@ -54,6 +72,7 @@ Supported files:
 .\run.ps1 install dbeaver              # Install via keyword (default mode)
 .\run.ps1 install dbeaver-settings     # Sync settings only
 .\run.ps1 install install-dbeaver      # Install only (no settings)
+.\run.ps1 -I 32 -- export             # Export settings from machine to repo
 .\run.ps1 -I 32 -- -Help              # Show help
 .\run.ps1 -I 32 -- -Mode settings-only # Explicit mode
 ```
