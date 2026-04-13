@@ -146,7 +146,8 @@ function Get-VersionMap {
         @{ Id = "17"; Cmd = "pwsh";      Parse = { param($r) ($r -replace 'PowerShell\s*','').Trim() } },
         @{ Id = "38"; Cmd = "flutter";   Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } },
         @{ Id = "39"; Cmd = "dotnet";    Parse = { param($r) $r.Trim() } },
-        @{ Id = "40"; Cmd = "java";      Flag = "-version"; Parse = { param($r) if ($r -match '(\d[\d._]+)') { $Matches[1] } else { $r } } }
+        @{ Id = "40"; Cmd = "java";      Flag = "-version"; Parse = { param($r) if ($r -match '(\d[\d._]+)') { $Matches[1] } else { $r } } },
+        @{ Id = "42"; Cmd = "ollama";    Parse = { param($r) if ($r -match '(\d[\d.]+)') { $Matches[1] } else { $r } } }
     )
     foreach ($t in $tools) {
         $flag = if ($t.Flag) { $t.Flag } else { "--version" }
