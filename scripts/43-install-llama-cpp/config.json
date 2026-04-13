@@ -4,7 +4,7 @@
   "path": {
     "updateUserPath": true
   },
-  "models": {
+  "modelsConfig": {
     "promptForDirectory": true,
     "devDirSubfolder": "llama-models"
   },
@@ -82,7 +82,7 @@
       "verifyArgs": "--help"
     }
   ],
-  "models": [
+  "modelItems": [
     {
       "slug": "qwen25-coder-7b-q5km",
       "fileName": "qwen2.5-coder-7b-instruct-q5_k_m.gguf",
