@@ -15,12 +15,21 @@ scripts/42-install-ollama/
 
 ## Install Flow
 1. Check if `ollama` is already on PATH
-2. Download `OllamaSetup.exe` from `https://ollama.com/download/OllamaSetup.exe`
+2. Download `OllamaSetup.exe` with retry (3 attempts, exponential backoff via `Invoke-DownloadWithRetry`)
 3. Run installer silently (`/VERYSILENT /NORESTART /SUPPRESSMSGBOXES`)
 4. Refresh PATH so `ollama` is discoverable
 5. Prompt user for models directory (default: `<dev-dir>\ollama-models`)
+   - Skipped under orchestrator (`$env:SCRIPTS_ROOT_RUN = "1"`) -- uses default
 6. Set `OLLAMA_MODELS` user environment variable
 7. Offer to pull default models (Llama 3.2, Qwen 2.5 Coder, DeepSeek R1)
+   - Auto-accepted under orchestrator
+
+## Orchestrator Integration
+
+When `$env:SCRIPTS_ROOT_RUN = "1"` (running under Script 12):
+
+- Models directory prompt uses default (no `Read-Host`)
+- Model pull confirmations auto-accept all models
 
 ## Commands
 
@@ -52,6 +61,12 @@ scripts/42-install-ollama/
 .\run.ps1 -I 42 -- pull           # Pull models only
 .\run.ps1 -I 42 -- uninstall      # Remove everything
 ```
+
+## Dependencies
+
+- Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`,
+  `path-utils.ps1`, `dev-dir.ps1`, `installed.ps1`, `download-retry.ps1`
+- Requires: Administrator privileges, internet access
 
 ## Environment Variables Set
 - `OLLAMA_MODELS` -- Path to models directory (user scope)

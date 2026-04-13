@@ -18,7 +18,9 @@ scripts/43-install-llama-cpp/
 ### Executables
 1. For each variant in `config.executables`:
    - Check if already downloaded (skip if present)
-   - Download from GitHub releases via `Invoke-WebRequest`
+   - For ZIPs: validate integrity (magic bytes `PK\x03\x04` + expected size +-10%)
+   - If corrupt/partial: delete and re-download automatically
+   - Download with retry (3 attempts, exponential backoff via `Invoke-DownloadWithRetry`)
    - Extract ZIP to `<dev-dir>\llama-cpp\<targetFolderName>`
    - Verify executable exists (`llama-cli.exe` or `koboldcpp.exe`)
    - Add bin subfolder to user PATH
@@ -26,9 +28,24 @@ scripts/43-install-llama-cpp/
 
 ### Models
 1. Prompt user for models directory (default: `<dev-dir>\llama-models`)
-2. For each model in `config.models`:
+   - Skipped under orchestrator (`$env:SCRIPTS_ROOT_RUN = "1"`) -- uses default
+2. For each model in `config.modelItems`:
    - Skip if GGUF file already exists
-   - Download from Hugging Face
+   - Download with retry (3 attempts, exponential backoff)
+
+## Integrity Checks
+
+ZIP files are validated before skipping re-download:
+
+1. **Magic bytes** -- first 4 bytes must be `PK\x03\x04` (ZIP header)
+2. **Size check** -- file size must be within 10% of `expectedSizeBytes` from config
+3. **Corrupt recovery** -- invalid ZIPs are deleted and re-downloaded automatically
+
+## Orchestrator Integration
+
+When `$env:SCRIPTS_ROOT_RUN = "1"` (running under Script 12):
+
+- Models directory prompt uses default (no `Read-Host`)
 
 ## Default Install Directory
 ```
@@ -105,6 +122,12 @@ Each executable variant's bin subfolder is added to user PATH:
 - etc.
 
 After install, `llama-cli`, `llama-server`, `koboldcpp` are available from any terminal.
+
+## Dependencies
+
+- Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`,
+  `path-utils.ps1`, `dev-dir.ps1`, `installed.ps1`, `download-retry.ps1`
+- Requires: Administrator privileges, internet access
 
 ## Resolved State
 Saved to `.resolved/43-install-llama-cpp.json`:
