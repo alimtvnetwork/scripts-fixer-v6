@@ -170,15 +170,15 @@ function Install-LlamaCppModels {
 
     # Resolve models directory
     $defaultModelsDir = if ($DevDir) {
-        Join-Path $DevDir $Config.models.devDirSubfolder
+        Join-Path $DevDir $Config.modelsConfig.devDirSubfolder
     } else {
-        Join-Path (Get-SafeDevDirFallback) $Config.models.devDirSubfolder
+        Join-Path (Get-SafeDevDirFallback) $Config.modelsConfig.devDirSubfolder
     }
 
     $modelsDir = $defaultModelsDir
 
     # Prompt user if configured
-    $isPromptEnabled = $Config.models.promptForDirectory
+    $isPromptEnabled = $Config.modelsConfig.promptForDirectory
     if ($isPromptEnabled) {
         Write-Host ""
         Write-Host "  Default models directory: $defaultModelsDir" -ForegroundColor Cyan
@@ -198,7 +198,7 @@ function Install-LlamaCppModels {
     Write-Log ($LogMessages.messages.modelsDirConfigured -replace '\{path\}', $modelsDir) -Level "info"
 
     # Process each model
-    $models = $Config.models
+    $models = $Config.modelItems
     foreach ($model in $models) {
         $outputPath = Join-Path $modelsDir $model.fileName
 
