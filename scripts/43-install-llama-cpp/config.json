@@ -1,0 +1,142 @@
+{
+  "enabled": true,
+  "devDirSubfolder": "llama-cpp",
+  "path": {
+    "updateUserPath": true
+  },
+  "modelsConfig": {
+    "promptForDirectory": true,
+    "devDirSubfolder": "llama-models"
+  },
+  "executables": [
+    {
+      "slug": "llama-b7709-cuda",
+      "displayName": "llama.cpp CUDA 12.4 b7709",
+      "targetFolderName": "llama-b7709-cuda-12.4-x64",
+      "isZip": true,
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b7709/llama-b7709-bin-win-cuda-12.4-x64.zip",
+      "outputFileName": "llama-b7709-bin-win-cuda-12.4-x64.zip",
+      "addToPath": true,
+      "relativeBinSubfolder": "bin",
+      "verifyExe": "llama-cli.exe",
+      "verifyArgs": "--help"
+    },
+    {
+      "slug": "llama-b6869-cuda",
+      "displayName": "llama.cpp CUDA 12.x b6869",
+      "targetFolderName": "llama-b6869-cuda-12.4-x64",
+      "isZip": true,
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b6869/llama-b6869-bin-win-cuda-12.4-x64.zip",
+      "outputFileName": "llama-b6869-bin-win-cuda-12.4-x64.zip",
+      "addToPath": true,
+      "relativeBinSubfolder": "bin",
+      "verifyExe": "llama-cli.exe",
+      "verifyArgs": "--help"
+    },
+    {
+      "slug": "llama-cudart-b6869",
+      "displayName": "llama.cpp CUDA 12.4 + bundled runtime",
+      "targetFolderName": "cudart-llama-b6869-cuda-12.4-x64",
+      "isZip": true,
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b6869/cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "outputFileName": "cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "addToPath": true,
+      "relativeBinSubfolder": "bin",
+      "verifyExe": "llama-cli.exe",
+      "verifyArgs": "--help"
+    },
+    {
+      "slug": "llama-avx2-cpu",
+      "displayName": "llama.cpp AVX2 CPU fallback",
+      "targetFolderName": "llama-avx2-x64",
+      "isZip": true,
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/latest/download/llama-bin-win-avx2-x64.zip",
+      "outputFileName": "llama-bin-win-avx2-x64.zip",
+      "addToPath": true,
+      "relativeBinSubfolder": "bin",
+      "verifyExe": "llama-cli.exe",
+      "verifyArgs": "--help"
+    },
+    {
+      "slug": "koboldcpp-cuda",
+      "displayName": "KoboldCPP Windows x64 CUDA (single EXE)",
+      "targetFolderName": "koboldcpp-cuda",
+      "isZip": false,
+      "downloadUrl": "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp.exe",
+      "outputFileName": "koboldcpp.exe",
+      "addToPath": true,
+      "relativeBinSubfolder": "",
+      "verifyExe": "koboldcpp.exe",
+      "verifyArgs": "--help"
+    },
+    {
+      "slug": "koboldcpp-cpu",
+      "displayName": "KoboldCPP Windows x64 CPU (single EXE)",
+      "targetFolderName": "koboldcpp-cpu",
+      "isZip": false,
+      "downloadUrl": "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp_nocuda.exe",
+      "outputFileName": "koboldcpp_nocuda.exe",
+      "addToPath": true,
+      "relativeBinSubfolder": "",
+      "verifyExe": "koboldcpp_nocuda.exe",
+      "verifyArgs": "--help"
+    }
+  ],
+  "modelItems": [
+    {
+      "slug": "qwen25-coder-7b-q5km",
+      "fileName": "qwen2.5-coder-7b-instruct-q5_k_m.gguf",
+      "displayName": "Qwen2.5 Coder 7B Instruct Q5_K_M",
+      "downloadUrl": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q5_k_m.gguf",
+      "purpose": "coding",
+      "family": "Qwen2.5 Coder",
+      "parametersBillions": 7,
+      "quantization": "Q5_K_M",
+      "sizeHint": "~5 GB"
+    },
+    {
+      "slug": "qwen25-coder-14b-q4km",
+      "fileName": "qwen2.5-coder-14b-instruct-q4_k_m.gguf",
+      "displayName": "Qwen2.5 Coder 14B Instruct Q4_K_M",
+      "downloadUrl": "https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct-GGUF/resolve/main/qwen2.5-coder-14b-instruct-q4_k_m.gguf",
+      "purpose": "coding",
+      "family": "Qwen2.5 Coder",
+      "parametersBillions": 14,
+      "quantization": "Q4_K_M",
+      "sizeHint": "~8.9 GB"
+    },
+    {
+      "slug": "qwen25-14b-q4km",
+      "fileName": "qwen2.5-14b-instruct-q4_k_m.gguf",
+      "displayName": "Qwen2.5 14B Instruct Q4_K_M",
+      "downloadUrl": "https://huggingface.co/Qwen/Qwen2.5-14B-Instruct-GGUF/resolve/main/qwen2.5-14b-instruct-q4_k_m.gguf",
+      "purpose": "general",
+      "family": "Qwen2.5",
+      "parametersBillions": 14,
+      "quantization": "Q4_K_M",
+      "sizeHint": "~8.9 GB"
+    },
+    {
+      "slug": "deepseek-r1-8b-q5km",
+      "fileName": "DeepSeek-R1-Distill-Llama-8B-Q5_K_M.gguf",
+      "displayName": "DeepSeek R1 Distill Llama 8B Q5_K_M",
+      "downloadUrl": "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Llama-8B-GGUF/resolve/main/DeepSeek-R1-Distill-Llama-8B-Q5_K_M.gguf",
+      "purpose": "reasoning",
+      "family": "DeepSeek R1 Distill Llama",
+      "parametersBillions": 8,
+      "quantization": "Q5_K_M",
+      "sizeHint": "~5.6 GB"
+    },
+    {
+      "slug": "deepseek-r1-70b-q4km",
+      "fileName": "DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf",
+      "displayName": "DeepSeek R1 Distill Llama 70B Q4_K_M",
+      "downloadUrl": "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Llama-70B-GGUF/resolve/main/DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf",
+      "purpose": "reasoning",
+      "family": "DeepSeek R1 Distill Llama",
+      "parametersBillions": 70,
+      "quantization": "Q4_K_M",
+      "sizeHint": "~40 GB"
+    }
+  ]
+}
