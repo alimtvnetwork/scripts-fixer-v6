@@ -22,6 +22,59 @@ function Get-FileSize {
     return [math]::Round($info.Length / (1024 * 1024), 2)
 }
 
+function Test-ZipIntegrity {
+    <#
+    .SYNOPSIS
+        Validates a ZIP file by checking the magic header bytes (PK\x03\x04)
+        and optionally comparing against an expected file size.
+        Returns $true if the file appears valid.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+
+        [long]$ExpectedSizeBytes = 0,
+
+        [double]$SizeTolerancePercent = 10
+    )
+
+    $isFilePresent = Test-Path $FilePath
+    if (-not $isFilePresent) { return $false }
+
+    $fileInfo = Get-Item $FilePath
+    $isFileEmpty = $fileInfo.Length -eq 0
+    if ($isFileEmpty) { return $false }
+
+    # Check ZIP magic bytes: PK\x03\x04
+    try {
+        $header = [byte[]]::new(4)
+        $stream = [System.IO.File]::OpenRead($FilePath)
+        try {
+            $bytesRead = $stream.Read($header, 0, 4)
+            $hasEnoughBytes = $bytesRead -eq 4
+            if (-not $hasEnoughBytes) { return $false }
+        } finally {
+            $stream.Close()
+        }
+
+        $isValidHeader = ($header[0] -eq 0x50) -and ($header[1] -eq 0x4B) -and ($header[2] -eq 0x03) -and ($header[3] -eq 0x04)
+        if (-not $isValidHeader) { return $false }
+    } catch {
+        return $false
+    }
+
+    # Check expected size if provided
+    $hasExpectedSize = $ExpectedSizeBytes -gt 0
+    if ($hasExpectedSize) {
+        $tolerance = $ExpectedSizeBytes * ($SizeTolerancePercent / 100)
+        $minSize = $ExpectedSizeBytes - $tolerance
+        $isTooSmall = $fileInfo.Length -lt $minSize
+        if ($isTooSmall) { return $false }
+    }
+
+    return $true
+}
+
 function Install-LlamaCppExecutables {
     <#
     .SYNOPSIS
