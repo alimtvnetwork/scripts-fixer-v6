@@ -26,6 +26,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "path-utils.ps1")
 . (Join-Path $sharedDir "dev-dir.ps1")
 . (Join-Path $sharedDir "installed.ps1")
+. (Join-Path $sharedDir "download-retry.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\llama-cpp.ps1")
