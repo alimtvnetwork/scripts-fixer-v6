@@ -304,7 +304,21 @@ When you run `.\run.ps1 -d`, you get a full interactive menu with:
 | `d` | Languages (05-06,16) | 05, 06, 16 |
 | `e` | Git Tools (07-08) | 07, 08 |
 | `f` | Web Dev (03,04,06,08,16) | 03, 04, 06, 08, 16 |
-| `g` | All + Extras (01-11,16-17) | 01-11, 16, 17 |
+| `g` | All + Extras (01-11,16-17,31,33) | 01-11, 16, 17, 31, 33 |
+| `h` | SQL DBs (18-21) | 18, 19, 20, 21 |
+| `i` | NoSQL DBs (22-26) | 22, 23, 24, 25, 26 |
+| `j` | All Databases (18-29) | 18-29 |
+| `k` | Backend Stack | 03, 04, 06, 18-20, 24 |
+| `l` | Full Stack | 03, 04, 06, 07, 16, 18, 20, 22, 24 |
+| `m` | Data Engineering | 05, 20, 27, 28 |
+| `n` | Everything (01-43) | All scripts |
+| `o` | All Dev + MySQL | 01-09, 18 |
+| `p` | All Dev + PostgreSQL | 01-09, 20 |
+| `r` | All Dev + PostgreSQL + Redis | 01-09, 20, 24 |
+| `s` | SQLite + DBeaver | 21, 32 |
+| `t` | All DBs + DBeaver (18-29,32) | 18-29, 32 |
+| `u` | AI Tools (42-43) | 42, 43 |
+| `v` | AI Full Stack (05,41-43) | 05, 41, 42, 43 |
 
 - **Select All / None** -- `A` to select all, `N` to deselect all
 - **Loop-back** -- after install + summary, returns to the menu
