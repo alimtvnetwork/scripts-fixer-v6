@@ -76,16 +76,13 @@ function Install-LlamaCppExecutables {
         }
 
         # Download
-        try {
-            $ProgressPreference = "SilentlyContinue"
-            Invoke-WebRequest -Uri $item.downloadUrl -OutFile $outputPath -UseBasicParsing
-            $ProgressPreference = "Continue"
-            Write-Log ($LogMessages.messages.downloadSuccess -replace '\{fileName\}', $item.outputFileName) -Level "success"
-        } catch {
-            Write-Log ($LogMessages.messages.downloadFailed -replace '\{slug\}', $item.slug -replace '\{error\}', $_) -Level "error"
-            Write-FileError -FilePath $outputPath -Operation "download" -Reason "$_" -Module "Install-LlamaCppExecutables"
+        $isDownloadOk = Invoke-DownloadWithRetry -Uri $item.downloadUrl -OutFile $outputPath -Label $item.displayName
+        if (-not $isDownloadOk) {
+            Write-Log ($LogMessages.messages.downloadFailed -replace '\{slug\}', $item.slug -replace '\{error\}', "All download attempts failed") -Level "error"
+            Write-FileError -FilePath $outputPath -Operation "download" -Reason "Download failed after retries" -Module "Install-LlamaCppExecutables"
             continue
         }
+        Write-Log ($LogMessages.messages.downloadSuccess -replace '\{fileName\}', $item.outputFileName) -Level "success"
 
         # Extract if ZIP
         $isZip = $item.isZip
@@ -215,13 +212,11 @@ function Install-LlamaCppModels {
 
         Write-Log ($LogMessages.messages.modelDownloading -replace '\{name\}', $model.displayName -replace '\{size\}', $model.sizeHint) -Level "info"
 
-        try {
-            $ProgressPreference = "SilentlyContinue"
-            Invoke-WebRequest -Uri $model.downloadUrl -OutFile $outputPath -UseBasicParsing
-            $ProgressPreference = "Continue"
+        $isDownloadOk = Invoke-DownloadWithRetry -Uri $model.downloadUrl -OutFile $outputPath -Label $model.displayName
+        if ($isDownloadOk) {
             Write-Log ($LogMessages.messages.modelDownloadSuccess -replace '\{name\}', $model.displayName) -Level "success"
-        } catch {
-            Write-Log ($LogMessages.messages.modelDownloadFailed -replace '\{name\}', $model.displayName -replace '\{error\}', $_) -Level "error"
+        } else {
+            Write-Log ($LogMessages.messages.modelDownloadFailed -replace '\{name\}', $model.displayName -replace '\{error\}', "All download attempts failed") -Level "error"
             Write-FileError -FilePath $outputPath -Operation "download" -Reason "$_" -Module "Install-LlamaCppModels"
         }
     }
