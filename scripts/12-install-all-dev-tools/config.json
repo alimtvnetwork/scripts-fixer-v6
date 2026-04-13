@@ -18,12 +18,14 @@
     { "letter": "k", "label": "Backend Stack (03-04,06,18-20,24)", "ids": ["03", "04", "06", "18", "19", "20", "24"] },
     { "letter": "l", "label": "Full Stack (03,04,06,07,16,18,20,22,24)", "ids": ["03", "04", "06", "07", "16", "18", "20", "22", "24"] },
     { "letter": "m", "label": "Data Engineering (05,20,27,28)", "ids": ["05", "20", "27", "28"] },
-    { "letter": "n", "label": "Everything (01-38)",             "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37", "38"] },
+    { "letter": "n", "label": "Everything (01-43)",             "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43"] },
     { "letter": "o", "label": "All Dev + MySQL",                "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "18"] },
     { "letter": "p", "label": "All Dev + PostgreSQL",           "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "20"] },
     { "letter": "r", "label": "All Dev + PostgreSQL + Redis",   "ids": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "20", "24"] },
     { "letter": "s", "label": "SQLite + DBeaver",               "ids": ["21", "32"] },
-    { "letter": "t", "label": "All DBs + DBeaver (18-29,32)",   "ids": ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "32"] }
+    { "letter": "t", "label": "All DBs + DBeaver (18-29,32)",   "ids": ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "32"] },
+    { "letter": "u", "label": "AI Tools (42-43)",               "ids": ["42", "43"] },
+    { "letter": "v", "label": "AI Full Stack (05,41-43)",       "ids": ["05", "41", "42", "43"] }
   ],
   "scripts": {
     "01": { "enabled": true, "folder": "01-install-vscode",           "name": "VS Code",              "desc": "Install Visual Studio Code (Stable/Insiders)" },
@@ -58,7 +60,12 @@
     "35": { "enabled": true, "folder": "35-install-gitmap",          "name": "GitMap",                "desc": "Git repository navigator CLI tool" },
     "36": { "enabled": true, "folder": "36-install-obs",             "name": "OBS Studio",            "desc": "Install OBS Studio screen recorder and streaming tool" },
     "37": { "enabled": true, "folder": "37-install-windows-terminal","name": "Windows Terminal",      "desc": "Install Windows Terminal with settings sync" },
-    "38": { "enabled": true, "folder": "38-install-flutter",          "name": "Flutter",              "desc": "Flutter SDK, Android Studio, Chrome, VS Code extensions" }
+    "38": { "enabled": true, "folder": "38-install-flutter",          "name": "Flutter",              "desc": "Flutter SDK, Android Studio, Chrome, VS Code extensions" },
+    "39": { "enabled": true, "folder": "39-install-dotnet",            "name": ".NET SDK",             "desc": "Install .NET SDK (6/8/9), configure dotnet CLI" },
+    "40": { "enabled": true, "folder": "40-install-java",              "name": "Java (OpenJDK)",       "desc": "Install OpenJDK via Chocolatey (17/21)" },
+    "41": { "enabled": true, "folder": "41-install-python-libs",       "name": "Python Libraries",     "desc": "Install pip packages: ML, viz, web, jupyter (by group)" },
+    "42": { "enabled": true, "folder": "42-install-ollama",            "name": "Ollama",               "desc": "Install Ollama for local LLMs, configure models directory" },
+    "43": { "enabled": true, "folder": "43-install-llama-cpp",         "name": "llama.cpp",            "desc": "Download llama.cpp binaries (CUDA/AVX2/KoboldCPP), GGUF models" }
   },
-  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37", "38"]
+  "sequence": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43"]
 }
