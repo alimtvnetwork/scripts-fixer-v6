@@ -109,17 +109,25 @@ function Install-LlamaCppExecutables {
         $fileSize = Get-FileSize -FilePath $outputPath
         $isAlreadyDownloaded = $fileSize -gt 0
         if ($isAlreadyDownloaded) {
-            # For ZIPs, also check if extraction target exists
             $isZip = $item.isZip
             if ($isZip) {
-                $binSubfolder = $item.relativeBinSubfolder
-                $binPath = if ($binSubfolder) { Join-Path $targetFolder $binSubfolder } else { $targetFolder }
-                $isBinPresent = Test-Path $binPath
-                if ($isBinPresent) {
-                    Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
-                    # Still ensure PATH
-                    Ensure-BinInPath -Config $pathConfig -LogMessages $LogMessages -BinPath $binPath
-                    continue
+                # Validate ZIP integrity before skipping
+                $expectedSize = if ($item.PSObject.Properties['expectedSizeBytes']) { $item.expectedSizeBytes } else { 0 }
+                $isZipValid = Test-ZipIntegrity -FilePath $outputPath -ExpectedSizeBytes $expectedSize
+                if (-not $isZipValid) {
+                    Write-Log "Corrupt or partial ZIP detected, re-downloading: $outputPath" -Level "warn"
+                    Remove-Item -Path $outputPath -Force -ErrorAction SilentlyContinue
+                    # Fall through to download
+                } else {
+                    $binSubfolder = $item.relativeBinSubfolder
+                    $binPath = if ($binSubfolder) { Join-Path $targetFolder $binSubfolder } else { $targetFolder }
+                    $isBinPresent = Test-Path $binPath
+                    if ($isBinPresent) {
+                        Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
+                        Ensure-BinInPath -Config $pathConfig -LogMessages $LogMessages -BinPath $binPath
+                        continue
+                    }
+                    # ZIP valid but not extracted yet -- fall through to extraction
                 }
             } else {
                 Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
