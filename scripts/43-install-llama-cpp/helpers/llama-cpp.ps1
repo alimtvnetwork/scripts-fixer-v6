@@ -22,6 +22,59 @@ function Get-FileSize {
     return [math]::Round($info.Length / (1024 * 1024), 2)
 }
 
+function Test-ZipIntegrity {
+    <#
+    .SYNOPSIS
+        Validates a ZIP file by checking the magic header bytes (PK\x03\x04)
+        and optionally comparing against an expected file size.
+        Returns $true if the file appears valid.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+
+        [long]$ExpectedSizeBytes = 0,
+
+        [double]$SizeTolerancePercent = 10
+    )
+
+    $isFilePresent = Test-Path $FilePath
+    if (-not $isFilePresent) { return $false }
+
+    $fileInfo = Get-Item $FilePath
+    $isFileEmpty = $fileInfo.Length -eq 0
+    if ($isFileEmpty) { return $false }
+
+    # Check ZIP magic bytes: PK\x03\x04
+    try {
+        $header = [byte[]]::new(4)
+        $stream = [System.IO.File]::OpenRead($FilePath)
+        try {
+            $bytesRead = $stream.Read($header, 0, 4)
+            $hasEnoughBytes = $bytesRead -eq 4
+            if (-not $hasEnoughBytes) { return $false }
+        } finally {
+            $stream.Close()
+        }
+
+        $isValidHeader = ($header[0] -eq 0x50) -and ($header[1] -eq 0x4B) -and ($header[2] -eq 0x03) -and ($header[3] -eq 0x04)
+        if (-not $isValidHeader) { return $false }
+    } catch {
+        return $false
+    }
+
+    # Check expected size if provided
+    $hasExpectedSize = $ExpectedSizeBytes -gt 0
+    if ($hasExpectedSize) {
+        $tolerance = $ExpectedSizeBytes * ($SizeTolerancePercent / 100)
+        $minSize = $ExpectedSizeBytes - $tolerance
+        $isTooSmall = $fileInfo.Length -lt $minSize
+        if ($isTooSmall) { return $false }
+    }
+
+    return $true
+}
+
 function Install-LlamaCppExecutables {
     <#
     .SYNOPSIS
@@ -56,17 +109,25 @@ function Install-LlamaCppExecutables {
         $fileSize = Get-FileSize -FilePath $outputPath
         $isAlreadyDownloaded = $fileSize -gt 0
         if ($isAlreadyDownloaded) {
-            # For ZIPs, also check if extraction target exists
             $isZip = $item.isZip
             if ($isZip) {
-                $binSubfolder = $item.relativeBinSubfolder
-                $binPath = if ($binSubfolder) { Join-Path $targetFolder $binSubfolder } else { $targetFolder }
-                $isBinPresent = Test-Path $binPath
-                if ($isBinPresent) {
-                    Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
-                    # Still ensure PATH
-                    Ensure-BinInPath -Config $pathConfig -LogMessages $LogMessages -BinPath $binPath
-                    continue
+                # Validate ZIP integrity before skipping
+                $expectedSize = if ($item.PSObject.Properties['expectedSizeBytes']) { $item.expectedSizeBytes } else { 0 }
+                $isZipValid = Test-ZipIntegrity -FilePath $outputPath -ExpectedSizeBytes $expectedSize
+                if (-not $isZipValid) {
+                    Write-Log "Corrupt or partial ZIP detected, re-downloading: $outputPath" -Level "warn"
+                    Remove-Item -Path $outputPath -Force -ErrorAction SilentlyContinue
+                    # Fall through to download
+                } else {
+                    $binSubfolder = $item.relativeBinSubfolder
+                    $binPath = if ($binSubfolder) { Join-Path $targetFolder $binSubfolder } else { $targetFolder }
+                    $isBinPresent = Test-Path $binPath
+                    if ($isBinPresent) {
+                        Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
+                        Ensure-BinInPath -Config $pathConfig -LogMessages $LogMessages -BinPath $binPath
+                        continue
+                    }
+                    # ZIP valid but not extracted yet -- fall through to extraction
                 }
             } else {
                 Write-Log ($LogMessages.messages.downloadSkipped -replace '\{path\}', $outputPath -replace '\{size\}', $fileSize) -Level "info"
