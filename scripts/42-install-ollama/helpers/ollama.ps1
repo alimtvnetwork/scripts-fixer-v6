@@ -97,9 +97,10 @@ function Configure-OllamaModels {
 
     $modelsDir = $defaultModelsDir
 
-    # Prompt user if configured
+    # Prompt user if configured (skip under orchestrator)
+    $isOrchestratorRun = $env:SCRIPTS_ROOT_RUN -eq "1"
     $isPromptEnabled = $modelsCfg.promptForDirectory
-    if ($isPromptEnabled) {
+    if ($isPromptEnabled -and -not $isOrchestratorRun) {
         Write-Host ""
         Write-Host "  Default models directory: $defaultModelsDir" -ForegroundColor Cyan
         $userInput = Read-Host -Prompt "  $($LogMessages.messages.modelsDirPrompt) [$defaultModelsDir]"
@@ -107,6 +108,8 @@ function Configure-OllamaModels {
         if ($hasUserInput) {
             $modelsDir = $userInput.Trim()
         }
+    } elseif ($isOrchestratorRun) {
+        Write-Log "Orchestrator mode: using default models directory: $defaultModelsDir" -Level "info"
     }
 
     # Create directory
@@ -139,14 +142,19 @@ function Pull-OllamaModels {
 
     $models = $Config.defaultModels
 
+    $isOrchestratorRun = $env:SCRIPTS_ROOT_RUN -eq "1"
+
     foreach ($model in $models) {
-        Write-Host ""
-        Write-Host "  Model: $($model.displayName) ($($model.sizeHint))" -ForegroundColor Cyan
-        $userConfirm = Read-Host -Prompt "  Pull this model? (yes/no) [yes]"
-        $isDeclined = $userConfirm -eq "no" -or $userConfirm -eq "n"
-        if ($isDeclined) {
-            Write-Log ($LogMessages.messages.modelPullSkipped -replace '\{name\}', $model.displayName) -Level "info"
-            continue
+        # Under orchestrator, auto-accept all model pulls
+        if (-not $isOrchestratorRun) {
+            Write-Host ""
+            Write-Host "  Model: $($model.displayName) ($($model.sizeHint))" -ForegroundColor Cyan
+            $userConfirm = Read-Host -Prompt "  Pull this model? (yes/no) [yes]"
+            $isDeclined = $userConfirm -eq "no" -or $userConfirm -eq "n"
+            if ($isDeclined) {
+                Write-Log ($LogMessages.messages.modelPullSkipped -replace '\{name\}', $model.displayName) -Level "info"
+                continue
+            }
         }
 
         Write-Log ($LogMessages.messages.modelPulling -replace '\{name\}', $model.displayName -replace '\{size\}', $model.sizeHint) -Level "info"
