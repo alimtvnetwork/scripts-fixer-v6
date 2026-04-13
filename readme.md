@@ -54,9 +54,9 @@ cd scripts-fixture
 
 ## What It Does
 
-A modular collection of **41 PowerShell scripts** that automate everything from installing VS Code, Git, and databases to configuring Go, Python, Node.js, Flutter, .NET, Java, and C++ -- all from a single root dispatcher with an interactive menu and keyword install system.
+A modular collection of **43 PowerShell scripts** that automate everything from installing VS Code, Git, and databases to configuring Go, Python, Node.js, Flutter, .NET, Java, C++, and local AI tools (Ollama, llama.cpp) -- all from a single root dispatcher with an interactive menu and keyword install system.
 
-### Core Tools (01-09, 16-17, 38-41)
+### Core Tools (01-09, 16-17, 38-43)
 
 | ID | Script | What It Does | Admin |
 |----|--------|--------------|-------|
@@ -75,6 +75,8 @@ A modular collection of **41 PowerShell scripts** that automate everything from 
 | 39 | **.NET SDK** | Install .NET SDK (6/8/9), configure dotnet CLI | Yes |
 | 40 | **Java (OpenJDK)** | Install OpenJDK via Chocolatey (17/21) | Yes |
 | 41 | **Python Libraries** | Install pip packages: ML, viz, web, jupyter (by group) | No |
+| 42 | **Ollama** | Install Ollama for local LLMs, configure models directory | Yes |
+| 43 | **llama.cpp** | Download llama.cpp binaries (CUDA/AVX2/KoboldCPP), GGUF models | Yes |
 
 ### VS Code Extras (10-11) & Context Menus
 
@@ -187,6 +189,7 @@ Install tools by human-friendly name instead of script ID:
 .\run.ps1 install data-science       # Python + data/viz libs (pandas, matplotlib, plotly)
 .\run.ps1 install ai-dev             # Python + ML libs (numpy, scipy, scikit-learn, torch)
 .\run.ps1 install deep-learning      # Python + ML libs (same as ai-dev)
+.\run.ps1 install ai-full            # Python + ML libs + Ollama + llama.cpp (05, 41, 42, 43)
 
 # By group (libs only, no Python install)
 .\run.ps1 install jupyter+libs       # Jupyter only (jupyterlab, notebook, ipykernel)
@@ -271,6 +274,14 @@ Install tools by human-friendly name instead of script ID:
 .\run.ps1 install flutter+android    # Install with Android toolchain
 .\run.ps1 install flutter-extensions # Install VS Code Flutter extensions
 .\run.ps1 install flutter-doctor     # Run flutter doctor
+
+# AI Tools
+.\run.ps1 install ollama             # Install Ollama for local LLMs (42)
+.\run.ps1 install llama-cpp          # Download llama.cpp binaries + models (43)
+.\run.ps1 install llama              # Same as llama-cpp (43)
+.\run.ps1 install ai-tools           # Install both Ollama + llama.cpp (42, 43)
+.\run.ps1 install local-ai           # Same as ai-tools (42, 43)
+.\run.ps1 install ai-full            # Python + ML libs + Ollama + llama.cpp (05, 41, 42, 43)
 ```
 
 Keywords are case-insensitive, support comma/space separation, auto-deduplicate, and run in sorted order. See `scripts/shared/install-keywords.json` for the full keyword map.
@@ -311,7 +322,12 @@ E:\dev-tool\
   nodejs\      # npm global prefix
   python\      # Python install + PYTHONUSERBASE (Scripts/)
   pnpm\        # pnpm store
+  llama-cpp\   # llama.cpp binaries (CUDA, AVX2, KoboldCPP)
+  llama-models\# GGUF model files
+  ollama\      # Ollama installer cache
 ```
+
+Ollama models default to `<dev-dir>\ollama-models` (configurable via `OLLAMA_MODELS` env var).
 
 Override with: `.\run.ps1 -I 12 -- -Path F:\dev-tool`
 
@@ -390,6 +406,8 @@ scripts/
   39-install-dotnet/           # .NET SDK
   40-install-java/             # Java (OpenJDK)
   41-install-python-libs/      # Python pip libraries
+  42-install-ollama/           # Ollama local LLM runtime
+  43-install-llama-cpp/        # llama.cpp binaries + GGUF models
   audit/                       # Audit scanner
 spec/                          # Specifications per script
 suggestions/                   # Improvement ideas
