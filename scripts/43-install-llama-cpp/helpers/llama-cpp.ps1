@@ -177,9 +177,10 @@ function Install-LlamaCppModels {
 
     $modelsDir = $defaultModelsDir
 
-    # Prompt user if configured
+    # Prompt user if configured (skip under orchestrator)
+    $isOrchestratorRun = $env:SCRIPTS_ROOT_RUN -eq "1"
     $isPromptEnabled = $Config.modelsConfig.promptForDirectory
-    if ($isPromptEnabled) {
+    if ($isPromptEnabled -and -not $isOrchestratorRun) {
         Write-Host ""
         Write-Host "  Default models directory: $defaultModelsDir" -ForegroundColor Cyan
         $userInput = Read-Host -Prompt "  $($LogMessages.messages.modelsDirPrompt) [$defaultModelsDir]"
@@ -187,6 +188,8 @@ function Install-LlamaCppModels {
         if ($hasUserInput) {
             $modelsDir = $userInput.Trim()
         }
+    } elseif ($isOrchestratorRun) {
+        Write-Log "Orchestrator mode: using default models directory: $defaultModelsDir" -Level "info"
     }
 
     # Create directory
