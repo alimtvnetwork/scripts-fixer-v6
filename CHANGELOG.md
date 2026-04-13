@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.23.0] -- 2026-04-13
+
+### Added
+
+- **Script 42 -- Install Ollama** -- downloads Ollama from ollama.com, silent install, configures `OLLAMA_MODELS` env var, prompts for models directory, pulls starter models (Llama 3.2, Qwen 2.5 Coder, DeepSeek R1)
+- **Script 43 -- Install llama.cpp** -- downloads all llama.cpp binary variants (CUDA 12.4 b7709, CUDA b6869, CUDA+runtime, AVX2 CPU, KoboldCPP CUDA, KoboldCPP CPU), extracts ZIPs, adds bin folders to user PATH, downloads GGUF models from Hugging Face
+- **AI install keywords** -- `ollama`, `llama-cpp`, `llama`, `koboldcpp`, `gguf`, `ai-tools` (42+43), `local-ai` (42+43), `ai-full` (05+41+42+43)
+- **Ollama version detection** -- `.\run.ps1 -Help` shows `[vX.Y.Z]` for Ollama via `ollama --version` CLI lookup
+- **Dev directory entries** -- `llama-cpp\`, `llama-models\`, `ollama\` added to dev-tool structure
+
+### Changed
+
+- **Script count** -- 41 to 43 scripts in README
+- **Registry updated** -- entries 42 and 43 added to `scripts/registry.json`
+
+---
+
 ## [v0.22.1] -- 2026-04-12
 
 ### Fixed
