@@ -174,14 +174,20 @@ Combined worst-case download size:
 - File size within +-10% of `expectedSizeBytes` from config
 - Auto-deletes invalid files and triggers re-download
 
-### 5. URL Freshness -- OPEN
+### 5. URL Freshness -- RESOLVED
+
+Script 43 now runs `Test-UrlFreshness` (from `scripts/shared/url-freshness.ps1`)
+before starting any downloads:
+
+- **Executables:** HEAD-checks all URLs; blocks install if any return non-200
+- **Models:** HEAD-checks all URLs; logs warnings but continues (warn-only)
 
 | Script | URL Type | Staleness Risk |
 |--------|----------|----------------|
 | 42 | `ollama.com/download/OllamaSetup.exe` | Low (stable URL) |
-| 43 | GitHub pinned releases (`b7709`, `b6869`) | **Medium** (old releases may be removed) |
+| 43 | GitHub pinned releases (`b7709`, `b6869`) | **Mitigated** (pre-validated) |
 | 43 | GitHub `latest` releases | Low (always resolves) |
-| 43 | HuggingFace model URLs | Low-Medium (repos may be reorganized) |
+| 43 | HuggingFace model URLs | Low (pre-validated, warn-only) |
 
 ---
 
