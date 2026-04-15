@@ -28,7 +28,12 @@ scripts/43-install-llama-cpp/
 ### Interactive Model Picker
 1. **aria2c setup** -- auto-installs via `choco install aria2`; falls back to `Invoke-DownloadWithRetry`
 2. **Models directory** -- user picks custom path or Enter for default (`<dev-dir>\llama-models`)
-3. **Catalog display** -- numbered list with columns: #, Model, Params, Quant, Size, RAM, Capabilities
+3. **Capability filter** -- optional filter menu before catalog display:
+   - `[1] Coding`, `[2] Reasoning`, `[3] Writing`, `[4] Chat`, `[5] Voice`, `[6] Multilingual`
+   - Supports same selection syntax as model picker (single, range, comma-separated)
+   - Enter to skip filter and show all models; OR logic (any matching cap shown)
+   - Models re-indexed after filtering for clean numbered display
+4. **Catalog display** -- numbered list with columns: #, Model, Params, Quant, Size, RAM, Capabilities
    - Starred (recommended) models shown first, color-coded by rating
 4. **Selection input** -- supports:
    - Single: `3`
