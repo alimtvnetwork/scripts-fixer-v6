@@ -68,6 +68,7 @@ scripts/43-install-llama-cpp/
 
 - Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`,
   `path-utils.ps1`, `dev-dir.ps1`, `installed.ps1`, `download-retry.ps1`,
-  `disk-space.ps1`, `url-freshness.ps1`, `aria2c-download.ps1`, `choco-utils.ps1`
+  `disk-space.ps1`, `url-freshness.ps1`, `aria2c-download.ps1`, `choco-utils.ps1`,
+  `hardware-detect.ps1`
 - Optional: aria2c (auto-installed via Chocolatey; falls back to Invoke-WebRequest)
 - Requires: Administrator privileges, internet access
