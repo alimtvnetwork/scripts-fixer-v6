@@ -1,6 +1,6 @@
 {
   "scriptName": "Install llama.cpp",
-  "description": "Downloads llama.cpp binaries (CUDA, AVX2, KoboldCPP), extracts to dev directory, adds to PATH, and optionally downloads GGUF models.",
+  "description": "Downloads llama.cpp binaries (CUDA, AVX2, KoboldCPP), extracts to dev directory, adds to PATH, and downloads GGUF/GGML models via aria2c.",
   "messages": {
     "processingExecutable": "[{slug}] {displayName}",
     "downloading": "Downloading: {url}",
@@ -15,13 +15,17 @@
     "pathAlreadySet": "Already in PATH: {path}",
     "verifyExeFound": "Verified executable: {exe}",
     "verifyExeMissing": "Executable not found after extraction: {exe}",
-    "processingModels": "Processing GGUF models...",
+    "processingModels": "Processing model catalog...",
+    "modelCatalogSummary": "Model catalog: {total} models ({defaults} defaults), {size} total across categories: {categories}",
     "modelDownloading": "Downloading model: {name} ({size})",
     "modelDownloadSuccess": "Model downloaded: {name}",
     "modelDownloadFailed": "Model download failed for {name}: {error}",
-    "modelExists": "Model already exists: {name} ({size} MB)",
+    "modelExists": "Model already downloaded: {name} ({size})",
     "modelsDirPrompt": "Enter models directory path (press Enter for default)",
     "modelsDirConfigured": "Models directory: {path}",
+    "modelsSummary": "Models summary: {downloaded} downloaded, {skipped} skipped, {failed} failed (of {total} total)",
+    "aria2cReady": "aria2c download accelerator is ready.",
+    "aria2cFallback": "aria2c unavailable, will use standard downloader as fallback.",
     "allExecutablesComplete": "All llama.cpp executables processed.",
     "allModelsComplete": "All models processed.",
     "scriptDisabled": "llama.cpp installation is disabled in config.",
@@ -31,15 +35,15 @@
     "llamaSetupComplete": "llama.cpp setup complete.",
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} removed successfully.",
-    "uninstallComplete": "Uninstall complete. Binaries removed, tracking purged.",
+    "uninstallComplete": "Uninstall complete. Binaries and model tracking removed.",
     "sessionRefreshed": "PATH refreshed for current session.",
     "urlFreshnessCheck": "Validating download URLs are reachable..."
   },
   "help": {
     "commands": {
-      "all": "Download all executables, extract, add to PATH, download models (default)",
+      "all": "Download all executables, extract, add to PATH, download all models (default)",
       "executables": "Download and extract executables only",
-      "models": "Download GGUF models only",
+      "models": "Download all GGUF/GGML models from catalog via aria2c",
       "uninstall": "Remove all binaries, clean PATH, purge tracking"
     },
     "examples": [

@@ -30,7 +30,8 @@ scripts/
     ├── invoke-with-timeout.ps1  # Invoke-WithTimeout
     ├── download-retry.ps1       # Invoke-DownloadWithRetry (3 retries, exponential backoff)
     ├── disk-space.ps1           # Test-DiskSpace, Get-TotalDownloadSize
-    └── url-freshness.ps1        # Test-UrlFreshness (HEAD-check download URLs)
+    ├── url-freshness.ps1        # Test-UrlFreshness (HEAD-check download URLs)
+    └── aria2c-download.ps1      # Assert-Aria2c, Invoke-Aria2Download (multi-connection via aria2c + fallback)
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
