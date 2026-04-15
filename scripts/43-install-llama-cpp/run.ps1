@@ -28,6 +28,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "installed.ps1")
 . (Join-Path $sharedDir "download-retry.ps1")
 . (Join-Path $sharedDir "disk-space.ps1")
+. (Join-Path $sharedDir "url-freshness.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\llama-cpp.ps1")
@@ -90,6 +91,12 @@ Write-Log "llama.cpp base directory: $baseDir" -Level "info"
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
     "all" {
+        # Pre-check: validate pinned download URLs still resolve
+        Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
+        $isUrlOk = Test-UrlFreshness -Items $config.executables -LabelField "displayName"
+        if (-not $isUrlOk) { return }
+        Test-UrlFreshness -Items $config.modelItems -LabelField "displayName" -WarnOnly | Out-Null
+
         # Pre-check disk space for executables
         $exeBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
         $isExeDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $exeBytes -Label "llama.cpp executables"
@@ -104,12 +111,19 @@ switch ($Command.ToLower()) {
         Install-LlamaCppModels -Config $config -LogMessages $logMessages -DevDir $devDir
     }
     "executables" {
+        Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
+        $isUrlOk = Test-UrlFreshness -Items $config.executables -LabelField "displayName"
+        if (-not $isUrlOk) { return }
+
         $exeBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
         $isExeDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $exeBytes -Label "llama.cpp executables"
         if (-not $isExeDiskOk) { return }
         Install-LlamaCppExecutables -Config $config -LogMessages $logMessages -BaseDir $baseDir
     }
     "models" {
+        Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
+        Test-UrlFreshness -Items $config.modelItems -LabelField "displayName" -WarnOnly | Out-Null
+
         $modelBytes = Get-TotalDownloadSize -Items $config.modelItems -SizeHintField "sizeHint"
         $modelsTarget = Join-Path $devDir $config.modelsConfig.devDirSubfolder
         $isModelDiskOk = Test-DiskSpace -TargetPath $modelsTarget -RequiredBytes $modelBytes -Label "GGUF models" -WarnOnly

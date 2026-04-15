@@ -15,6 +15,10 @@ scripts/43-install-llama-cpp/
 
 ## Install Flow
 
+### Pre-flight Checks
+1. **URL freshness** -- HEAD-checks all download URLs; blocks if any executable URL is stale, warns for model URLs
+2. **Disk space** -- blocks if insufficient space for executables, warns for models
+
 ### Executables
 1. For each variant in `config.executables`:
    - Check if already downloaded (skip if present)

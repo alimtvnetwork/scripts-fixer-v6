@@ -32,7 +32,7 @@ cosmetic or low-probability edge cases.
 | 2 | **P1** | Partial/corrupt ZIP detection | **RESOLVED** | `Test-ZipIntegrity` in `llama-cpp.ps1` validates magic bytes (`PK\x03\x04`) + expected file size (+-10% tolerance); auto-deletes and re-downloads corrupt files |
 | 3 | **P2** | Suppress prompts under orchestrator | **RESOLVED** | Both scripts check `$env:SCRIPTS_ROOT_RUN = "1"` and skip `Read-Host` for models directory + model pull confirmations |
 | 4 | **P2** | Disk space pre-check | **RESOLVED** | Shared `Test-DiskSpace` + `Get-TotalDownloadSize` in `scripts/shared/disk-space.ps1`; Script 43 blocks on insufficient exe space, warns for models; Script 42 warns for full install (~12 GB) |
-| 5 | **P2** | Validate pinned GitHub URLs | OPEN | Pinned `b7709`/`b6869` URLs still resolve; recommend periodic URL freshness audit |
+| 5 | **P2** | Validate pinned GitHub URLs | **RESOLVED** | `Test-UrlFreshness` in `scripts/shared/url-freshness.ps1` -- HEAD-checks all download URLs before starting; blocks for executables, warns for models |
 
 ---
 
@@ -105,7 +105,7 @@ cosmetic or low-probability edge cases.
 
 | # | Severity | Issue | Impact | Recommendation |
 |---|----------|-------|--------|----------------|
-| 1 | **MEDIUM** | Hardcoded pinned release URLs (`b7709`, `b6869`) | Old GitHub releases may be removed | Periodic URL freshness audit; consider `latest` tag |
+| 1 | ~~MEDIUM~~ | ~~Hardcoded pinned release URLs~~ | ~~Resolved~~ | `Test-UrlFreshness` validates all URLs before download |
 | 2 | **MEDIUM** | No download progress indicator for large files | `SilentlyContinue` suppresses progress for multi-GB files | Show size estimate and elapsed time |
 | 3 | **LOW** | KoboldCPP EXE naming may cause PATH confusion | Both `koboldcpp.exe` and `koboldcpp_nocuda.exe` in PATH | Works correctly but may confuse users |
 | 4 | **LOW** | ZIP extraction uses `-Force` (overwrites silently) | Re-extraction overwrites user modifications | Document as intentional |
@@ -174,14 +174,20 @@ Combined worst-case download size:
 - File size within +-10% of `expectedSizeBytes` from config
 - Auto-deletes invalid files and triggers re-download
 
-### 5. URL Freshness -- OPEN
+### 5. URL Freshness -- RESOLVED
+
+Script 43 now runs `Test-UrlFreshness` (from `scripts/shared/url-freshness.ps1`)
+before starting any downloads:
+
+- **Executables:** HEAD-checks all URLs; blocks install if any return non-200
+- **Models:** HEAD-checks all URLs; logs warnings but continues (warn-only)
 
 | Script | URL Type | Staleness Risk |
 |--------|----------|----------------|
 | 42 | `ollama.com/download/OllamaSetup.exe` | Low (stable URL) |
-| 43 | GitHub pinned releases (`b7709`, `b6869`) | **Medium** (old releases may be removed) |
+| 43 | GitHub pinned releases (`b7709`, `b6869`) | **Mitigated** (pre-validated) |
 | 43 | GitHub `latest` releases | Low (always resolves) |
-| 43 | HuggingFace model URLs | Low-Medium (repos may be reorganized) |
+| 43 | HuggingFace model URLs | Low (pre-validated, warn-only) |
 
 ---
 
@@ -193,7 +199,7 @@ Combined worst-case download size:
 | ~~P1~~ | ~~Partial/corrupt file detection~~ | ~~2h~~ | ~~43~~ | **DONE** |
 | ~~P2~~ | ~~Suppress prompts under orchestrator~~ | ~~1h~~ | ~~Both~~ | **DONE** |
 | ~~P2~~ | ~~Disk space pre-check~~ | ~~1h~~ | ~~Both~~ | **DONE** |
-| P2 | Validate pinned GitHub URLs still resolve | 1h | 43 | OPEN |
+| ~~P2~~ | ~~Validate pinned GitHub URLs still resolve~~ | ~~1h~~ | ~~43~~ | **DONE** |
 | P3 | Add CUDA/AVX2 CPU feature detection | 2h | 43 | OPEN |
 | P3 | Add file integrity (SHA256) verification | 2h | Both | OPEN |
 | P3 | Add download progress indicator for large files | 2h | 43 | OPEN |
