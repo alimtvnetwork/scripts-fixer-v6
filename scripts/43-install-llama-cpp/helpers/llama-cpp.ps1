@@ -294,7 +294,8 @@ function Install-LlamaCppModels {
         $trackingName = "model-$($model.slug)"
 
         # Check .installed/ tracking
-        $isTracked = Test-InstalledRecord -Name $trackingName
+        $existingRecord = Get-InstalledRecord -Name $trackingName
+        $isTracked = $null -ne $existingRecord
         $isFilePresent = Test-Path $outputPath
         if ($isTracked -and $isFilePresent) {
             Write-Log ($LogMessages.messages.modelExists -replace '\{name\}', $model.name -replace '\{size\}', $model.size) -Level "info"
@@ -321,17 +322,7 @@ function Install-LlamaCppModels {
             Write-Log ($LogMessages.messages.modelDownloadSuccess -replace '\{name\}', $model.name) -Level "success"
 
             # Track in .installed/
-            Save-InstalledRecord -Name $trackingName -Version $model.quant -Data @{
-                name      = $model.name
-                params    = $model.params
-                quant     = $model.quant
-                size      = $model.size
-                category  = $model.category
-                filePath  = $outputPath
-                fileName  = $model.fileName
-                hfId      = $model.hfId
-                isDefault = $model.isDefault
-            }
+            Save-InstalledRecord -Name $trackingName -Version $model.quant -Method "aria2c"
 
             $downloadedCount++
         } else {
