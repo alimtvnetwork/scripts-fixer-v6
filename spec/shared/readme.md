@@ -29,7 +29,8 @@ scripts/
     ├── json-utils.ps1           # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
     ├── invoke-with-timeout.ps1  # Invoke-WithTimeout
     ├── download-retry.ps1       # Invoke-DownloadWithRetry (3 retries, exponential backoff)
-    └── disk-space.ps1           # Test-DiskSpace, Get-TotalDownloadSize
+    ├── disk-space.ps1           # Test-DiskSpace, Get-TotalDownloadSize
+    └── url-freshness.ps1        # Test-UrlFreshness (HEAD-check download URLs)
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
