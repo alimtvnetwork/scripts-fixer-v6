@@ -208,6 +208,10 @@ function Install-LlamaCppExecutables {
         Save-InstalledRecord -Name "llama-cpp-$($item.slug)" -Version $item.slug
     }
 
+    if ($skippedHwCount -gt 0) {
+        Write-Log ($LogMessages.messages.hwSkippedSummary -replace '\{count\}', $skippedHwCount) -Level "info"
+    }
+
     # Refresh PATH for current session
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     Write-Log $LogMessages.messages.sessionRefreshed -Level "success"
