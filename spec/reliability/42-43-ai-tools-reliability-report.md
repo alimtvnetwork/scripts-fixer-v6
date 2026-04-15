@@ -32,7 +32,7 @@ cosmetic or low-probability edge cases.
 | 2 | **P1** | Partial/corrupt ZIP detection | **RESOLVED** | `Test-ZipIntegrity` in `llama-cpp.ps1` validates magic bytes (`PK\x03\x04`) + expected file size (+-10% tolerance); auto-deletes and re-downloads corrupt files |
 | 3 | **P2** | Suppress prompts under orchestrator | **RESOLVED** | Both scripts check `$env:SCRIPTS_ROOT_RUN = "1"` and skip `Read-Host` for models directory + model pull confirmations |
 | 4 | **P2** | Disk space pre-check | **RESOLVED** | Shared `Test-DiskSpace` + `Get-TotalDownloadSize` in `scripts/shared/disk-space.ps1`; Script 43 blocks on insufficient exe space, warns for models; Script 42 warns for full install (~12 GB) |
-| 5 | **P2** | Validate pinned GitHub URLs | OPEN | Pinned `b7709`/`b6869` URLs still resolve; recommend periodic URL freshness audit |
+| 5 | **P2** | Validate pinned GitHub URLs | **RESOLVED** | `Test-UrlFreshness` in `scripts/shared/url-freshness.ps1` -- HEAD-checks all download URLs before starting; blocks for executables, warns for models |
 
 ---
 
@@ -193,7 +193,7 @@ Combined worst-case download size:
 | ~~P1~~ | ~~Partial/corrupt file detection~~ | ~~2h~~ | ~~43~~ | **DONE** |
 | ~~P2~~ | ~~Suppress prompts under orchestrator~~ | ~~1h~~ | ~~Both~~ | **DONE** |
 | ~~P2~~ | ~~Disk space pre-check~~ | ~~1h~~ | ~~Both~~ | **DONE** |
-| P2 | Validate pinned GitHub URLs still resolve | 1h | 43 | OPEN |
+| ~~P2~~ | ~~Validate pinned GitHub URLs still resolve~~ | ~~1h~~ | ~~43~~ | **DONE** |
 | P3 | Add CUDA/AVX2 CPU feature detection | 2h | 43 | OPEN |
 | P3 | Add file integrity (SHA256) verification | 2h | Both | OPEN |
 | P3 | Add download progress indicator for large files | 2h | 43 | OPEN |
