@@ -18,12 +18,15 @@ scripts/43-install-llama-cpp/
 ## Install Flow
 
 ### Pre-flight Checks
-1. **URL freshness** -- HEAD-checks executable download URLs; blocks if stale
-2. **Disk space** -- blocks if insufficient space for executables
+1. **Hardware detection** -- `Get-HardwareProfile` detects CUDA GPU (nvidia-smi, nvcc, WMI) and AVX2 CPU support (WMI + heuristic). Incompatible executable variants are skipped with clear logging.
+2. **URL freshness** -- HEAD-checks executable download URLs; blocks if stale
+3. **Disk space** -- blocks if insufficient space for executables
 
 ### Executables
-1. For each variant in `config.executables`: download, extract, verify, add to PATH
-2. ZIP integrity validation (magic bytes + expected size)
+1. Each variant in `config.executables` has a `requires` field (`"cuda"`, `"avx2"`, or `""`)
+2. Variants whose `requires` hardware is not detected are skipped
+3. Compatible variants: download, extract, verify, add to PATH
+4. ZIP integrity validation (magic bytes + expected size)
 
 ### Interactive Model Picker
 1. **aria2c setup** -- auto-installs via `choco install aria2`; falls back to `Invoke-DownloadWithRetry`
