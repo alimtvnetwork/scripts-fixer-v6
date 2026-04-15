@@ -32,7 +32,8 @@
     "uninstalling": "Uninstalling {name}...",
     "uninstallSuccess": "{name} removed successfully.",
     "uninstallComplete": "Uninstall complete. Binaries removed, tracking purged.",
-    "sessionRefreshed": "PATH refreshed for current session."
+    "sessionRefreshed": "PATH refreshed for current session.",
+    "urlFreshnessCheck": "Validating download URLs are reachable..."
   },
   "help": {
     "commands": {
