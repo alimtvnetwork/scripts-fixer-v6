@@ -557,3 +557,65 @@ if (-not $isDiskOk) { return }
 # Warning-only check with GB
 Test-DiskSpace -TargetPath $modelsDir -RequiredGB 40 -Label "GGUF models" -WarnOnly
 ```
+
+---
+
+## hardware-detect.ps1
+
+### Purpose
+
+Detects CUDA GPU and AVX2 CPU capabilities so scripts can skip incompatible
+binary variants instead of downloading files that won't run.
+
+### Functions
+
+| Function                  | Purpose                                                      |
+|---------------------------|--------------------------------------------------------------|
+| `Test-CudaAvailable`     | Checks for NVIDIA CUDA GPU via nvidia-smi, nvcc, or WMI     |
+| `Test-Avx2Available`     | Checks for AVX2 CPU support via WMI + generation heuristic  |
+| `Get-HardwareProfile`    | Returns combined CUDA + AVX2 results with logging            |
+| `Test-ExecutableCompatible` | Checks if a `requires` value matches the hardware profile |
+
+### Test-CudaAvailable Detection Chain
+
+1. `nvidia-smi.exe --query-gpu=name,driver_version` -- most reliable
+2. `nvcc.exe` in PATH -- CUDA toolkit installed
+3. `Win32_VideoController` WMI -- any NVIDIA GPU present
+4. CUDA version extracted from `nvidia-smi` full output
+
+Returns `@{ Available; Version; Driver; GpuName }`.
+
+### Test-Avx2Available Detection Chain
+
+1. `Win32_Processor` WMI -- get CPU name
+2. Heuristic: Intel Core i3/5/7/9, Xeon, Core Ultra, AMD Ryzen/EPYC/Threadripper = AVX2
+3. Fallback: assume AVX2 on 64-bit Windows (conservative default)
+
+Returns `@{ Available; CpuName }`.
+
+### Config Integration
+
+Each executable variant in `config.json` has a `requires` field:
+
+| Value   | Meaning                                |
+|---------|----------------------------------------|
+| `"cuda"` | Requires NVIDIA CUDA GPU              |
+| `"avx2"` | Requires AVX2 CPU instructions        |
+| `""`     | No hardware requirement (always install) |
+
+### Usage
+
+```powershell
+. (Join-Path $sharedDir "hardware-detect.ps1")
+
+$hwProfile = Get-HardwareProfile
+
+foreach ($item in $config.executables) {
+    $isCompatible = Test-ExecutableCompatible -Requires $item.requires -HardwareProfile $hwProfile
+    if (-not $isCompatible) {
+        Write-Log "Skipping $($item.slug): requires $($item.requires)" -Level "info"
+        continue
+    }
+    # proceed with download...
+}
+```
