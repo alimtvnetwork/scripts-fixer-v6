@@ -213,141 +213,11 @@ function Ensure-BinInPath {
     }
 }
 
-function Install-LlamaCppModels {
-    <#
-    .SYNOPSIS
-        Downloads GGUF/GGML model files to the models directory using aria2c
-        (with fallback). Tracks each model in .installed/ for idempotency.
-    #>
-    param(
-        $Config,
-        $LogMessages,
-        [string]$DevDir
-    )
-
-    Write-Log $LogMessages.messages.processingModels -Level "info"
-
-    # -- Resolve models directory -----------------------------------------------
-    $defaultModelsDir = if ($DevDir) {
-        Join-Path $DevDir $Config.modelsConfig.devDirSubfolder
-    } else {
-        Join-Path (Get-SafeDevDirFallback) $Config.modelsConfig.devDirSubfolder
-    }
-
-    $modelsDir = $defaultModelsDir
-
-    # Prompt user if configured (skip under orchestrator)
-    $isOrchestratorRun = $env:SCRIPTS_ROOT_RUN -eq "1"
-    $isPromptEnabled = $Config.modelsConfig.promptForDirectory
-    if ($isPromptEnabled -and -not $isOrchestratorRun) {
-        Write-Host ""
-        Write-Host "  Default models directory: $defaultModelsDir" -ForegroundColor Cyan
-        $userInput = Read-Host -Prompt "  $($LogMessages.messages.modelsDirPrompt) [$defaultModelsDir]"
-        $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
-        if ($hasUserInput) {
-            $modelsDir = $userInput.Trim()
-        }
-    } elseif ($isOrchestratorRun) {
-        Write-Log "Orchestrator mode: using default models directory: $defaultModelsDir" -Level "info"
-    }
-
-    # Create directory
-    $isDirMissing = -not (Test-Path $modelsDir)
-    if ($isDirMissing) {
-        New-Item -Path $modelsDir -ItemType Directory -Force | Out-Null
-    }
-
-    Write-Log ($LogMessages.messages.modelsDirConfigured -replace '\{path\}', $modelsDir) -Level "info"
-
-    # -- Ensure aria2c is available ---------------------------------------------
-    $isAria2Ok = Assert-Aria2c
-    if ($isAria2Ok) {
-        Write-Log $LogMessages.messages.aria2cReady -Level "success"
-    } else {
-        Write-Log $LogMessages.messages.aria2cFallback -Level "warn"
-    }
-
-    # -- Read aria2c config from config.json ------------------------------------
-    $aria2Config = $Config.aria2c
-    $maxConn    = if ($aria2Config.maxConnections) { $aria2Config.maxConnections } else { 16 }
-    $maxDl      = if ($aria2Config.maxDownloads) { $aria2Config.maxDownloads } else { 16 }
-    $chunkSize  = if ($aria2Config.chunkSize) { $aria2Config.chunkSize } else { "1M" }
-    $isContinue = if ($null -ne $aria2Config.continueDownload) { $aria2Config.continueDownload } else { $true }
-
-    # -- Display catalog summary ------------------------------------------------
-    $totalModels = $Config.modelItems.Count
-    $defaultModels = @($Config.modelItems | Where-Object { $_.isDefault -eq $true })
-    $totalSizeBytes = ($Config.modelItems | Measure-Object -Property sizeBytes -Sum).Sum
-    $totalSizeGB = [math]::Round($totalSizeBytes / 1GB, 1)
-    $categories = ($Config.modelItems | Select-Object -ExpandProperty category -Unique) -join ", "
-
-    Write-Log ($LogMessages.messages.modelCatalogSummary -replace '\{total\}', $totalModels -replace '\{defaults\}', $defaultModels.Count -replace '\{size\}', "$totalSizeGB GB" -replace '\{categories\}', $categories) -Level "info"
-
-    # -- Process each model -----------------------------------------------------
-    $downloadedCount = 0
-    $skippedCount    = 0
-    $failedCount     = 0
-
-    $models = $Config.modelItems
-    foreach ($model in $models) {
-        $outputPath   = Join-Path $modelsDir $model.fileName
-        $trackingName = "model-$($model.slug)"
-
-        # Check .installed/ tracking
-        $existingRecord = Get-InstalledRecord -Name $trackingName
-        $isTracked = $null -ne $existingRecord
-        $isFilePresent = Test-Path $outputPath
-        if ($isTracked -and $isFilePresent) {
-            Write-Log ($LogMessages.messages.modelExists -replace '\{name\}', $model.name -replace '\{size\}', $model.size) -Level "info"
-            $skippedCount++
-            continue
-        }
-
-        # If tracked but file missing, remove stale tracking
-        if ($isTracked -and -not $isFilePresent) {
-            Write-Log "Stale tracking for $($model.name), file missing. Re-downloading." -Level "warn"
-            Remove-InstalledRecord -Name $trackingName
-        }
-
-        # Display model info
-        $defaultTag = if ($model.isDefault) { " [DEFAULT]" } else { "" }
-        Write-Log ($LogMessages.messages.modelDownloading -replace '\{name\}', "$($model.name)$defaultTag" -replace '\{size\}', $model.size) -Level "info"
-        Write-Log "  Category: $($model.category) | Params: $($model.params) | Quant: $($model.quant) | Context: $($model.contextLength)" -Level "info"
-
-        # Download via aria2c (with automatic fallback)
-        $isDownloadOk = Invoke-Aria2Download -Uri $model.downloadUrl -OutFile $outputPath -Label $model.name `
-            -MaxConnections $maxConn -MaxDownloads $maxDl -ChunkSize $chunkSize -ContinueDownload $isContinue
-
-        if ($isDownloadOk) {
-            Write-Log ($LogMessages.messages.modelDownloadSuccess -replace '\{name\}', $model.name) -Level "success"
-
-            # Track in .installed/
-            Save-InstalledRecord -Name $trackingName -Version $model.quant -Method "aria2c"
-
-            $downloadedCount++
-        } else {
-            Write-Log ($LogMessages.messages.modelDownloadFailed -replace '\{name\}', $model.name -replace '\{error\}', "All download attempts failed") -Level "error"
-            Write-FileError -FilePath $outputPath -Operation "download" -Reason "Download failed after retries" -Module "Install-LlamaCppModels"
-            $failedCount++
-        }
-    }
-
-    # -- Summary ----------------------------------------------------------------
-    Write-Host ""
-    Write-Log ($LogMessages.messages.modelsSummary `
-        -replace '\{downloaded\}', $downloadedCount `
-        -replace '\{skipped\}', $skippedCount `
-        -replace '\{failed\}', $failedCount `
-        -replace '\{total\}', $totalModels) -Level "success"
-
-    Write-Log $LogMessages.messages.allModelsComplete -Level "success"
-    return $modelsDir
-}
-
 function Uninstall-LlamaCpp {
     <#
     .SYNOPSIS
         Removes all llama.cpp binaries, cleans PATH entries, purges tracking.
+        Also removes all model tracking records from .installed/.
     #>
     param(
         $Config,
@@ -362,35 +232,34 @@ function Uninstall-LlamaCpp {
         $binSubfolder = $item.relativeBinSubfolder
         $binPath = if ($binSubfolder) { Join-Path $targetFolder $binSubfolder } else { $targetFolder }
 
-        # Remove from PATH
         Remove-FromUserPath -Directory $binPath
 
-        # Remove folder
         $isFolderPresent = Test-Path $targetFolder
         if ($isFolderPresent) {
             Write-Log "Removing: $targetFolder" -Level "info"
             Remove-Item -Path $targetFolder -Recurse -Force
         }
 
-        # Remove downloaded file
         $outputPath = Join-Path $BaseDir $item.outputFileName
         $isFilePresent = Test-Path $outputPath
         if ($isFilePresent) {
             Remove-Item -Path $outputPath -Force
         }
 
-        # Remove tracking
         Remove-InstalledRecord -Name "llama-cpp-$($item.slug)"
     }
 
-    # Remove model tracking records
-    foreach ($model in $Config.modelItems) {
-        Remove-InstalledRecord -Name "model-$($model.slug)"
+    # Remove model tracking records (scan .installed/ for model-* files)
+    $installedDir = Get-InstalledDir
+    $modelRecords = Get-ChildItem -Path $installedDir -Filter "model-*.json" -ErrorAction SilentlyContinue
+    foreach ($record in $modelRecords) {
+        $recordName = [System.IO.Path]::GetFileNameWithoutExtension($record.Name)
+        Write-Log "Removing model tracking: $recordName" -Level "info"
+        Remove-InstalledRecord -Name $recordName
     }
 
     Remove-ResolvedData -ScriptFolder "43-install-llama-cpp"
 
-    # Refresh PATH
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
     Write-Log $LogMessages.messages.uninstallComplete -Level "success"
