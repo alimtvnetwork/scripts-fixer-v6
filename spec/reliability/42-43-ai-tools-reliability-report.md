@@ -105,7 +105,7 @@ cosmetic or low-probability edge cases.
 
 | # | Severity | Issue | Impact | Recommendation |
 |---|----------|-------|--------|----------------|
-| 1 | **MEDIUM** | Hardcoded pinned release URLs (`b7709`, `b6869`) | Old GitHub releases may be removed | Periodic URL freshness audit; consider `latest` tag |
+| 1 | ~~MEDIUM~~ | ~~Hardcoded pinned release URLs~~ | ~~Resolved~~ | `Test-UrlFreshness` validates all URLs before download |
 | 2 | **MEDIUM** | No download progress indicator for large files | `SilentlyContinue` suppresses progress for multi-GB files | Show size estimate and elapsed time |
 | 3 | **LOW** | KoboldCPP EXE naming may cause PATH confusion | Both `koboldcpp.exe` and `koboldcpp_nocuda.exe` in PATH | Works correctly but may confuse users |
 | 4 | **LOW** | ZIP extraction uses `-Force` (overwrites silently) | Re-extraction overwrites user modifications | Document as intentional |
