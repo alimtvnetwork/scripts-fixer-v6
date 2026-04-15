@@ -62,6 +62,114 @@ function Show-ModelCatalog {
     Write-Host ""
 }
 
+function Read-CapabilityFilter {
+    <#
+    .SYNOPSIS
+        Displays capability filter menu. Returns filtered model array.
+        User picks capabilities to filter by, or Enter to show all.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models
+    )
+
+    # Gather available capabilities from catalog
+    $capMap = [ordered]@{
+        "1" = @{ key = "isCoding";       label = "Coding" }
+        "2" = @{ key = "isReasoning";    label = "Reasoning" }
+        "3" = @{ key = "isWriting";      label = "Writing" }
+        "4" = @{ key = "isChat";         label = "Chat" }
+        "5" = @{ key = "isVoice";        label = "Voice / Speech" }
+        "6" = @{ key = "isMultilingual"; label = "Multilingual" }
+    }
+
+    # Count models per capability
+    Write-Host ""
+    Write-Host "  Filter by capability:" -ForegroundColor Cyan
+    foreach ($entry in $capMap.GetEnumerator()) {
+        $capKey = $entry.Value.key
+        $count  = @($Models | Where-Object { $_.$capKey -eq $true }).Count
+        if ($count -gt 0) {
+            Write-Host "    [$($entry.Key)] $($entry.Value.label) ($count models)" -ForegroundColor White
+        } else {
+            Write-Host "    [$($entry.Key)] $($entry.Value.label) (0 models)" -ForegroundColor DarkGray
+        }
+    }
+    Write-Host ""
+    Write-Host "    [Enter] Show all models" -ForegroundColor DarkGray
+    Write-Host "    Examples: 1  |  1,3  |  1-3,5" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $input = Read-Host -Prompt "  Filter selection"
+    $trimmed = $input.Trim().ToLower()
+
+    # No filter -- return all
+    $isEmpty = [string]::IsNullOrWhiteSpace($trimmed)
+    if ($isEmpty) {
+        return $Models
+    }
+
+    # Parse selection (reuse same syntax as model selection)
+    $selectedNums = @()
+    $parts = $trimmed -split ","
+    foreach ($part in $parts) {
+        $part = $part.Trim()
+        $isRange = $part -match "^(\d+)\s*-\s*(\d+)$"
+        if ($isRange) {
+            $rangeStart = [int]$Matches[1]
+            $rangeEnd   = [int]$Matches[2]
+            if ($rangeStart -gt $rangeEnd) { $rangeStart, $rangeEnd = $rangeEnd, $rangeStart }
+            for ($i = $rangeStart; $i -le $rangeEnd; $i++) {
+                $isValid = $i -ge 1 -and $i -le 6
+                if ($isValid) { $selectedNums += $i }
+            }
+        } elseif ($part -match "^\d+$") {
+            $num = [int]$part
+            $isValid = $num -ge 1 -and $num -le 6
+            if ($isValid) { $selectedNums += $num }
+        }
+    }
+    $selectedNums = $selectedNums | Sort-Object -Unique
+
+    $hasSelection = $selectedNums.Count -gt 0
+    if (-not $hasSelection) {
+        return $Models
+    }
+
+    # Build capability keys to match (OR logic: model matches if ANY selected cap is true)
+    $capKeys = @()
+    $capLabels = @()
+    foreach ($num in $selectedNums) {
+        $entry = $capMap["$num"]
+        if ($null -ne $entry) {
+            $capKeys   += $entry.key
+            $capLabels += $entry.label
+        }
+    }
+
+    $filtered = @($Models | Where-Object {
+        $model = $_
+        $isMatch = $false
+        foreach ($ck in $capKeys) {
+            if ($model.$ck -eq $true) { $isMatch = $true; break }
+        }
+        $isMatch
+    })
+
+    $filterStr = $capLabels -join ", "
+    Write-Host ""
+    Write-Log "  Filtered to: $filterStr ($($filtered.Count) models)" -Level "info"
+
+    # Re-index for display
+    $idx = 1
+    foreach ($m in $filtered) {
+        $m.index = $idx
+        $idx++
+    }
+
+    return $filtered
+}
+
 function Read-ModelSelection {
     <#
     .SYNOPSIS
@@ -268,23 +376,32 @@ function Invoke-ModelInstaller {
         Write-Log "aria2c unavailable, using standard downloader as fallback." -Level "warn"
     }
 
+    # -- Capability filter (interactive only) -----------------------------------
+    $displayModels = $models
+    if (-not $isOrchestratorRun) {
+        $displayModels = Read-CapabilityFilter -Models $models
+    }
+
     # -- Show catalog and get selection ----------------------------------------
-    Show-ModelCatalog -Models $models
+    Show-ModelCatalog -Models $displayModels
 
     if ($isOrchestratorRun) {
         # Under orchestrator, download all models
         Write-Log "Orchestrator mode: downloading all models." -Level "info"
         $selectedIndices = @(1..$models.Count)
     } else {
-        $selectedIndices = Read-ModelSelection -MaxIndex $models.Count
+        $selectedIndices = Read-ModelSelection -MaxIndex $displayModels.Count
         if ($null -eq $selectedIndices -or $selectedIndices.Count -eq 0) {
             Write-Log "No models selected. Skipping model downloads." -Level "info"
             return $modelsDir
         }
     }
 
+    # Map filtered indices back to original models for download
+    $downloadModels = $displayModels
+
     # -- Disk space pre-check --------------------------------------------------
-    $selectedModels = @($models | Where-Object { $selectedIndices -contains $_.index })
+    $selectedModels = @($downloadModels | Where-Object { $selectedIndices -contains $_.index })
     $totalBytes = 0
     foreach ($m in $selectedModels) {
         $totalBytes += [long]($m.fileSizeGB * 1073741824)
@@ -295,7 +412,7 @@ function Invoke-ModelInstaller {
     }
 
     # -- Download selected models ----------------------------------------------
-    Install-SelectedModels -Models $models -SelectedIndices $selectedIndices `
+    Install-SelectedModels -Models $downloadModels -SelectedIndices $selectedIndices `
         -ModelsDir $modelsDir -Aria2Config $Aria2Config -LogMessages $LogMessages
 
     return $modelsDir
