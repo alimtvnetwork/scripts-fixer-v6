@@ -126,7 +126,8 @@ After install, `llama-cli`, `llama-server`, `koboldcpp` are available from any t
 ## Dependencies
 
 - Shared: `logging.ps1`, `resolved.ps1`, `git-pull.ps1`, `help.ps1`,
-  `path-utils.ps1`, `dev-dir.ps1`, `installed.ps1`, `download-retry.ps1`
+  `path-utils.ps1`, `dev-dir.ps1`, `installed.ps1`, `download-retry.ps1`,
+  `disk-space.ps1`
 - Requires: Administrator privileges, internet access
 
 ## Resolved State
