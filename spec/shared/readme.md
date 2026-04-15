@@ -31,7 +31,8 @@ scripts/
     ├── download-retry.ps1       # Invoke-DownloadWithRetry (3 retries, exponential backoff)
     ├── disk-space.ps1           # Test-DiskSpace, Get-TotalDownloadSize
     ├── url-freshness.ps1        # Test-UrlFreshness (HEAD-check download URLs)
-    └── aria2c-download.ps1      # Assert-Aria2c, Invoke-Aria2Download (multi-connection via aria2c + fallback)
+    ├── aria2c-download.ps1      # Assert-Aria2c, Invoke-Aria2Download (multi-connection via aria2c + fallback)
+    └── hardware-detect.ps1      # Test-CudaAvailable, Test-Avx2Available, Get-HardwareProfile, Test-ExecutableCompatible
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
