@@ -1,0 +1,302 @@
+# --------------------------------------------------------------------------
+#  llama.cpp model picker -- interactive numbered model selection
+#  Displays catalog, lets user pick by number/range, downloads via aria2c.
+# --------------------------------------------------------------------------
+
+function Show-ModelCatalog {
+    <#
+    .SYNOPSIS
+        Displays the model catalog as a numbered list with rich metadata.
+        Groups models by starred (recommended) first, then by size.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models
+    )
+
+    $colNum   = 5
+    $colName  = 42
+    $colParam = 10
+    $colQuant = 8
+    $colSize  = 8
+    $colRAM   = 8
+    $colCaps  = 20
+
+    Write-Host ""
+    Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6}" -f "#", "Model", "Params", "Quant", "Size", "RAM", "Capabilities") -ForegroundColor Cyan
+    Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colCaps))) -ForegroundColor DarkGray
+
+    $prevStarred = $null
+    foreach ($model in $Models) {
+        $isStarred = $model.displayName.StartsWith([char]0x2605)
+
+        # Section separator between starred and non-starred
+        if ($null -ne $prevStarred -and $prevStarred -and -not $isStarred) {
+            Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colCaps))) -ForegroundColor DarkGray
+        }
+        $prevStarred = $isStarred
+
+        # Build capabilities string
+        $caps = @()
+        if ($model.isCoding)       { $caps += "code" }
+        if ($model.isReasoning)    { $caps += "reason" }
+        if ($model.isWriting)      { $caps += "write" }
+        if ($model.isVoice)        { $caps += "voice" }
+        if ($model.isChat)         { $caps += "chat" }
+        if ($model.isMultilingual) { $caps += "multi" }
+        $capsStr = $caps -join ", "
+
+        # Color based on rating
+        $rating = if ($model.rating.overall) { $model.rating.overall } else { 0 }
+        $color = if ($rating -ge 9) { "Green" } elseif ($rating -ge 7) { "Yellow" } elseif ($rating -ge 5) { "White" } else { "DarkGray" }
+
+        $sizeStr = "$($model.fileSizeGB) GB"
+        $ramStr  = "$($model.ramRequiredGB) GB"
+        $truncName = if ($model.displayName.Length -gt ($colName - 2)) { $model.displayName.Substring(0, $colName - 4) + ".." } else { $model.displayName }
+
+        Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6}" -f "[$($model.index)]", $truncName, $model.parameters, $model.quantization, $sizeStr, $ramStr, $capsStr) -ForegroundColor $color
+    }
+
+    Write-Host ""
+    Write-Host "  Total: $($Models.Count) models" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Read-ModelSelection {
+    <#
+    .SYNOPSIS
+        Reads user input for model selection.
+        Supports: single numbers (3), ranges (1-5), comma-separated (1,3,7),
+        mixed (1-3,7,12-15), "all", or "q" to quit.
+    .RETURNS
+        Array of selected index numbers, or $null if user quits.
+    #>
+    param(
+        [int]$MaxIndex
+    )
+
+    Write-Host "  Select models to download:" -ForegroundColor Cyan
+    Write-Host "    Examples: 1,3,5  |  1-5  |  1-3,7,12-15  |  all  |  q (quit)" -ForegroundColor DarkGray
+    Write-Host ""
+    $input = Read-Host -Prompt "  Your selection"
+
+    $trimmed = $input.Trim().ToLower()
+    if ($trimmed -eq "q" -or $trimmed -eq "quit" -or $trimmed -eq "exit") {
+        return $null
+    }
+
+    if ($trimmed -eq "all") {
+        return @(1..$MaxIndex)
+    }
+
+    $selectedIndices = @()
+    $parts = $trimmed -split ","
+
+    foreach ($part in $parts) {
+        $part = $part.Trim()
+        $isRange = $part -match "^(\d+)\s*-\s*(\d+)$"
+        if ($isRange) {
+            $rangeStart = [int]$Matches[1]
+            $rangeEnd   = [int]$Matches[2]
+            if ($rangeStart -gt $rangeEnd) { $rangeStart, $rangeEnd = $rangeEnd, $rangeStart }
+            for ($i = $rangeStart; $i -le $rangeEnd; $i++) {
+                $isValid = $i -ge 1 -and $i -le $MaxIndex
+                if ($isValid) { $selectedIndices += $i }
+            }
+        } elseif ($part -match "^\d+$") {
+            $num = [int]$part
+            $isValid = $num -ge 1 -and $num -le $MaxIndex
+            if ($isValid) { $selectedIndices += $num }
+        }
+    }
+
+    # Deduplicate and sort
+    $selectedIndices = $selectedIndices | Sort-Object -Unique
+    return $selectedIndices
+}
+
+function Install-SelectedModels {
+    <#
+    .SYNOPSIS
+        Downloads selected models from the catalog using aria2c with fallback.
+        Tracks each download in .installed/ for idempotency.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models,
+
+        [Parameter(Mandatory)]
+        [array]$SelectedIndices,
+
+        [Parameter(Mandatory)]
+        [string]$ModelsDir,
+
+        $Aria2Config,
+        $LogMessages
+    )
+
+    # Filter selected models
+    $selectedModels = @()
+    foreach ($model in $Models) {
+        $isSelected = $SelectedIndices -contains $model.index
+        if ($isSelected) { $selectedModels += $model }
+    }
+
+    $totalCount    = $selectedModels.Count
+    $totalSizeGB   = ($selectedModels | Measure-Object -Property fileSizeGB -Sum).Sum
+    Write-Log "Selected $totalCount models ($([math]::Round($totalSizeGB, 1)) GB total) for download." -Level "info"
+
+    # aria2c config
+    $maxConn    = if ($Aria2Config.maxConnections) { $Aria2Config.maxConnections } else { 16 }
+    $maxDl      = if ($Aria2Config.maxDownloads) { $Aria2Config.maxDownloads } else { 16 }
+    $chunkSize  = if ($Aria2Config.chunkSize) { $Aria2Config.chunkSize } else { "1M" }
+    $isContinue = if ($null -ne $Aria2Config.continueDownload) { $Aria2Config.continueDownload } else { $true }
+
+    $downloadedCount = 0
+    $skippedCount    = 0
+    $failedCount     = 0
+
+    foreach ($model in $selectedModels) {
+        $outputPath   = Join-Path $ModelsDir $model.fileName
+        $trackingName = "model-$($model.id)"
+
+        # Check .installed/ tracking + file on disk
+        $existingRecord = Get-InstalledRecord -Name $trackingName
+        $isTracked      = $null -ne $existingRecord
+        $isFilePresent  = Test-Path $outputPath
+
+        if ($isTracked -and $isFilePresent) {
+            Write-Log "  [$($model.index)] Already downloaded: $($model.displayName) ($($model.fileSizeGB) GB)" -Level "info"
+            $skippedCount++
+            continue
+        }
+
+        # Stale tracking cleanup
+        if ($isTracked -and -not $isFilePresent) {
+            Write-Log "  Stale tracking for $($model.displayName), file missing. Re-downloading." -Level "warn"
+            Remove-InstalledRecord -Name $trackingName
+        }
+
+        # Show model details
+        Write-Host ""
+        Write-Log "  [$($model.index)] Downloading: $($model.displayName)" -Level "info"
+        Write-Log "    $($model.parameters) | $($model.quantization) | $($model.fileSizeGB) GB | RAM: $($model.ramRequiredGB)+ GB" -Level "info"
+        Write-Log "    $($model.bestFor)" -Level "info"
+
+        # Download
+        $isDownloadOk = Invoke-Aria2Download -Uri $model.downloadUrl -OutFile $outputPath -Label $model.displayName `
+            -MaxConnections $maxConn -MaxDownloads $maxDl -ChunkSize $chunkSize -ContinueDownload $isContinue
+
+        if ($isDownloadOk) {
+            Write-Log "  [$($model.index)] Downloaded: $($model.displayName)" -Level "success"
+            Save-InstalledRecord -Name $trackingName -Version $model.quantization -Method "aria2c"
+            $downloadedCount++
+        } else {
+            Write-Log "  [$($model.index)] FAILED: $($model.displayName)" -Level "error"
+            Write-FileError -FilePath $outputPath -Operation "download" -Reason "Download failed after retries" -Module "Install-SelectedModels"
+            $failedCount++
+        }
+    }
+
+    # Summary
+    Write-Host ""
+    Write-Log ("Models summary: $downloadedCount downloaded, $skippedCount skipped, $failedCount failed (of $totalCount selected)") -Level "success"
+    Write-Log "Models directory: $ModelsDir" -Level "info"
+}
+
+function Invoke-ModelInstaller {
+    <#
+    .SYNOPSIS
+        Main entry point for the interactive model installer.
+        Loads catalog, shows picker, downloads selected models.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$CatalogPath,
+
+        [Parameter(Mandatory)]
+        [string]$DevDir,
+
+        [string]$DefaultModelsSubfolder = "llama-models",
+
+        $Aria2Config,
+        $LogMessages
+    )
+
+    # Load catalog
+    $isFilePresent = Test-Path $CatalogPath
+    if (-not $isFilePresent) {
+        Write-Log "Models catalog not found: $CatalogPath" -Level "error"
+        Write-FileError -FilePath $CatalogPath -Operation "load" -Reason "File not found" -Module "Invoke-ModelInstaller"
+        return
+    }
+
+    $catalog = Get-Content $CatalogPath -Raw | ConvertFrom-Json
+    $models  = $catalog.models
+    Write-Log "Loaded model catalog: $($models.Count) models available." -Level "info"
+
+    # -- Resolve models directory -----------------------------------------------
+    $defaultModelsDir = Join-Path $DevDir $DefaultModelsSubfolder
+
+    $modelsDir = $defaultModelsDir
+    $isOrchestratorRun = $env:SCRIPTS_ROOT_RUN -eq "1"
+
+    if (-not $isOrchestratorRun) {
+        Write-Host ""
+        Write-Host "  Default models directory: $defaultModelsDir" -ForegroundColor Cyan
+        $userInput = Read-Host -Prompt "  Enter models directory (press Enter for default) [$defaultModelsDir]"
+        $hasUserInput = -not [string]::IsNullOrWhiteSpace($userInput)
+        if ($hasUserInput) {
+            $modelsDir = $userInput.Trim()
+        }
+    } else {
+        Write-Log "Orchestrator mode: using default models directory." -Level "info"
+    }
+
+    # Create directory
+    $isDirMissing = -not (Test-Path $modelsDir)
+    if ($isDirMissing) {
+        New-Item -Path $modelsDir -ItemType Directory -Force | Out-Null
+    }
+    Write-Log "Models directory: $modelsDir" -Level "info"
+
+    # -- Ensure aria2c --------------------------------------------------------
+    $isAria2Ok = Assert-Aria2c
+    if ($isAria2Ok) {
+        Write-Log "aria2c download accelerator ready." -Level "success"
+    } else {
+        Write-Log "aria2c unavailable, using standard downloader as fallback." -Level "warn"
+    }
+
+    # -- Show catalog and get selection ----------------------------------------
+    Show-ModelCatalog -Models $models
+
+    if ($isOrchestratorRun) {
+        # Under orchestrator, download all models
+        Write-Log "Orchestrator mode: downloading all models." -Level "info"
+        $selectedIndices = @(1..$models.Count)
+    } else {
+        $selectedIndices = Read-ModelSelection -MaxIndex $models.Count
+        if ($null -eq $selectedIndices -or $selectedIndices.Count -eq 0) {
+            Write-Log "No models selected. Skipping model downloads." -Level "info"
+            return $modelsDir
+        }
+    }
+
+    # -- Disk space pre-check --------------------------------------------------
+    $selectedModels = @($models | Where-Object { $selectedIndices -contains $_.index })
+    $totalBytes = 0
+    foreach ($m in $selectedModels) {
+        $totalBytes += [long]($m.fileSizeGB * 1073741824)
+    }
+    $isSpaceOk = Test-DiskSpace -TargetPath $modelsDir -RequiredBytes $totalBytes -Label "selected models" -WarnOnly
+    if (-not $isSpaceOk) {
+        Write-Log "Proceeding despite low disk space warning..." -Level "warn"
+    }
+
+    # -- Download selected models ----------------------------------------------
+    Install-SelectedModels -Models $models -SelectedIndices $selectedIndices `
+        -ModelsDir $modelsDir -Aria2Config $Aria2Config -LogMessages $LogMessages
+
+    return $modelsDir
+}
