@@ -62,6 +62,80 @@ function Show-ModelCatalog {
     Write-Host ""
 }
 
+function Read-RamFilter {
+    <#
+    .SYNOPSIS
+        Prompts user for available RAM and filters models that fit.
+        Returns filtered (and re-indexed) model array.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models
+    )
+
+    # Detect system RAM
+    $detectedRAM = $null
+    try {
+        $os = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue
+        if ($null -ne $os) {
+            $detectedRAM = [math]::Round($os.TotalVisibleMemorySize / 1MB, 0)
+        }
+    } catch { }
+
+    Write-Host ""
+    Write-Host "  Filter by available RAM:" -ForegroundColor Cyan
+    if ($null -ne $detectedRAM) {
+        Write-Host "    Detected system RAM: ~$detectedRAM GB" -ForegroundColor Green
+    }
+    Write-Host "    [1]  4 GB" -ForegroundColor White
+    Write-Host "    [2]  8 GB" -ForegroundColor White
+    Write-Host "    [3] 16 GB" -ForegroundColor White
+    Write-Host "    [4] 32 GB" -ForegroundColor White
+    Write-Host "    [5] 64 GB+" -ForegroundColor White
+    Write-Host ""
+    Write-Host "    [Enter] No RAM filter (show all)" -ForegroundColor DarkGray
+    if ($null -ne $detectedRAM) {
+        Write-Host "    [d] Use detected RAM ($detectedRAM GB)" -ForegroundColor DarkGray
+    }
+    Write-Host ""
+
+    $input = Read-Host -Prompt "  RAM filter selection"
+    $trimmed = $input.Trim().ToLower()
+
+    $isEmpty = [string]::IsNullOrWhiteSpace($trimmed)
+    if ($isEmpty) { return $Models }
+
+    $ramLimit = $null
+    switch ($trimmed) {
+        "1" { $ramLimit = 4 }
+        "2" { $ramLimit = 8 }
+        "3" { $ramLimit = 16 }
+        "4" { $ramLimit = 32 }
+        "5" { $ramLimit = 64 }
+        "d" { $ramLimit = $detectedRAM }
+        default {
+            # Allow direct numeric input
+            if ($trimmed -match "^\d+$") { $ramLimit = [int]$trimmed }
+        }
+    }
+
+    if ($null -eq $ramLimit) { return $Models }
+
+    $filtered = @($Models | Where-Object { $_.ramRequiredGB -le $ramLimit })
+
+    Write-Host ""
+    Write-Log "  Filtered to models requiring <= $ramLimit GB RAM ($($filtered.Count) models)" -Level "info"
+
+    # Re-index
+    $idx = 1
+    foreach ($m in $filtered) {
+        $m.index = $idx
+        $idx++
+    }
+
+    return $filtered
+}
+
 function Read-CapabilityFilter {
     <#
     .SYNOPSIS
@@ -376,10 +450,11 @@ function Invoke-ModelInstaller {
         Write-Log "aria2c unavailable, using standard downloader as fallback." -Level "warn"
     }
 
-    # -- Capability filter (interactive only) -----------------------------------
+    # -- Filters (interactive only) ---------------------------------------------
     $displayModels = $models
     if (-not $isOrchestratorRun) {
-        $displayModels = Read-CapabilityFilter -Models $models
+        $displayModels = Read-RamFilter -Models $models
+        $displayModels = Read-CapabilityFilter -Models $displayModels
     }
 
     # -- Show catalog and get selection ----------------------------------------
