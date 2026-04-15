@@ -26,6 +26,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "dev-dir.ps1")
 . (Join-Path $sharedDir "installed.ps1")
 . (Join-Path $sharedDir "download-retry.ps1")
+. (Join-Path $sharedDir "disk-space.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\ollama.ps1")
@@ -80,6 +81,9 @@ if ($hasPathParam) {
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
     "all" {
+        # Pre-check disk space for installer + models (~12 GB)
+        $downloadDir = if ($devDir) { Join-Path $devDir $config.devDirSubfolder } else { $env:TEMP }
+        $isDiskOk = Test-DiskSpace -TargetPath $downloadDir -RequiredGB 12 -Label "Ollama (installer + models)" -WarnOnly
         Install-Ollama -Config $config -LogMessages $logMessages -DevDir $devDir
         Configure-OllamaModels -Config $config -LogMessages $logMessages -DevDir $devDir
         Pull-OllamaModels -Config $config -LogMessages $logMessages

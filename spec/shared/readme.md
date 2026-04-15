@@ -27,7 +27,9 @@ scripts/
     ├── dev-dir.ps1       # Resolve-DevDir, Resolve-SmartDevDir, Find-BestDevDrive, Test-DriveQualified, Initialize-DevDir
     ├── symlink-utils.ps1        # Resolve-DbInstallDir, New-DbSymlink
     ├── json-utils.ps1           # Backup-File, Merge-JsonDeep, ConvertTo-OrderedHashtable
-    └── invoke-with-timeout.ps1  # Invoke-WithTimeout
+    ├── invoke-with-timeout.ps1  # Invoke-WithTimeout
+    ├── download-retry.ps1       # Invoke-DownloadWithRetry (3 retries, exponential backoff)
+    └── disk-space.ps1           # Test-DiskSpace, Get-TotalDownloadSize
 
 .resolved/                # Runtime-resolved data (gitignored, never committed)
 ├── 01-vscode-context-menu-fix/
@@ -174,6 +176,8 @@ Keys are grouped by helper:
 | `help*` | `help.ps1` |
 | `adminTip` | `run.ps1` files (admin privilege error) |
 | `timeout*` | `invoke-with-timeout.ps1` |
+| `download*` | `download-retry.ps1` |
+| `diskSpace*` | `disk-space.ps1` |
 
 ---
 
@@ -462,4 +466,91 @@ $isTimedOut = $result.TimedOut
 if ($isTimedOut) {
     Write-Log "MinGW install timed out" -Level "error"
 }
+```
+
+---
+
+## download-retry.ps1
+
+### Purpose
+
+Wraps `Invoke-WebRequest` with automatic retry and exponential backoff for
+resilient large-file downloads.
+
+### Function Signature
+
+```powershell
+Invoke-DownloadWithRetry
+    -Uri          <string>   # URL to download from
+    -OutFile      <string>   # Local file path
+    -MaxRetries   <int>      # Max attempts (default: 3)
+    -BaseDelaySec <int>      # Base backoff delay in seconds (default: 5)
+    -Label        <string>   # Friendly name for log messages
+```
+
+### Return Value
+
+Returns `$true` on success, `$false` after all retries exhausted.
+
+### Behaviour
+
+- Uses `Invoke-WebRequest -UseBasicParsing` with `SilentlyContinue` progress
+- Validates downloaded file exists and is non-zero bytes
+- Exponential backoff: delay doubles each retry (5s, 10s, 20s)
+- Cleans up partial/empty files on final failure
+- Logs attempt number, file size on success, and error details on failure
+
+---
+
+## disk-space.ps1
+
+### Purpose
+
+Pre-checks available disk space before starting large downloads. Prevents
+wasted bandwidth on drives with insufficient free space.
+
+### Functions
+
+| Function | Purpose |
+|----------|---------|
+| `Test-DiskSpace` | Checks if a target drive has enough free space; returns `$true`/`$false` |
+| `Get-TotalDownloadSize` | Sums expected download sizes from config arrays (supports `expectedSizeBytes` and `sizeHint` parsing) |
+
+### Test-DiskSpace Signature
+
+```powershell
+Test-DiskSpace
+    -TargetPath     <string>   # Directory where files will be written
+    -RequiredBytes  <long>     # Minimum free bytes needed
+    -RequiredGB     <double>   # Alternative: minimum free GB needed
+    -Label          <string>   # Friendly name for log messages
+    -WarnOnly       <switch>   # If set, warns but returns $true (non-blocking)
+```
+
+### Behaviour
+
+| Mode | Insufficient Space | Return |
+|------|-------------------|--------|
+| Default (blocking) | Logs error with exact shortfall | `$false` |
+| `-WarnOnly` | Logs warning with shortfall | `$true` |
+| Drive undetectable | Logs warning, proceeds | `$true` |
+
+### Get-TotalDownloadSize
+
+Parses size information from config arrays:
+- Exact: reads `expectedSizeBytes` field directly
+- Hint: parses `sizeHint` strings like `"~5 GB"` or `"~4.7 GB"`
+
+### Usage
+
+```powershell
+. (Join-Path $sharedDir "disk-space.ps1")
+
+# Blocking check with exact bytes
+$totalBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
+$isDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $totalBytes -Label "executables"
+if (-not $isDiskOk) { return }
+
+# Warning-only check with GB
+Test-DiskSpace -TargetPath $modelsDir -RequiredGB 40 -Label "GGUF models" -WarnOnly
 ```

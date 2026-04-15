@@ -27,6 +27,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "dev-dir.ps1")
 . (Join-Path $sharedDir "installed.ps1")
 . (Join-Path $sharedDir "download-retry.ps1")
+. (Join-Path $sharedDir "disk-space.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\llama-cpp.ps1")
@@ -89,13 +90,29 @@ Write-Log "llama.cpp base directory: $baseDir" -Level "info"
 # -- Execute subcommand --------------------------------------------------------
 switch ($Command.ToLower()) {
     "all" {
+        # Pre-check disk space for executables
+        $exeBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
+        $isExeDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $exeBytes -Label "llama.cpp executables"
+        if (-not $isExeDiskOk) { return }
+
+        # Pre-check disk space for models
+        $modelBytes = Get-TotalDownloadSize -Items $config.modelItems -SizeHintField "sizeHint"
+        $modelsTarget = Join-Path $devDir $config.modelsConfig.devDirSubfolder
+        $isModelDiskOk = Test-DiskSpace -TargetPath $modelsTarget -RequiredBytes $modelBytes -Label "GGUF models" -WarnOnly
+
         Install-LlamaCppExecutables -Config $config -LogMessages $logMessages -BaseDir $baseDir
         Install-LlamaCppModels -Config $config -LogMessages $logMessages -DevDir $devDir
     }
     "executables" {
+        $exeBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
+        $isExeDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $exeBytes -Label "llama.cpp executables"
+        if (-not $isExeDiskOk) { return }
         Install-LlamaCppExecutables -Config $config -LogMessages $logMessages -BaseDir $baseDir
     }
     "models" {
+        $modelBytes = Get-TotalDownloadSize -Items $config.modelItems -SizeHintField "sizeHint"
+        $modelsTarget = Join-Path $devDir $config.modelsConfig.devDirSubfolder
+        $isModelDiskOk = Test-DiskSpace -TargetPath $modelsTarget -RequiredBytes $modelBytes -Label "GGUF models" -WarnOnly
         Install-LlamaCppModels -Config $config -LogMessages $logMessages -DevDir $devDir
     }
     "uninstall" {
