@@ -9,6 +9,11 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
     . $_loggingPath
 }
 
+$_hardwareDetectPath = Join-Path $_sharedDir "hardware-detect.ps1"
+if ((Test-Path $_hardwareDetectPath) -and -not (Get-Command Get-HardwareProfile -ErrorAction SilentlyContinue)) {
+    . $_hardwareDetectPath
+}
+
 
 function Get-FileSize {
     <#
