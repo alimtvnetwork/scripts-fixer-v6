@@ -29,6 +29,7 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 . (Join-Path $sharedDir "download-retry.ps1")
 . (Join-Path $sharedDir "disk-space.ps1")
 . (Join-Path $sharedDir "url-freshness.ps1")
+. (Join-Path $sharedDir "aria2c-download.ps1")
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\llama-cpp.ps1")

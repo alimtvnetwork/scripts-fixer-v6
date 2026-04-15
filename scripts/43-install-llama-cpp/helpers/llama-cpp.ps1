@@ -383,6 +383,11 @@ function Uninstall-LlamaCpp {
         Remove-InstalledRecord -Name "llama-cpp-$($item.slug)"
     }
 
+    # Remove model tracking records
+    foreach ($model in $Config.modelItems) {
+        Remove-InstalledRecord -Name "model-$($model.slug)"
+    }
+
     Remove-ResolvedData -ScriptFolder "43-install-llama-cpp"
 
     # Refresh PATH
