@@ -9,6 +9,11 @@ if ((Test-Path $_loggingPath) -and -not (Get-Command Write-Log -ErrorAction Sile
     . $_loggingPath
 }
 
+$_hardwareDetectPath = Join-Path $_sharedDir "hardware-detect.ps1"
+if ((Test-Path $_hardwareDetectPath) -and -not (Get-Command Get-HardwareProfile -ErrorAction SilentlyContinue)) {
+    . $_hardwareDetectPath
+}
+
 
 function Get-FileSize {
     <#
@@ -90,7 +95,22 @@ function Install-LlamaCppExecutables {
     $executables = $Config.executables
     $pathConfig = $Config.path
 
+    # Detect hardware capabilities
+    Write-Log $LogMessages.messages.hardwareDetecting -Level "info"
+    $hwProfile = Get-HardwareProfile
+
+    $skippedHwCount = 0
+
     foreach ($item in $executables) {
+        # Check hardware compatibility
+        $hwRequires = if ($item.PSObject.Properties['requires']) { $item.requires } else { "" }
+        $isCompatible = Test-ExecutableCompatible -Requires $hwRequires -HardwareProfile $hwProfile
+        if (-not $isCompatible) {
+            Write-Log ($LogMessages.messages.hwSkipped -replace '\{slug\}', $item.slug -replace '\{requires\}', $hwRequires) -Level "info"
+            $skippedHwCount++
+            continue
+        }
+
         Write-Log ($LogMessages.messages.processingExecutable -replace '\{slug\}', $item.slug -replace '\{displayName\}', $item.displayName) -Level "info"
         Write-Log ($LogMessages.messages.downloading -replace '\{url\}', $item.downloadUrl) -Level "info"
 
@@ -186,6 +206,10 @@ function Install-LlamaCppExecutables {
 
         # Track install
         Save-InstalledRecord -Name "llama-cpp-$($item.slug)" -Version $item.slug
+    }
+
+    if ($skippedHwCount -gt 0) {
+        Write-Log ($LogMessages.messages.hwSkippedSummary -replace '\{count\}', $skippedHwCount) -Level "info"
     }
 
     # Refresh PATH for current session

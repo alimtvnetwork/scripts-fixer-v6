@@ -25,7 +25,10 @@
     "uninstallSuccess": "{name} removed successfully.",
     "uninstallComplete": "Uninstall complete. Binaries and model tracking removed.",
     "sessionRefreshed": "PATH refreshed for current session.",
-    "urlFreshnessCheck": "Validating download URLs are reachable..."
+    "urlFreshnessCheck": "Validating download URLs are reachable...",
+    "hardwareDetecting": "Detecting hardware capabilities (CUDA GPU, AVX2 CPU)...",
+    "hwSkipped": "[{slug}] Skipped: requires {requires} (not detected on this system)",
+    "hwSkippedSummary": "{count} executable variant(s) skipped due to hardware incompatibility."
   },
   "help": {
     "commands": {
