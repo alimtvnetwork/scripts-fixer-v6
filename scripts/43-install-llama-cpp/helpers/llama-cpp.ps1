@@ -216,7 +216,8 @@ function Ensure-BinInPath {
 function Install-LlamaCppModels {
     <#
     .SYNOPSIS
-        Downloads GGUF model files to the models directory.
+        Downloads GGUF/GGML model files to the models directory using aria2c
+        (with fallback). Tracks each model in .installed/ for idempotency.
     #>
     param(
         $Config,
@@ -226,7 +227,7 @@ function Install-LlamaCppModels {
 
     Write-Log $LogMessages.messages.processingModels -Level "info"
 
-    # Resolve models directory
+    # -- Resolve models directory -----------------------------------------------
     $defaultModelsDir = if ($DevDir) {
         Join-Path $DevDir $Config.modelsConfig.devDirSubfolder
     } else {
@@ -258,29 +259,95 @@ function Install-LlamaCppModels {
 
     Write-Log ($LogMessages.messages.modelsDirConfigured -replace '\{path\}', $modelsDir) -Level "info"
 
-    # Process each model
+    # -- Ensure aria2c is available ---------------------------------------------
+    $isAria2Ok = Assert-Aria2c
+    if ($isAria2Ok) {
+        Write-Log $LogMessages.messages.aria2cReady -Level "success"
+    } else {
+        Write-Log $LogMessages.messages.aria2cFallback -Level "warn"
+    }
+
+    # -- Read aria2c config from config.json ------------------------------------
+    $aria2Config = $Config.aria2c
+    $maxConn    = if ($aria2Config.maxConnections) { $aria2Config.maxConnections } else { 16 }
+    $maxDl      = if ($aria2Config.maxDownloads) { $aria2Config.maxDownloads } else { 16 }
+    $chunkSize  = if ($aria2Config.chunkSize) { $aria2Config.chunkSize } else { "1M" }
+    $isContinue = if ($null -ne $aria2Config.continueDownload) { $aria2Config.continueDownload } else { $true }
+
+    # -- Display catalog summary ------------------------------------------------
+    $totalModels = $Config.modelItems.Count
+    $defaultModels = @($Config.modelItems | Where-Object { $_.isDefault -eq $true })
+    $totalSizeBytes = ($Config.modelItems | Measure-Object -Property sizeBytes -Sum).Sum
+    $totalSizeGB = [math]::Round($totalSizeBytes / 1GB, 1)
+    $categories = ($Config.modelItems | Select-Object -ExpandProperty category -Unique) -join ", "
+
+    Write-Log ($LogMessages.messages.modelCatalogSummary -replace '\{total\}', $totalModels -replace '\{defaults\}', $defaultModels.Count -replace '\{size\}', "$totalSizeGB GB" -replace '\{categories\}', $categories) -Level "info"
+
+    # -- Process each model -----------------------------------------------------
+    $downloadedCount = 0
+    $skippedCount    = 0
+    $failedCount     = 0
+
     $models = $Config.modelItems
     foreach ($model in $models) {
-        $outputPath = Join-Path $modelsDir $model.fileName
+        $outputPath   = Join-Path $modelsDir $model.fileName
+        $trackingName = "model-$($model.slug)"
 
-        # Check if already exists
-        $fileSize = Get-FileSize -FilePath $outputPath
-        $isAlreadyDownloaded = $fileSize -gt 0
-        if ($isAlreadyDownloaded) {
-            Write-Log ($LogMessages.messages.modelExists -replace '\{name\}', $model.displayName -replace '\{size\}', $fileSize) -Level "info"
+        # Check .installed/ tracking
+        $isTracked = Test-InstalledRecord -Name $trackingName
+        $isFilePresent = Test-Path $outputPath
+        if ($isTracked -and $isFilePresent) {
+            Write-Log ($LogMessages.messages.modelExists -replace '\{name\}', $model.name -replace '\{size\}', $model.size) -Level "info"
+            $skippedCount++
             continue
         }
 
-        Write-Log ($LogMessages.messages.modelDownloading -replace '\{name\}', $model.displayName -replace '\{size\}', $model.sizeHint) -Level "info"
+        # If tracked but file missing, remove stale tracking
+        if ($isTracked -and -not $isFilePresent) {
+            Write-Log "Stale tracking for $($model.name), file missing. Re-downloading." -Level "warn"
+            Remove-InstalledRecord -Name $trackingName
+        }
 
-        $isDownloadOk = Invoke-DownloadWithRetry -Uri $model.downloadUrl -OutFile $outputPath -Label $model.displayName
+        # Display model info
+        $defaultTag = if ($model.isDefault) { " [DEFAULT]" } else { "" }
+        Write-Log ($LogMessages.messages.modelDownloading -replace '\{name\}', "$($model.name)$defaultTag" -replace '\{size\}', $model.size) -Level "info"
+        Write-Log "  Category: $($model.category) | Params: $($model.params) | Quant: $($model.quant) | Context: $($model.contextLength)" -Level "info"
+
+        # Download via aria2c (with automatic fallback)
+        $isDownloadOk = Invoke-Aria2Download -Uri $model.downloadUrl -OutFile $outputPath -Label $model.name `
+            -MaxConnections $maxConn -MaxDownloads $maxDl -ChunkSize $chunkSize -ContinueDownload $isContinue
+
         if ($isDownloadOk) {
-            Write-Log ($LogMessages.messages.modelDownloadSuccess -replace '\{name\}', $model.displayName) -Level "success"
+            Write-Log ($LogMessages.messages.modelDownloadSuccess -replace '\{name\}', $model.name) -Level "success"
+
+            # Track in .installed/
+            Save-InstalledRecord -Name $trackingName -Version $model.quant -Data @{
+                name      = $model.name
+                params    = $model.params
+                quant     = $model.quant
+                size      = $model.size
+                category  = $model.category
+                filePath  = $outputPath
+                fileName  = $model.fileName
+                hfId      = $model.hfId
+                isDefault = $model.isDefault
+            }
+
+            $downloadedCount++
         } else {
-            Write-Log ($LogMessages.messages.modelDownloadFailed -replace '\{name\}', $model.displayName -replace '\{error\}', "All download attempts failed") -Level "error"
-            Write-FileError -FilePath $outputPath -Operation "download" -Reason "$_" -Module "Install-LlamaCppModels"
+            Write-Log ($LogMessages.messages.modelDownloadFailed -replace '\{name\}', $model.name -replace '\{error\}', "All download attempts failed") -Level "error"
+            Write-FileError -FilePath $outputPath -Operation "download" -Reason "Download failed after retries" -Module "Install-LlamaCppModels"
+            $failedCount++
         }
     }
+
+    # -- Summary ----------------------------------------------------------------
+    Write-Host ""
+    Write-Log ($LogMessages.messages.modelsSummary `
+        -replace '\{downloaded\}', $downloadedCount `
+        -replace '\{skipped\}', $skippedCount `
+        -replace '\{failed\}', $failedCount `
+        -replace '\{total\}', $totalModels) -Level "success"
 
     Write-Log $LogMessages.messages.allModelsComplete -Level "success"
     return $modelsDir
