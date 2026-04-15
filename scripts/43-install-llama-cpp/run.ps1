@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 #  Script 43 -- Install llama.cpp
 #  Downloads llama.cpp binaries (CUDA/AVX2/KoboldCPP), extracts, adds to
-#  PATH, and optionally downloads GGUF models.
+#  PATH, and interactively downloads GGUF/GGML models via aria2c.
 # --------------------------------------------------------------------------
 param(
     [Parameter(Position = 0)]
@@ -33,10 +33,12 @@ $sharedDir = Join-Path (Split-Path -Parent $scriptDir) "shared"
 
 # -- Dot-source script helpers ------------------------------------------------
 . (Join-Path $scriptDir "helpers\llama-cpp.ps1")
+. (Join-Path $scriptDir "helpers\model-picker.ps1")
 
 # -- Load config & log messages -----------------------------------------------
 $config       = Import-JsonConfig (Join-Path $scriptDir "config.json")
 $logMessages  = Import-JsonConfig (Join-Path $scriptDir "log-messages.json")
+$catalogPath  = Join-Path $scriptDir "models-catalog.json"
 
 # -- Help ---------------------------------------------------------------------
 if ($Help -or $Command -eq "--help") {
@@ -96,20 +98,18 @@ switch ($Command.ToLower()) {
         Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
         $isUrlOk = Test-UrlFreshness -Items $config.executables -LabelField "displayName"
         if (-not $isUrlOk) { return }
-        Test-UrlFreshness -Items $config.modelItems -LabelField "displayName" -WarnOnly | Out-Null
 
         # Pre-check disk space for executables
         $exeBytes = Get-TotalDownloadSize -Items $config.executables -SizeBytesField "expectedSizeBytes"
         $isExeDiskOk = Test-DiskSpace -TargetPath $baseDir -RequiredBytes $exeBytes -Label "llama.cpp executables"
         if (-not $isExeDiskOk) { return }
 
-        # Pre-check disk space for models
-        $modelBytes = Get-TotalDownloadSize -Items $config.modelItems -SizeHintField "sizeHint"
-        $modelsTarget = Join-Path $devDir $config.modelsConfig.devDirSubfolder
-        $isModelDiskOk = Test-DiskSpace -TargetPath $modelsTarget -RequiredBytes $modelBytes -Label "GGUF models" -WarnOnly
-
         Install-LlamaCppExecutables -Config $config -LogMessages $logMessages -BaseDir $baseDir
-        Install-LlamaCppModels -Config $config -LogMessages $logMessages -DevDir $devDir
+
+        # Interactive model installer
+        Invoke-ModelInstaller -CatalogPath $catalogPath -DevDir $devDir `
+            -DefaultModelsSubfolder $config.modelsConfig.devDirSubfolder `
+            -Aria2Config $config.aria2c -LogMessages $logMessages
     }
     "executables" {
         Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
@@ -122,13 +122,9 @@ switch ($Command.ToLower()) {
         Install-LlamaCppExecutables -Config $config -LogMessages $logMessages -BaseDir $baseDir
     }
     "models" {
-        Write-Log $logMessages.messages.urlFreshnessCheck -Level "info"
-        Test-UrlFreshness -Items $config.modelItems -LabelField "displayName" -WarnOnly | Out-Null
-
-        $modelBytes = Get-TotalDownloadSize -Items $config.modelItems -SizeHintField "sizeHint"
-        $modelsTarget = Join-Path $devDir $config.modelsConfig.devDirSubfolder
-        $isModelDiskOk = Test-DiskSpace -TargetPath $modelsTarget -RequiredBytes $modelBytes -Label "GGUF models" -WarnOnly
-        Install-LlamaCppModels -Config $config -LogMessages $logMessages -DevDir $devDir
+        Invoke-ModelInstaller -CatalogPath $catalogPath -DevDir $devDir `
+            -DefaultModelsSubfolder $config.modelsConfig.devDirSubfolder `
+            -Aria2Config $config.aria2c -LogMessages $logMessages
     }
     "uninstall" {
         Uninstall-LlamaCpp -Config $config -LogMessages $logMessages -BaseDir $baseDir
