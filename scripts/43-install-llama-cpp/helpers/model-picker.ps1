@@ -401,7 +401,7 @@ function Invoke-ModelInstaller {
     $downloadModels = $displayModels
 
     # -- Disk space pre-check --------------------------------------------------
-    $selectedModels = @($models | Where-Object { $selectedIndices -contains $_.index })
+    $selectedModels = @($downloadModels | Where-Object { $selectedIndices -contains $_.index })
     $totalBytes = 0
     foreach ($m in $selectedModels) {
         $totalBytes += [long]($m.fileSizeGB * 1073741824)
@@ -412,7 +412,7 @@ function Invoke-ModelInstaller {
     }
 
     # -- Download selected models ----------------------------------------------
-    Install-SelectedModels -Models $models -SelectedIndices $selectedIndices `
+    Install-SelectedModels -Models $downloadModels -SelectedIndices $selectedIndices `
         -ModelsDir $modelsDir -Aria2Config $Aria2Config -LogMessages $LogMessages
 
     return $modelsDir
