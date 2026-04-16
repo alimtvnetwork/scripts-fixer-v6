@@ -2,7 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
-## [v0.23.0] -- 2026-04-13
+## [v0.26.0] -- 2026-04-16
+
+### Added
+
+- **81-model catalog** -- expanded from 69 to 81 models with 12 new small/fast entries: Gemma 3 (1B, 4B, 12B), Llama 3.2 (1B, 3B), SmolLM2 1.7B, Phi-4 Mini 3.8B, Phi-4 14B, Granite 3.1 (2B, 8B), Qwen3 1.7B, Functionary Small 8B
+- **Download size filter** -- new `Read-SizeFilter` step in model picker with 5 tiers: Tiny (<1 GB), Small (<3 GB), Medium (<6 GB), Large (<12 GB), XLarge (12+ GB)
+- **Speed tier column** -- catalog display now shows computed speed tier (instant/fast/moderate/slow) based on file size
+- **3-filter chain** -- interactive model picker now chains RAM filter, Size filter, and Capability filter sequentially with re-indexing after each step
+
+### Changed
+
+- **Catalog version** -- bumped to 4.0.0
+- **Model picker spec** -- updated `spec/model-picker/readme.md` with complete 3-filter chain documentation, new model table, speed tier spec, and updated dependencies
+- **Script 43 spec** -- updated `spec/43-install-llama-cpp/readme.md` with RAM/Size/Capability filter steps and 81-model count
+
+---
+
 
 ### Added
 
