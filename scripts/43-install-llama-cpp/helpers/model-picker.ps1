@@ -136,6 +136,66 @@ function Read-RamFilter {
     return $filtered
 }
 
+function Read-SizeFilter {
+    <#
+    .SYNOPSIS
+        Prompts user to filter models by download size tier.
+        Returns filtered (and re-indexed) model array.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models
+    )
+
+    Write-Host ""
+    Write-Host "  Filter by download size:" -ForegroundColor Cyan
+    Write-Host "    [1] Tiny    (< 1 GB)  -- runs on anything" -ForegroundColor White
+    Write-Host "    [2] Small   (< 3 GB)  -- phones, tablets, Raspberry Pi" -ForegroundColor White
+    Write-Host "    [3] Medium  (< 6 GB)  -- laptops, desktops" -ForegroundColor White
+    Write-Host "    [4] Large   (< 12 GB) -- workstations" -ForegroundColor White
+    Write-Host "    [5] XLarge  (12+ GB)  -- high-end GPUs" -ForegroundColor White
+    Write-Host ""
+    Write-Host "    [Enter] No size filter (show all)" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $input = Read-Host -Prompt "  Size filter selection"
+    $trimmed = $input.Trim().ToLower()
+
+    $isEmpty = [string]::IsNullOrWhiteSpace($trimmed)
+    if ($isEmpty) { return $Models }
+
+    $maxSizeGB = $null
+    $minSizeGB = 0
+    $tierLabel = ""
+    switch ($trimmed) {
+        "1" { $maxSizeGB = 1;   $tierLabel = "Tiny (< 1 GB)" }
+        "2" { $maxSizeGB = 3;   $tierLabel = "Small (< 3 GB)" }
+        "3" { $maxSizeGB = 6;   $tierLabel = "Medium (< 6 GB)" }
+        "4" { $maxSizeGB = 12;  $tierLabel = "Large (< 12 GB)" }
+        "5" { $minSizeGB = 12;  $tierLabel = "XLarge (12+ GB)" }
+    }
+
+    if ($null -eq $maxSizeGB -and $minSizeGB -eq 0) { return $Models }
+
+    if ($minSizeGB -gt 0) {
+        $filtered = @($Models | Where-Object { $_.fileSizeGB -ge $minSizeGB })
+    } else {
+        $filtered = @($Models | Where-Object { $_.fileSizeGB -lt $maxSizeGB })
+    }
+
+    Write-Host ""
+    Write-Log "  Filtered to $tierLabel ($($filtered.Count) models)" -Level "info"
+
+    # Re-index
+    $idx = 1
+    foreach ($m in $filtered) {
+        $m.index = $idx
+        $idx++
+    }
+
+    return $filtered
+}
+
 function Read-CapabilityFilter {
     <#
     .SYNOPSIS
