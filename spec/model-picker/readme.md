@@ -136,7 +136,9 @@ User runs: .\run.ps1 models
         │     ├─ Tracked + file exists → skip (already downloaded)
         │     └─ Tracked + file missing → remove stale record, re-download
         ├─ Download via Invoke-Aria2Download (16 connections)
-        │     ├─ Success → Save-InstalledRecord
+        │     ├─ Success → SHA256 verification (if sha256 field non-empty)
+        │     │     ├─ Match → Save-InstalledRecord
+        │     │     └─ Mismatch → Write-FileError, delete file, count as failed
         │     └─ Fail → Write-FileError with exact path + reason
         └─ Summary: N downloaded, N skipped, N failed
 ```
@@ -223,6 +225,7 @@ Full catalog (81 models)
 | `source`            | string   | Yes      | Publisher / organization                                   |
 | `license`           | string   | Yes      | License type (e.g. `Apache 2.0`, `Llama 3.1`)             |
 | `downloadUrl`       | string   | Yes      | Direct GGUF download URL (Hugging Face)                    |
+| `sha256`            | string   | No       | SHA256 hash for integrity verification (empty = skip check)|
 | `huggingfacePage`   | string   | Yes      | Hugging Face model page URL                                |
 | `index`             | integer  | Yes      | Display order (1-based, sequential)                        |
 
@@ -277,6 +280,7 @@ Computed at display time from `fileSizeGB`:
 | All 6 capability flags on every model | Enables filter without null checks                      |
 | `rating.overall` drives color     | Quick visual quality signal in the catalog display          |
 | Speed tier from fileSizeGB        | Correlates with inference speed; no extra metadata needed   |
+| `sha256` empty = skip verification| Checksums populated gradually; missing hash never blocks download |
 
 ---
 

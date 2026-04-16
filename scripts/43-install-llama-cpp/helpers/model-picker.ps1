@@ -529,9 +529,36 @@ function Install-SelectedModels {
             -MaxConnections $maxConn -MaxDownloads $maxDl -ChunkSize $chunkSize -ContinueDownload $isContinue
 
         if ($isDownloadOk) {
-            Write-Log "  [$($model.index)] Downloaded: $($model.displayName)" -Level "success"
-            Save-InstalledRecord -Name $trackingName -Version $model.quantization -Method "aria2c"
-            $downloadedCount++
+            # SHA256 integrity verification
+            $isChecksumOk = $true
+            $hasChecksum  = -not [string]::IsNullOrWhiteSpace($model.sha256)
+
+            if ($hasChecksum) {
+                Write-Log "    Verifying SHA256 checksum..." -Level "info"
+                $actualHash = (Get-FileHash -Path $outputPath -Algorithm SHA256).Hash.ToLower()
+                $expectedHash = $model.sha256.Trim().ToLower()
+
+                if ($actualHash -eq $expectedHash) {
+                    Write-Log "    Checksum verified: $($actualHash.Substring(0, 16))..." -Level "success"
+                } else {
+                    Write-Log "    Checksum MISMATCH for $($model.displayName)" -Level "error"
+                    Write-Log "      Expected: $expectedHash" -Level "error"
+                    Write-Log "      Actual:   $actualHash" -Level "error"
+                    Write-FileError -FilePath $outputPath -Operation "checksum" -Reason "SHA256 mismatch (expected $expectedHash, got $actualHash)" -Module "Install-SelectedModels"
+                    $isChecksumOk = $false
+                }
+            }
+
+            if ($isChecksumOk) {
+                Write-Log "  [$($model.index)] Downloaded: $($model.displayName)" -Level "success"
+                Save-InstalledRecord -Name $trackingName -Version $model.quantization -Method "aria2c"
+                $downloadedCount++
+            } else {
+                Write-Log "  [$($model.index)] FAILED (checksum): $($model.displayName)" -Level "error"
+                # Remove corrupted file
+                if (Test-Path $outputPath) { Remove-Item $outputPath -Force }
+                $failedCount++
+            }
         } else {
             Write-Log "  [$($model.index)] FAILED: $($model.displayName)" -Level "error"
             Write-FileError -FilePath $outputPath -Operation "download" -Reason "Download failed after retries" -Module "Install-SelectedModels"
