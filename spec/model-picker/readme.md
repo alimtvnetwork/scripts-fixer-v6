@@ -17,12 +17,13 @@ scripts/
 ├── shared/
 │   └── aria2c-download.ps1         # Assert-Aria2c, Invoke-Aria2Download
 └── 43-install-llama-cpp/
-    ├── models-catalog.json          # 69-model catalog (standalone file)
+    ├── models-catalog.json          # 81-model catalog (standalone file)
     ├── config.json                  # Executable variants + aria2c settings
     ├── run.ps1                      # Entry point (Command: all|executables|models)
     └── helpers/
         ├── llama-cpp.ps1            # Install-LlamaCppExecutables, Uninstall-LlamaCpp
-        └── model-picker.ps1         # Show-ModelCatalog, Read-CapabilityFilter,
+        └── model-picker.ps1         # Show-ModelCatalog, Read-RamFilter,
+                                     #   Read-SizeFilter, Read-CapabilityFilter,
                                      #   Read-ModelSelection, Install-SelectedModels,
                                      #   Invoke-ModelInstaller
 ```
@@ -52,7 +53,32 @@ User runs: .\run.ps1 models
   │           ├─ Success → continue with aria2c
   │           └─ Fail → warn, fall back to Invoke-DownloadWithRetry
   │
-  ├─ 4. Capability filter (interactive only)
+  ├─ 4. RAM filter (interactive only) — Read-RamFilter
+  │     ├─ Auto-detects system RAM via WMI (Get-CimInstance Win32_OperatingSystem)
+  │     ├─ Preset tiers:
+  │     │     [1]  4 GB
+  │     │     [2]  8 GB
+  │     │     [3] 16 GB
+  │     │     [4] 32 GB
+  │     │     [5] 64 GB+
+  │     ├─ [d] Use detected system RAM (shown when detection succeeds)
+  │     ├─ Direct numeric input accepted (e.g. "24" for 24 GB)
+  │     ├─ Enter → skip filter, show all models
+  │     └─ Filters models where ramRequiredGB <= selected limit
+  │         Models re-indexed 1..N after filtering
+  │
+  ├─ 5. Size filter (interactive only) — Read-SizeFilter
+  │     ├─ Preset tiers:
+  │     │     [1] Tiny    (< 1 GB)  -- runs on anything
+  │     │     [2] Small   (< 3 GB)  -- phones, tablets, Raspberry Pi
+  │     │     [3] Medium  (< 6 GB)  -- laptops, desktops
+  │     │     [4] Large   (< 12 GB) -- workstations
+  │     │     [5] XLarge  (12+ GB)  -- high-end GPUs
+  │     ├─ Enter → skip filter, show all models
+  │     └─ Filters models by fileSizeGB against selected tier
+  │         Models re-indexed 1..N after filtering
+  │
+  ├─ 6. Capability filter (interactive only) — Read-CapabilityFilter
   │     ├─ Display 6 capability categories with model counts:
   │     │     [1] Coding (N models)
   │     │     [2] Reasoning (N models)
@@ -63,10 +89,15 @@ User runs: .\run.ps1 models
   │     ├─ Enter → skip filter, show all models
   │     ├─ Selection: single (1), range (1-3), mixed (1,3,5-6)
   │     └─ OR logic: model shown if ANY selected capability matches
-  │         Models are re-indexed 1..N after filtering
+  │         Models re-indexed 1..N after filtering
   │
-  ├─ 5. Display catalog table
-  │     Columns: #, Model, Params, Quant, Size, RAM, Capabilities
+  ├─ 7. Display catalog table
+  │     Columns: #, Model, Params, Quant, Size, RAM, Speed, Capabilities
+  │     ├─ Speed tier (computed from fileSizeGB):
+  │     │     instant  = < 1 GB
+  │     │     fast     = < 3 GB
+  │     │     moderate = < 8 GB
+  │     │     slow     = 8+ GB
   │     ├─ Starred (recommended) models grouped first
   │     ├─ Color-coded by rating:
   │     │     Green  = 9-10 (top tier)
@@ -75,7 +106,7 @@ User runs: .\run.ps1 models
   │     │     Gray   = below 5
   │     └─ Capabilities shown as: code, reason, write, voice, chat, multi
   │
-  ├─ 6. Model selection
+  ├─ 8. Model selection
   │     ├─ Orchestrator mode: auto-select all models
   │     └─ Interactive mode:
   │           ├─ Single: 3
@@ -84,11 +115,11 @@ User runs: .\run.ps1 models
   │           ├─ All: "all"
   │           └─ Quit: "q" / "quit" / "exit"
   │
-  ├─ 7. Disk space pre-check
+  ├─ 9. Disk space pre-check
   │     Sum fileSizeGB of selected models → Test-DiskSpace -WarnOnly
   │     Proceeds with warning if insufficient
   │
-  └─ 8. Download selected models
+  └─ 10. Download selected models
         For each model:
         ├─ Check .installed/ tracking + file on disk
         │     ├─ Tracked + file exists → skip (already downloaded)
@@ -101,13 +132,44 @@ User runs: .\run.ps1 models
 
 ---
 
+## 3-Filter Chain
+
+All three filters are **optional** (Enter to skip) and run sequentially.
+Each filter re-indexes the surviving models from 1..N so selection numbers
+always match the visible list.
+
+```
+Full catalog (81 models)
+    │
+    ├─ RAM filter ──────→ removes models above RAM limit
+    │                     (e.g. 8 GB → keeps models ≤ 8 GB RAM required)
+    │
+    ├─ Size filter ─────→ removes models outside size tier
+    │                     (e.g. "Small" → keeps models < 3 GB download)
+    │
+    └─ Capability filter → removes models without selected capabilities
+                           (e.g. "Coding" → keeps only isCoding=true)
+
+    Result: filtered, re-indexed subset displayed to user
+```
+
+### Filter Functions
+
+| Function                | Input              | Filter Logic                          |
+|-------------------------|--------------------|---------------------------------------|
+| `Read-RamFilter`        | RAM limit (GB)     | `ramRequiredGB <= limit`              |
+| `Read-SizeFilter`       | Size tier          | `fileSizeGB < tier_max` or `>= 12`   |
+| `Read-CapabilityFilter` | Capability indices | OR match on capability boolean flags  |
+
+---
+
 ## Model Catalog Format (`models-catalog.json`)
 
 ### Top-Level Structure
 
 ```json
 {
-  "catalogVersion": "3.0.0",
+  "catalogVersion": "4.0.0",
   "description": "Comprehensive GGUF/GGML model catalog...",
   "capabilityFlags": {
     "isCoding": "Model is trained/optimized for code generation...",
@@ -149,16 +211,57 @@ User runs: .\run.ps1 models
 | `huggingfacePage`   | string   | Yes      | Hugging Face model page URL                                |
 | `index`             | integer  | Yes      | Display order (1-based, sequential)                        |
 
+### Catalog Summary (81 models)
+
+#### By Size Tier
+
+| Tier     | Count | Examples                                                    |
+|----------|-------|-------------------------------------------------------------|
+| Tiny     | 9     | Whisper Tiny/Base/Small, Qwen2 0.5B, Llama 3.2 1B, Gemma 3 1B |
+| Small    | 16    | Qwen 3.5 2B, SmolLM2 1.7B, Phi-4 Mini, Llama 3.2 3B, Gemma 3 4B |
+| Medium   | 16    | DeepSeek Coder 6.7B, Mistral 7B, Granite 3.1 8B, Functionary 8B |
+| Large    | 16    | Qwen 2.5 Coder 14B, Phi-4 14B, Gemma 3 12B, StarCoder2 15B |
+| XLarge   | 24    | Devstral 24B, Qwen 2.5 32B, DeepSeek R1 70B, Qwen 3.5 MoE |
+
+#### New Models Added (v4.0.0)
+
+| Model                        | Params | Size   | RAM  | Source     | Key Strengths                          |
+|------------------------------|--------|--------|------|------------|----------------------------------------|
+| Gemma 3 1B Instruct          | 1B     | 0.8 GB | 2 GB | Google     | Ultra-fast chat, multilingual          |
+| ★ Gemma 3 4B Instruct       | 4B     | 2.5 GB | 4 GB | Google     | Best 4B model, multimodal vision       |
+| ★ Gemma 3 12B Instruct      | 12B    | 7.3 GB | 10 GB| Google     | Strong mid-size, vision + safety       |
+| Llama 3.2 1B Instruct        | 1B     | 0.75 GB| 2 GB | Meta       | Tiniest Llama, tool calling, 128K ctx  |
+| ★ Llama 3.2 3B Instruct     | 3B     | 1.9 GB | 4 GB | Meta       | Edge/mobile sweet spot, multilingual   |
+| SmolLM2 1.7B Instruct        | 1.7B   | 1.0 GB | 2 GB | HuggingFace| Purpose-built tiny, beats many 3B      |
+| ★ Microsoft Phi-4 Mini 3.8B | 3.8B   | 2.3 GB | 4 GB | Microsoft  | Best sub-4B reasoning, replaces Phi-3  |
+| ★ Microsoft Phi-4 14B       | 14B    | 8.4 GB | 12 GB| Microsoft  | Near-GPT-4 reasoning at 14B           |
+| IBM Granite 3.1 2B Instruct  | 2B     | 1.3 GB | 3 GB | IBM        | Enterprise-grade tiny, function calling|
+| IBM Granite 3.1 8B Instruct  | 8B     | 4.9 GB | 8 GB | IBM        | Enterprise RAG, 128K context           |
+| Qwen3 1.7B                   | 1.7B   | 1.1 GB | 2 GB | Alibaba    | Tiny reasoning with think mode, 119 langs |
+| Functionary Small v3.1 8B    | 8B     | 4.9 GB | 8 GB | MeetKai    | Specialized function calling / agents  |
+
+### Speed Tier (Display Column)
+
+Computed at display time from `fileSizeGB`:
+
+| Tier     | File Size   | Typical Inference | Examples                                |
+|----------|-------------|-------------------|-----------------------------------------|
+| instant  | < 1 GB      | Near real-time    | Whisper Tiny, Qwen2 0.5B, Llama 3.2 1B |
+| fast     | < 3 GB      | Very responsive   | Phi-4 Mini, Gemma 3 4B, SmolLM2 1.7B   |
+| moderate | < 8 GB      | Good throughput   | Mistral 7B, Gemma 3 12B, Granite 8B    |
+| slow     | 8+ GB       | Requires patience | Phi-4 14B, Qwen 2.5 32B, DeepSeek 70B  |
+
 ### Design Decisions
 
 | Decision                          | Rationale                                                   |
 |-----------------------------------|-------------------------------------------------------------|
 | No hardcoded paths in catalog     | Models directory resolved at runtime; catalog is portable   |
-| Separate file from config.json    | Catalog is large (69 models); keeps config lean             |
+| Separate file from config.json    | Catalog is large (81 models); keeps config lean             |
 | `★` prefix for recommended       | Visual grouping in terminal; starred models sort first      |
 | `index` field pre-assigned        | Stable numbering for scripted/automated selection           |
 | All 6 capability flags on every model | Enables filter without null checks                      |
 | `rating.overall` drives color     | Quick visual quality signal in the catalog display          |
+| Speed tier from fileSizeGB        | Correlates with inference speed; no extra metadata needed   |
 
 ---
 
@@ -338,6 +441,8 @@ When `$env:SCRIPTS_ROOT_RUN = "1"` (set by the root dispatcher or script 12):
 | Step                  | Behaviour                              |
 |-----------------------|----------------------------------------|
 | Models directory      | Auto-selects default, no prompt        |
+| RAM filter            | Skipped entirely                       |
+| Size filter           | Skipped entirely                       |
 | Capability filter     | Skipped entirely                       |
 | Model selection       | Auto-selects all models                |
 | Downloads             | Proceeds with full catalog             |
@@ -381,3 +486,4 @@ Write-FileError -FilePath $outputPath -Operation "download" `
 | `installed.ps1`           | `Save-InstalledRecord`, `Get-InstalledRecord`, `Remove-InstalledRecord` |
 | `dev-dir.ps1`             | `Resolve-DevDir` (models directory default)   |
 | `path-utils.ps1`          | PATH manipulation for executables             |
+| `hardware-detect.ps1`     | `Get-HardwareProfile` (RAM detection for filter) |
