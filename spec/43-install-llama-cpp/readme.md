@@ -37,7 +37,10 @@ scripts/43-install-llama-cpp/
 4. **Size filter** -- optional filter by download size tier:
    - `[1] Tiny (<1 GB)`, `[2] Small (<3 GB)`, `[3] Medium (<6 GB)`, `[4] Large (<12 GB)`, `[5] XLarge (12+ GB)`
    - Enter to skip; models re-indexed after filtering
-5. **Capability filter** -- optional filter menu before catalog display:
+5. **Speed filter** -- optional filter by inference speed tier:
+   - `[1] Instant (<1 GB)`, `[2] Fast (<3 GB)`, `[3] Moderate (<8 GB)`, `[4] Slow (8+ GB)`
+   - Supports multi-select (e.g. "1,2"); Enter to skip; models re-indexed after filtering
+6. **Capability filter** -- optional filter menu before catalog display:
    - `[1] Coding`, `[2] Reasoning`, `[3] Writing`, `[4] Chat`, `[5] Voice`, `[6] Multilingual`
    - Supports same selection syntax as model picker (single, range, comma-separated)
    - Enter to skip filter and show all models; OR logic (any matching cap shown)

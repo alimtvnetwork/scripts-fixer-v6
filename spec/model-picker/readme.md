@@ -23,9 +23,9 @@ scripts/
     └── helpers/
         ├── llama-cpp.ps1            # Install-LlamaCppExecutables, Uninstall-LlamaCpp
         └── model-picker.ps1         # Show-ModelCatalog, Read-RamFilter,
-                                     #   Read-SizeFilter, Read-CapabilityFilter,
-                                     #   Read-ModelSelection, Install-SelectedModels,
-                                     #   Invoke-ModelInstaller
+                                     #   Read-SizeFilter, Read-SpeedFilter,
+                                     #   Read-CapabilityFilter, Read-ModelSelection,
+                                     #   Install-SelectedModels, Invoke-ModelInstaller
 ```
 
 ---
@@ -78,7 +78,18 @@ User runs: .\run.ps1 models
   │     └─ Filters models by fileSizeGB against selected tier
   │         Models re-indexed 1..N after filtering
   │
-  ├─ 6. Capability filter (interactive only) — Read-CapabilityFilter
+  ├─ 6. Speed filter (interactive only) — Read-SpeedFilter
+  │     ├─ Preset tiers with model counts:
+  │     │     [1] Instant (< 1 GB)   -- near real-time inference
+  │     │     [2] Fast    (< 3 GB)   -- very responsive
+  │     │     [3] Moderate (< 8 GB)  -- good throughput
+  │     │     [4] Slow    (8+ GB)    -- requires patience
+  │     ├─ Enter → skip filter, show all models
+  │     ├─ Multi-select supported (e.g. "1,2" for instant + fast)
+  │     └─ Filters models by fileSizeGB against selected tier(s)
+  │         Models re-indexed 1..N after filtering
+  │
+  ├─ 7. Capability filter (interactive only) — Read-CapabilityFilter
   │     ├─ Display 6 capability categories with model counts:
   │     │     [1] Coding (N models)
   │     │     [2] Reasoning (N models)
@@ -91,7 +102,7 @@ User runs: .\run.ps1 models
   │     └─ OR logic: model shown if ANY selected capability matches
   │         Models re-indexed 1..N after filtering
   │
-  ├─ 7. Display catalog table
+  ├─ 8. Display catalog table
   │     Columns: #, Model, Params, Quant, Size, RAM, Speed, Capabilities
   │     ├─ Speed tier (computed from fileSizeGB):
   │     │     instant  = < 1 GB
@@ -106,7 +117,7 @@ User runs: .\run.ps1 models
   │     │     Gray   = below 5
   │     └─ Capabilities shown as: code, reason, write, voice, chat, multi
   │
-  ├─ 8. Model selection
+  ├─ 9. Model selection
   │     ├─ Orchestrator mode: auto-select all models
   │     └─ Interactive mode:
   │           ├─ Single: 3
@@ -115,11 +126,11 @@ User runs: .\run.ps1 models
   │           ├─ All: "all"
   │           └─ Quit: "q" / "quit" / "exit"
   │
-  ├─ 9. Disk space pre-check
-  │     Sum fileSizeGB of selected models → Test-DiskSpace -WarnOnly
-  │     Proceeds with warning if insufficient
+  ├─ 10. Disk space pre-check
+  │      Sum fileSizeGB of selected models → Test-DiskSpace -WarnOnly
+  │      Proceeds with warning if insufficient
   │
-  └─ 10. Download selected models
+  └─ 11. Download selected models
         For each model:
         ├─ Check .installed/ tracking + file on disk
         │     ├─ Tracked + file exists → skip (already downloaded)
@@ -132,9 +143,9 @@ User runs: .\run.ps1 models
 
 ---
 
-## 3-Filter Chain
+## 4-Filter Chain
 
-All three filters are **optional** (Enter to skip) and run sequentially.
+All four filters are **optional** (Enter to skip) and run sequentially.
 Each filter re-indexes the surviving models from 1..N so selection numbers
 always match the visible list.
 
@@ -146,6 +157,9 @@ Full catalog (81 models)
     │
     ├─ Size filter ─────→ removes models outside size tier
     │                     (e.g. "Small" → keeps models < 3 GB download)
+    │
+    ├─ Speed filter ────→ removes models outside speed tier(s)
+    │                     (e.g. "Instant,Fast" → keeps < 3 GB files)
     │
     └─ Capability filter → removes models without selected capabilities
                            (e.g. "Coding" → keeps only isCoding=true)
@@ -159,6 +173,7 @@ Full catalog (81 models)
 |-------------------------|--------------------|---------------------------------------|
 | `Read-RamFilter`        | RAM limit (GB)     | `ramRequiredGB <= limit`              |
 | `Read-SizeFilter`       | Size tier          | `fileSizeGB < tier_max` or `>= 12`   |
+| `Read-SpeedFilter`      | Speed tier(s)      | `fileSizeGB` within selected tier(s)  |
 | `Read-CapabilityFilter` | Capability indices | OR match on capability boolean flags  |
 
 ---
