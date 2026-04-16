@@ -223,6 +223,7 @@ Full catalog (81 models)
 | `source`            | string   | Yes      | Publisher / organization                                   |
 | `license`           | string   | Yes      | License type (e.g. `Apache 2.0`, `Llama 3.1`)             |
 | `downloadUrl`       | string   | Yes      | Direct GGUF download URL (Hugging Face)                    |
+| `sha256`            | string   | No       | SHA256 hash for integrity verification (empty = skip check)|
 | `huggingfacePage`   | string   | Yes      | Hugging Face model page URL                                |
 | `index`             | integer  | Yes      | Display order (1-based, sequential)                        |
 
