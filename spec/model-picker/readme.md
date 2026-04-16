@@ -280,6 +280,7 @@ Computed at display time from `fileSizeGB`:
 | All 6 capability flags on every model | Enables filter without null checks                      |
 | `rating.overall` drives color     | Quick visual quality signal in the catalog display          |
 | Speed tier from fileSizeGB        | Correlates with inference speed; no extra metadata needed   |
+| `sha256` empty = skip verification| Checksums populated gradually; missing hash never blocks download |
 
 ---
 

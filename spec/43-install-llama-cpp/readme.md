@@ -61,7 +61,8 @@ scripts/43-install-llama-cpp/
 
 - **81 models** across coding, reasoning, writing, voice, and general categories
 - No hardcoded paths -- models directory resolved at runtime
-- Rich metadata per model: `displayName`, `family`, `parameters`, `quantization`, `fileSizeGB`, `ramRequiredGB`, `ramRecommendedGB`, capability flags, `rating`, `bestFor`, `notes`, `license`, `downloadUrl`
+- Rich metadata per model: `displayName`, `family`, `parameters`, `quantization`, `fileSizeGB`, `ramRequiredGB`, `ramRecommendedGB`, capability flags, `rating`, `bestFor`, `notes`, `license`, `downloadUrl`, `sha256`
+- SHA256 checksums for download integrity verification (empty = skip check, populated gradually)
 - Includes latest models: Gemma 3 (1B/4B/12B), Llama 3.2 (1B/3B), SmolLM2, Phi-4 Mini/14B, Granite 3.1, Qwen 3/3.5, Claude distills, Devstral, EXAONE 4.0, Whisper variants
 
 ## Commands
