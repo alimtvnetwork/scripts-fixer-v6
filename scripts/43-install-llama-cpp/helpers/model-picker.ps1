@@ -203,6 +203,98 @@ function Read-SizeFilter {
     return $filtered
 }
 
+function Read-SpeedFilter {
+    <#
+    .SYNOPSIS
+        Prompts user to filter models by speed tier (based on fileSizeGB).
+        Returns filtered (and re-indexed) model array.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [array]$Models
+    )
+
+    # Count models per tier
+    $countInstant  = @($Models | Where-Object { $_.fileSizeGB -lt 1 }).Count
+    $countFast     = @($Models | Where-Object { $_.fileSizeGB -ge 1 -and $_.fileSizeGB -lt 3 }).Count
+    $countModerate = @($Models | Where-Object { $_.fileSizeGB -ge 3 -and $_.fileSizeGB -lt 8 }).Count
+    $countSlow     = @($Models | Where-Object { $_.fileSizeGB -ge 8 }).Count
+
+    Write-Host ""
+    Write-Host "  Filter by inference speed:" -ForegroundColor Cyan
+    Write-Host "    [1] Instant   (< 1 GB)  -- near real-time    ($countInstant models)" -ForegroundColor White
+    Write-Host "    [2] Fast      (< 3 GB)  -- very responsive   ($countFast models)" -ForegroundColor White
+    Write-Host "    [3] Moderate  (< 8 GB)  -- good throughput   ($countModerate models)" -ForegroundColor White
+    Write-Host "    [4] Slow      (8+ GB)   -- requires patience ($countSlow models)" -ForegroundColor White
+    Write-Host ""
+    Write-Host "    Combine: 1,2 = instant + fast  |  1-3 = up to moderate" -ForegroundColor DarkGray
+    Write-Host "    [Enter] No speed filter (show all)" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $input = Read-Host -Prompt "  Speed filter selection"
+    $trimmed = $input.Trim().ToLower()
+
+    $isEmpty = [string]::IsNullOrWhiteSpace($trimmed)
+    if ($isEmpty) { return $Models }
+
+    # Parse selection (supports single, range, comma-separated)
+    $selectedNums = @()
+    $parts = $trimmed -split ","
+    foreach ($part in $parts) {
+        $part = $part.Trim()
+        $isRange = $part -match "^(\d+)\s*-\s*(\d+)$"
+        if ($isRange) {
+            $rangeStart = [int]$Matches[1]
+            $rangeEnd   = [int]$Matches[2]
+            if ($rangeStart -gt $rangeEnd) { $rangeStart, $rangeEnd = $rangeEnd, $rangeStart }
+            for ($i = $rangeStart; $i -le $rangeEnd; $i++) {
+                $isValid = $i -ge 1 -and $i -le 4
+                if ($isValid) { $selectedNums += $i }
+            }
+        } elseif ($part -match "^\d+$") {
+            $num = [int]$part
+            $isValid = $num -ge 1 -and $num -le 4
+            if ($isValid) { $selectedNums += $num }
+        }
+    }
+    $selectedNums = $selectedNums | Sort-Object -Unique
+
+    $hasSelection = $selectedNums.Count -gt 0
+    if (-not $hasSelection) { return $Models }
+
+    # Build filter
+    $filtered = @($Models | Where-Object {
+        $size = $_.fileSizeGB
+        $isMatch = $false
+        foreach ($num in $selectedNums) {
+            switch ($num) {
+                1 { if ($size -lt 1) { $isMatch = $true } }
+                2 { if ($size -ge 1 -and $size -lt 3) { $isMatch = $true } }
+                3 { if ($size -ge 3 -and $size -lt 8) { $isMatch = $true } }
+                4 { if ($size -ge 8) { $isMatch = $true } }
+            }
+            if ($isMatch) { break }
+        }
+        $isMatch
+    })
+
+    $tierNames = @{ 1 = "Instant"; 2 = "Fast"; 3 = "Moderate"; 4 = "Slow" }
+    $labels = @($selectedNums | ForEach-Object { $tierNames[$_] })
+    $filterStr = $labels -join ", "
+
+    Write-Host ""
+    Write-Log "  Filtered to speed: $filterStr ($($filtered.Count) models)" -Level "info"
+
+    # Re-index
+    $idx = 1
+    foreach ($m in $filtered) {
+        $m.index = $idx
+        $idx++
+    }
+
+    return $filtered
+}
+
 function Read-CapabilityFilter {
     <#
     .SYNOPSIS
@@ -522,6 +614,7 @@ function Invoke-ModelInstaller {
     if (-not $isOrchestratorRun) {
         $displayModels = Read-RamFilter -Models $models
         $displayModels = Read-SizeFilter -Models $displayModels
+        $displayModels = Read-SpeedFilter -Models $displayModels
         $displayModels = Read-CapabilityFilter -Models $displayModels
     }
 
