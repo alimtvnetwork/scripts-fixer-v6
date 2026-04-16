@@ -15,16 +15,17 @@ function Show-ModelCatalog {
     )
 
     $colNum   = 5
-    $colName  = 42
+    $colName  = 38
     $colParam = 10
     $colQuant = 8
     $colSize  = 8
     $colRAM   = 8
+    $colSpeed = 10
     $colCaps  = 20
 
     Write-Host ""
-    Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6}" -f "#", "Model", "Params", "Quant", "Size", "RAM", "Capabilities") -ForegroundColor Cyan
-    Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colCaps))) -ForegroundColor DarkGray
+    Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6,-$colSpeed} {7}" -f "#", "Model", "Params", "Quant", "Size", "RAM", "Speed", "Capabilities") -ForegroundColor Cyan
+    Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colSpeed + $colCaps))) -ForegroundColor DarkGray
 
     $prevStarred = $null
     foreach ($model in $Models) {
@@ -32,7 +33,7 @@ function Show-ModelCatalog {
 
         # Section separator between starred and non-starred
         if ($null -ne $prevStarred -and $prevStarred -and -not $isStarred) {
-            Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colCaps))) -ForegroundColor DarkGray
+            Write-Host ("  " + ("-" * ($colNum + $colName + $colParam + $colQuant + $colSize + $colRAM + $colSpeed + $colCaps))) -ForegroundColor DarkGray
         }
         $prevStarred = $isStarred
 
@@ -46,6 +47,12 @@ function Show-ModelCatalog {
         if ($model.isMultilingual) { $caps += "multi" }
         $capsStr = $caps -join ", "
 
+        # Speed tier based on fileSizeGB (proxy for parameter count at similar quant)
+        $speedTier = if ($model.fileSizeGB -lt 1)  { "instant" }
+                     elseif ($model.fileSizeGB -lt 3)  { "fast" }
+                     elseif ($model.fileSizeGB -lt 8)  { "moderate" }
+                     else { "slow" }
+
         # Color based on rating
         $rating = if ($model.rating.overall) { $model.rating.overall } else { 0 }
         $color = if ($rating -ge 9) { "Green" } elseif ($rating -ge 7) { "Yellow" } elseif ($rating -ge 5) { "White" } else { "DarkGray" }
@@ -54,7 +61,7 @@ function Show-ModelCatalog {
         $ramStr  = "$($model.ramRequiredGB) GB"
         $truncName = if ($model.displayName.Length -gt ($colName - 2)) { $model.displayName.Substring(0, $colName - 4) + ".." } else { $model.displayName }
 
-        Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6}" -f "[$($model.index)]", $truncName, $model.parameters, $model.quantization, $sizeStr, $ramStr, $capsStr) -ForegroundColor $color
+        Write-Host ("  {0,-$colNum} {1,-$colName} {2,-$colParam} {3,-$colQuant} {4,-$colSize} {5,-$colRAM} {6,-$colSpeed} {7}" -f "[$($model.index)]", $truncName, $model.parameters, $model.quantization, $sizeStr, $ramStr, $speedTier, $capsStr) -ForegroundColor $color
     }
 
     Write-Host ""
