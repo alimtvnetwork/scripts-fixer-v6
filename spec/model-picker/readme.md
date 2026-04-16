@@ -136,7 +136,9 @@ User runs: .\run.ps1 models
         │     ├─ Tracked + file exists → skip (already downloaded)
         │     └─ Tracked + file missing → remove stale record, re-download
         ├─ Download via Invoke-Aria2Download (16 connections)
-        │     ├─ Success → Save-InstalledRecord
+        │     ├─ Success → SHA256 verification (if sha256 field non-empty)
+        │     │     ├─ Match → Save-InstalledRecord
+        │     │     └─ Mismatch → Write-FileError, delete file, count as failed
         │     └─ Fail → Write-FileError with exact path + reason
         └─ Summary: N downloaded, N skipped, N failed
 ```
