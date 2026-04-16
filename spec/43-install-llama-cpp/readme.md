@@ -31,29 +31,35 @@ scripts/43-install-llama-cpp/
 ### Interactive Model Picker
 1. **aria2c setup** -- auto-installs via `choco install aria2`; falls back to `Invoke-DownloadWithRetry`
 2. **Models directory** -- user picks custom path or Enter for default (`<dev-dir>\llama-models`)
-3. **Capability filter** -- optional filter menu before catalog display:
+3. **RAM filter** -- optional filter by available system RAM:
+   - Preset tiers: 4, 8, 16, 32, 64 GB or auto-detected system RAM
+   - Direct numeric input supported; Enter to skip
+4. **Size filter** -- optional filter by download size tier:
+   - `[1] Tiny (<1 GB)`, `[2] Small (<3 GB)`, `[3] Medium (<6 GB)`, `[4] Large (<12 GB)`, `[5] XLarge (12+ GB)`
+   - Enter to skip; models re-indexed after filtering
+5. **Capability filter** -- optional filter menu before catalog display:
    - `[1] Coding`, `[2] Reasoning`, `[3] Writing`, `[4] Chat`, `[5] Voice`, `[6] Multilingual`
    - Supports same selection syntax as model picker (single, range, comma-separated)
    - Enter to skip filter and show all models; OR logic (any matching cap shown)
    - Models re-indexed after filtering for clean numbered display
-4. **Catalog display** -- numbered list with columns: #, Model, Params, Quant, Size, RAM, Capabilities
+6. **Catalog display** -- numbered list with columns: #, Model, Params, Quant, Size, RAM, Capabilities
    - Starred (recommended) models shown first, color-coded by rating
-4. **Selection input** -- supports:
+7. **Selection input** -- supports:
    - Single: `3`
    - Range: `1-5`
    - Mixed: `1-3,7,12-15`
    - All: `all`
    - Quit: `q`
-5. **Disk space check** -- warns if insufficient for selected models
-6. **Download** -- each model via aria2c (16 connections), tracked in `.installed/model-<id>.json`
-7. **Summary** -- downloaded/skipped/failed counts
+8. **Disk space check** -- warns if insufficient for selected models
+9. **Download** -- each model via aria2c (16 connections), tracked in `.installed/model-<id>.json`
+10. **Summary** -- downloaded/skipped/failed counts
 
 ## Model Catalog (`models-catalog.json`)
 
-- **69 models** across coding, reasoning, writing, voice, and general categories
+- **81 models** across coding, reasoning, writing, voice, and general categories
 - No hardcoded paths -- models directory resolved at runtime
 - Rich metadata per model: `displayName`, `family`, `parameters`, `quantization`, `fileSizeGB`, `ramRequiredGB`, `ramRecommendedGB`, capability flags, `rating`, `bestFor`, `notes`, `license`, `downloadUrl`
-- Includes latest models: Qwen 2.6, Qwen 3.5, Claude 4.7 Opus Distill, Sonnet 4.6 Distill, Devstral, EXAONE 4.0, Whisper variants
+- Includes latest models: Gemma 3 (1B/4B/12B), Llama 3.2 (1B/3B), SmolLM2, Phi-4 Mini/14B, Granite 3.1, Qwen 3/3.5, Claude distills, Devstral, EXAONE 4.0, Whisper variants
 
 ## Commands
 
