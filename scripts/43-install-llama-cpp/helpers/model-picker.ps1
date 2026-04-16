@@ -514,6 +514,7 @@ function Invoke-ModelInstaller {
     $displayModels = $models
     if (-not $isOrchestratorRun) {
         $displayModels = Read-RamFilter -Models $models
+        $displayModels = Read-SizeFilter -Models $displayModels
         $displayModels = Read-CapabilityFilter -Models $displayModels
     }
 
